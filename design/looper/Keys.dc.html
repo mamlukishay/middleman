@@ -1,0 +1,159 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; background: #14161a; }
+    a { color: #e8b44a; text-decoration: none; }
+    a:hover { color: #f0c76e; }
+  </style>
+</helmet>
+
+<div style="width: 900px; height: 660px; background: #14161a; color: #e6e8ec; font: 14px/1.45 ui-sans-serif, system-ui, sans-serif; padding: 18px 20px; display: grid; grid-template-columns: 1fr 300px; gap: 20px; overflow: hidden;">
+
+  <div style="display: flex; flex-direction: column; gap: 13px; min-width: 0;">
+    <div style="display: flex; align-items: baseline; gap: 12px;">
+      <h2 style="font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: #8b93a3; margin: 0; font-weight: 700;">Keys</h2>
+      <div style="font-size: 13px; color: #8b93a3;">press one — it lights up here</div>
+    </div>
+
+    <sc-for list="{{groups}}" as="g" hint-placeholder-count="4">
+      <div style="display: flex; flex-direction: column; gap: 5px;">
+        <div style="font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: #8b93a3; font-weight: 700;">{{g.name}}</div>
+        <sc-for list="{{g.rows}}" as="r" hint-placeholder-count="5">
+          <div style="{{r.row}}">
+            <span style="display: flex; gap: 3px; flex: 0 0 96px;">
+              <sc-for list="{{r.caps}}" as="c" hint-placeholder-count="2">
+                <span style="{{c.s}}">{{c.label}}</span>
+              </sc-for>
+            </span>
+            <span style="font-size: 12.5px;">{{r.what}}</span>
+            <span style="margin-left: auto; font-size: 11px; color: #6c7382; text-align: right;">{{r.note}}</span>
+          </div>
+        </sc-for>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 12px; min-width: 0;">
+    <div style="border: 1px solid #2c313b; border-radius: 8px; background: #1c1f26; padding: 12px 13px; display: flex; flex-direction: column; gap: 9px;">
+      <div style="font-size: 13px; font-weight: 600;">Your hands are on the piano.</div>
+      <div style="font-size: 12px; color: #8b93a3; line-height: 1.5;">A guitarist has a foot free; you do not. So no control may need to be hit <em style="font-style: normal; color: #e6e8ec;">at</em> a musical moment. Three ways out, in the order you will reach for them:</div>
+
+      <sc-for list="{{routes}}" as="r" hint-placeholder-count="3">
+        <div style="display: flex; gap: 9px; align-items: flex-start; padding-top: 8px; border-top: 1px solid #2c313b;">
+          <span style="{{r.badge}}">{{r.n}}</span>
+          <span style="min-width: 0;">
+            <span style="font-size: 12.5px; font-weight: 600; display: block;">{{r.title}}</span>
+            <span style="font-size: 11.5px; color: #8b93a3; line-height: 1.45; display: block;">{{r.desc}}</span>
+          </span>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="border: 1px solid #2c313b; border-radius: 8px; padding: 12px 13px; display: flex; flex-direction: column; gap: 8px;">
+      <div style="font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: #8b93a3; font-weight: 700;">Watch out for</div>
+      <div style="font-size: 11.5px; color: #8b93a3; line-height: 1.5;"><span style="padding: 1px 6px; border: 1px solid #2c313b; border-radius: 4px; background: #22262f; font: 600 11px ui-monospace, SFMono-Regular, Menlo, monospace; color: #e6e8ec;">Space</span> already starts and stops the backing track, and the tempo field is editable — the handler has to leave inputs and buttons alone, exactly as the app does today.</div>
+      <div style="font-size: 11.5px; color: #8b93a3; line-height: 1.5;">The damper pedal sends <span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: #e6e8ec;">CC64</span>, and you need it for sustain — so it cannot double as the record switch. A second pedal on its own CC can, through MIDI learn.</div>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { down: '' };
+    this.onDown = e => { if (!e.metaKey && !e.ctrlKey && !e.altKey) this.setState({ down: this.norm(e) }); };
+    this.onUp = () => this.setState({ down: '' });
+  }
+
+  norm(e) {
+    if (e.code === 'Space') return 'space';
+    if (e.key === 'Escape') return 'esc';
+    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') return 'arrows';
+    if (e.key >= '1' && e.key <= '4') return 'lanes';
+    if (e.key === '[' || e.key === ']') return 'brackets';
+    return e.key.toLowerCase();
+  }
+
+  componentDidMount() {
+    document.addEventListener('keydown', this.onDown);
+    document.addEventListener('keyup', this.onUp);
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener('keydown', this.onDown);
+    document.removeEventListener('keyup', this.onUp);
+  }
+
+  renderVals() {
+    const down = this.state.down;
+    const cap = hot => 'padding: 2px 7px; border-radius: 4px; font: 600 11px ui-monospace, SFMono-Regular, Menlo, monospace; '
+      + (hot ? 'background: #e8b44a; color: #14161a; border: 1px solid #e8b44a; box-shadow: 0 0 10px rgba(232,180,74,.45);'
+        : 'background: #22262f; color: #e6e8ec; border: 1px solid #2c313b;');
+
+    const G = [
+      { name: 'Lane', rows: [
+        { id: 'lanes', caps: ['1', '2', '3', '4'], what: 'select a lane', note: 'four lanes' },
+      ] },
+      { name: 'The cycle', rows: [
+        { id: 'r', caps: ['R'], what: 'record → end take → overdub → end overdub', note: 'lands on the bar line' },
+        { id: 'c', caps: ['C'], what: 'capture the last bars you played', note: 'no arming needed' },
+        { id: 'u', caps: ['U'], what: 'drop the last overdub layer', note: 'shift+U puts it back' },
+        { id: 'x', caps: ['X'], what: 'clear the lane', note: 'hold to confirm' },
+        { id: 'esc', caps: ['Esc'], what: 'every lane back to plain playback', note: 'the panic key' },
+      ] },
+      { name: 'Shape', rows: [
+        { id: 'brackets', caps: ['[', ']'], what: 'halve / double the loop length', note: '1 · 2 · 4 · chorus' },
+        { id: 'f', caps: ['F'], what: 'follow the changes on / off', note: 'transposes each repeat' },
+        { id: 'q', caps: ['Q'], what: 'quantize grid', note: 'off · 1/8 · 1/16 · triplet' },
+        { id: 'arrows', caps: ['↑', '↓'], what: 'move the lane an octave', note: 'keeps it off the bass' },
+      ] },
+      { name: 'Mix', rows: [
+        { id: 'm', caps: ['M'], what: 'mute the lane', note: 'keeps cycling, silently' },
+        { id: 's', caps: ['S'], what: 'solo the lane', note: 'hear one against the track' },
+        { id: 'space', caps: ['Space'], what: 'start / stop the backing track', note: 'as it already works' },
+      ] },
+    ];
+
+    const groups = G.map(g => ({
+      name: g.name,
+      rows: g.rows.map(r => {
+        const hot = down === r.id;
+        return {
+          what: r.what, note: r.note,
+          caps: r.caps.map(c => ({ label: c, s: cap(hot) })),
+          row: 'display: flex; align-items: center; gap: 11px; padding: 6px 9px; border-radius: 6px; border: 1px solid '
+            + (hot ? '#e8b44a' : '#2c313b') + '; background: ' + (hot ? '#22262f' : '#1c1f26') + ';',
+        };
+      }),
+    }));
+
+    const badge = 'flex: 0 0 auto; width: 19px; height: 19px; border-radius: 50%; display: flex; align-items: center; '
+      + 'justify-content: center; font: 600 11px ui-monospace, SFMono-Regular, Menlo, monospace; background: #22262f; '
+      + 'color: #e8b44a; border: 1px solid #e8b44a;';
+
+    return {
+      groups: groups,
+      routes: [
+        { n: '1', title: 'Take it afterwards', badge: badge,
+          desc: 'C, any time. The best idea usually arrives before you meant to record it.' },
+        { n: '2', title: 'Arm it early', badge: badge,
+          desc: 'R during the bar before. It waits for the line, so being early costs nothing — and being late is backfilled.' },
+        { n: '3', title: 'A second pedal', badge: badge,
+          desc: 'MIDI learn any CC to R and C, for anyone with a spare switch. Not required, and never the damper.' },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

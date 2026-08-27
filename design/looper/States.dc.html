@@ -1,0 +1,195 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; background: #14161a; }
+    a { color: #e8b44a; text-decoration: none; }
+    a:hover { color: #f0c76e; }
+    @keyframes pend { 0%,100% { opacity: 1 } 50% { opacity: .35 } }
+  </style>
+</helmet>
+
+<div style="width: 1040px; height: 600px; background: #14161a; color: #e6e8ec; font: 14px/1.45 ui-sans-serif, system-ui, sans-serif; padding: 18px 20px; display: flex; flex-direction: column; gap: 16px; overflow: hidden;">
+
+  <div style="display: flex; align-items: baseline; gap: 12px;">
+    <h2 style="font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: #8b93a3; margin: 0; font-weight: 700;">Lane states</h2>
+    <div style="font-size: 15px;">One key drives the whole cycle. <span style="padding: 1px 7px; border: 1px solid #2c313b; border-radius: 4px; background: #22262f; font: 600 12px ui-monospace, SFMono-Regular, Menlo, monospace;">R</span></div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; align-items: stretch;">
+    <sc-for list="{{states}}" as="st" hint-placeholder-count="7">
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <div style="{{st.card}}">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span style="{{st.dot}}"></span>
+            <span style="font: 600 10px ui-monospace, SFMono-Regular, Menlo, monospace; color: #14161a; background: #a563ee; border-radius: 3px; padding: 0 4px;">3</span>
+            <span style="{{st.name}}">{{st.laneName}}</span>
+          </div>
+          <div style="{{st.chip}}">{{st.chipLabel}}</div>
+          <div style="{{st.roll}}">
+            <sc-for list="{{st.notes}}" as="n" hint-placeholder-count="6">
+              <div style="{{n.s}}"></div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="font-size: 11px; color: #8b93a3; line-height: 1.4;"><b style="color: #e6e8ec; font-weight: 600;">{{st.title}}</b><br>{{st.desc}}</div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="display: flex; align-items: center; gap: 8px; font-size: 11px; color: #8b93a3; padding: 0 2px;">
+    <sc-for list="{{flow}}" as="f" hint-placeholder-count="6">
+      <span style="{{f.s}}">{{f.label}}</span>
+    </sc-for>
+  </div>
+
+  <div style="border: 1px solid #2c313b; border-radius: 8px; background: #1c1f26; padding: 13px 15px; display: flex; flex-direction: column; gap: 10px;">
+    <div style="display: flex; align-items: baseline; gap: 12px;">
+      <h2 style="font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: #8b93a3; margin: 0; font-weight: 700;">Why the timing never bites</h2>
+      <div style="font-size: 13px;">Every action lands on the next bar line — and a late press is backfilled from the buffer.</div>
+      <span style="margin-left: auto; font-size: 11px; color: #8b93a3;">click the strip to move the press</span>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 4px;">
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; font: 600 10px ui-monospace, SFMono-Regular, Menlo, monospace; color: #8b93a3;">
+        <div>bar 4</div><div>bar 5</div><div>bar 6</div>
+      </div>
+      <div style="position: relative; height: 62px; border: 1px solid #2c313b; border-radius: 6px; background: #191d24; overflow: hidden;">
+        <div style="position: absolute; inset: 0; display: grid; grid-template-columns: repeat(24, minmax(0, 1fr));">
+          <sc-for list="{{cells}}" as="c" hint-placeholder-count="24">
+            <div onClick="{{c.on}}" style="{{c.s}}"></div>
+          </sc-for>
+        </div>
+        <div style="{{fillStyle}}"></div>
+        <div style="{{recStyle}}"></div>
+        <div style="{{pressStyle}}"></div>
+        <div style="{{pressLabelStyle}}">{{pressLabel}}</div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 16px; font-size: 11px; color: #8b93a3; padding-top: 2px;">
+        <span style="display: flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 8px; border-radius: 2px; background: rgba(230,61,64,.85);"></span>recorded</span>
+        <span style="display: flex; align-items: center; gap: 6px;"><span style="width: 12px; height: 8px; border-radius: 2px; background: rgba(230,61,64,.22); border: 1px dashed #e63d40;"></span>backfilled from the buffer</span>
+        <span style="margin-left: auto; color: #e6e8ec;">{{verdict}}</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.REC = '#e63d40';
+    this.DUB = '#e8b44a';
+    this.COL = '#a563ee';
+    this.state = { press: 11 };
+  }
+
+  renderVals() {
+    const S = this.state;
+    const col = this.COL;
+    const note = (b, len, p, kind) => {
+      const bg = kind === 'ghost'
+        ? 'background: transparent; border: 1px solid ' + col + '; opacity: .45;'
+        : kind === 'rec' ? 'background: ' + this.REC + ';'
+          : kind === 'dub' ? 'background: ' + this.DUB + ';'
+            : kind === 'mute' ? 'background: ' + col + '; opacity: .26;'
+              : 'background: ' + col + ';';
+      return { s: 'position: absolute; border-radius: 2px; left: ' + (b / 16 * 100).toFixed(2) + '%; width: '
+        + (len / 16 * 100).toFixed(2) + '%; top: ' + p + 'px; height: 4px; ' + bg };
+    };
+    const line = [[0, 1.2, 8], [1.6, .8, 16], [2.6, 1.4, 12], [4.4, .8, 22], [5.5, 1.6, 18],
+      [8, 1.2, 14], [9.6, .8, 8], [10.6, 1.8, 20], [13, 1.5, 12]];
+    const mk = (kind, upto) => line.filter(n => upto == null || n[0] < upto).map(n => note(n[0], n[1], n[2], kind));
+
+    const card = (border, bg) => 'border: 1px solid ' + border + '; border-radius: 6px; background: ' + bg
+      + '; padding: 8px 9px; display: flex; flex-direction: column; gap: 6px; min-height: 108px;';
+    const chip = (c, pending) => 'font: 600 9px ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .06em; color: '
+      + c + ';' + (pending ? ' animation: pend 1s ease-in-out infinite;' : '');
+    const roll = 'position: relative; height: 38px; border-radius: 4px; background-image: repeating-linear-gradient(to right, rgba(70,78,92,.4) 0 1px, transparent 1px 25%); background-color: #191d24;';
+    const dot = (c, pending, glow) => 'width: 8px; height: 8px; border-radius: 50%; background: ' + c + ';'
+      + (pending ? ' animation: pend 1s ease-in-out infinite;' : '') + (glow ? ' box-shadow: 0 0 8px ' + c + ';' : '');
+    const nm = c => 'font-size: 12px; font-weight: 600; color: ' + c + ';';
+
+    const states = [
+      { title: 'Empty', desc: 'Nothing here. R arms it.', laneName: '—', chipLabel: '', chipCol: '#3a3f4a',
+        dotC: '#3a3f4a', nameC: '#6c7382', notes: [], border: '#2c313b', bg: '#1c1f26' },
+      { title: 'Armed', desc: 'Waiting for the bar line. R again cancels.', laneName: 'Take 3', chipLabel: 'REC next bar',
+        chipCol: this.REC, dotC: this.REC, nameC: '#e6e8ec', notes: [], pending: true, border: this.REC, bg: '#1c1f26' },
+      { title: 'Recording', desc: 'First pass. It sets the loop length.', laneName: 'Take 3', chipLabel: 'REC',
+        chipCol: this.REC, dotC: this.REC, glow: true, nameC: '#e6e8ec', notes: mk('rec', 9), border: this.REC, bg: 'rgba(230,61,64,.06)' },
+      { title: 'Playing', desc: 'Looping. Repeats show as outlines.', laneName: 'Take 3', chipLabel: 'PLAY',
+        chipCol: '#5fbf7a', dotC: '#5fbf7a', nameC: '#e6e8ec',
+        notes: mk('play').concat(mk('ghost').map(n => ({ s: n.s.replace('left: ', 'left: ') }))), border: '#2c313b', bg: '#1c1f26' },
+      { title: 'Armed dub', desc: 'A new layer starts at the next bar line.', laneName: 'Take 3', chipLabel: 'DUB next bar',
+        chipCol: this.DUB, dotC: this.DUB, nameC: '#e6e8ec', notes: mk('play'), pending: true, border: this.DUB, bg: '#1c1f26' },
+      { title: 'Overdubbing', desc: 'Adding on top. Each pass is its own layer.', laneName: 'Take 3', chipLabel: 'DUB',
+        chipCol: this.DUB, dotC: this.DUB, glow: true, nameC: '#e6e8ec',
+        notes: mk('play').concat(mk('dub', 7).map(n => ({ s: n.s.replace(/top: (\d+)px/, (m, y) => 'top: ' + (+y + 12) + 'px') }))),
+        border: this.DUB, bg: 'rgba(232,180,74,.05)' },
+      { title: 'Muted', desc: 'Still cycling, just silent. Nothing is lost.', laneName: 'Take 3', chipLabel: 'MUTE',
+        chipCol: '#6c7382', dotC: '#6c7382', nameC: '#8b93a3', notes: mk('mute'), border: '#2c313b', bg: '#1c1f26' },
+    ].map(s => ({
+      title: s.title, desc: s.desc, laneName: s.laneName, chipLabel: s.chipLabel, notes: s.notes,
+      card: card(s.border, s.bg), chip: chip(s.chipCol, s.pending), roll: roll,
+      dot: dot(s.dotC, s.pending, s.glow), name: nm(s.nameC),
+    }));
+
+    const arrow = 'color: #4d545f;';
+    const flow = [
+      { label: 'empty', s: 'color: #8b93a3;' }, { label: '— R →', s: arrow },
+      { label: 'armed → bar line → recording', s: 'color: ' + this.REC + ';' }, { label: '— R →', s: arrow },
+      { label: 'playing', s: 'color: #5fbf7a;' }, { label: '— R → armed dub → bar line → overdubbing — R → playing', s: 'color: ' + this.DUB + ';' },
+    ];
+
+    // press position, in eighths across three bars (24 eighths); bar lines at 0, 8, 16
+    const press = S.press;
+    const pressBeat = press / 2;
+    const barLine = Math.round(pressBeat / 4) * 4;
+    const late = pressBeat > barLine;
+    const backfill = Math.abs(pressBeat - barLine);
+
+    const cells = [];
+    for (let i = 0; i < 24; i++) {
+      cells.push({
+        on: () => this.setState({ press: i }),
+        s: 'cursor: pointer; border-right: 1px solid ' + (i % 8 === 7 ? 'rgba(70,78,92,.75)' : 'rgba(70,78,92,.22)') + ';',
+      });
+    }
+
+    const pctOf = beat => beat / 12 * 100;
+
+    return {
+      states: states,
+      flow: flow,
+      cells: cells,
+      recStyle: 'position: absolute; top: 8px; bottom: 8px; pointer-events: none; left: ' + pctOf(barLine).toFixed(2)
+        + '%; right: 0; background: rgba(230,61,64,.85); border-radius: 3px; opacity: .85;',
+      fillStyle: late
+        ? 'position: absolute; top: 8px; bottom: 8px; pointer-events: none; left: ' + pctOf(barLine).toFixed(2)
+          + '%; width: ' + (backfill / 12 * 100).toFixed(2) + '%; background: rgba(230,61,64,.22); border: 1px dashed '
+          + this.REC + '; border-radius: 3px; z-index: 2;'
+        : 'display: none;',
+      pressStyle: 'position: absolute; top: 0; bottom: 0; width: 2px; pointer-events: none; left: ' + pctOf(pressBeat).toFixed(2)
+        + '%; background: #ff2fd6; box-shadow: 0 0 8px rgba(255,47,214,.8); z-index: 3;',
+      pressLabelStyle: 'position: absolute; top: 3px; pointer-events: none; z-index: 3; left: ' + pctOf(pressBeat).toFixed(2)
+        + '%; padding-left: 6px; font: 600 10px ui-monospace, SFMono-Regular, Menlo, monospace; color: #ff2fd6; white-space: nowrap;',
+      pressLabel: 'you press R',
+      verdict: backfill < 0.05
+        ? 'dead on the line — nothing to fix'
+        : (late
+          ? 'pressed ' + backfill.toFixed(1) + ' beats late — the take still starts on the line, and the notes you already played are pulled back in'
+          : 'pressed ' + backfill.toFixed(1) + ' beats early — the take waits for the line'),
+    };
+  }
+}
+</script>
+</body>
+</html>

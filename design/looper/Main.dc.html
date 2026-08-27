@@ -1,0 +1,664 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; background: #14161a; }
+    a { color: #e8b44a; text-decoration: none; }
+    a:hover { color: #f0c76e; }
+    @keyframes pend { 0%,100% { opacity: 1 } 50% { opacity: .35 } }
+  </style>
+</helmet>
+
+<div style="width: 1440px; height: 900px; display: grid; grid-template-columns: 200px 1fr; background: #14161a; color: #e6e8ec; font: 14px/1.45 ui-sans-serif, system-ui, sans-serif; overflow: hidden;">
+
+  <aside style="background: #1c1f26; border-right: 1px solid #2c313b; padding: 10px; display: flex; flex-direction: column; gap: 16px; min-height: 0;">
+    <div style="display: flex; flex-direction: column; gap: 3px;">
+      <h2 style="font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: #8b93a3; margin: 0 0 8px; font-weight: 700;">Backing tracks</h2>
+      <div style="padding: 7px 9px; border-radius: 6px; background: #e8b44a; color: #14161a; font-weight: 600;">
+        <div>C blues</div><div style="font-size: 11px; color: #5c4a1c;">100 bpm · shuffle</div>
+      </div>
+      <div style="padding: 7px 9px; border-radius: 6px;">
+        <div>F blues</div><div style="font-size: 11px; color: #8b93a3;">88 bpm · slow</div>
+      </div>
+      <div style="padding: 7px 9px; border-radius: 6px;">
+        <div>G blues</div><div style="font-size: 11px; color: #8b93a3;">132 bpm · fast</div>
+      </div>
+      <div style="padding: 7px 9px; border-radius: 6px;">
+        <div>Billie Jean</div><div style="font-size: 11px; color: #8b93a3;">117 bpm · F#m vamp</div>
+      </div>
+    </div>
+
+    <div style="margin-top: auto; display: flex; flex-direction: column; gap: 7px; border-top: 1px solid #2c313b; padding-top: 12px;">
+      <h2 style="font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: #8b93a3; margin: 0; font-weight: 700;">Loop set</h2>
+      <div style="font-size: 12px; color: #8b93a3;">{{setLine}}</div>
+      <button style="background: #2a2f3a; color: #e6e8ec; border: 1px solid #2c313b; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 13px; text-align: left;">Save to tracks.json</button>
+    </div>
+  </aside>
+
+  <main style="display: grid; grid-template-rows: auto 1fr auto auto; min-width: 0; min-height: 0;">
+
+    <div style="display: flex; gap: 10px; align-items: center; padding: 8px 14px; border-bottom: 1px solid #2c313b;">
+      <button onClick="{{onPlay}}" style="{{playBtn}}">{{playLabel}}</button>
+      <button onClick="{{onStopAll}}" style="background: #2a2f3a; color: #e6e8ec; border: 1px solid #2c313b; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 13px;">■ Stop</button>
+      <button onClick="{{onMetro}}" style="{{metroBtn}}">● Click</button>
+      <span style="width: 1px; height: 20px; background: #2c313b;"></span>
+      <span style="font-variant-numeric: tabular-nums; color: #8b93a3; min-width: 132px; font-size: 13px;">{{posLine}}</span>
+      <span style="display: flex; align-items: center; gap: 7px; color: #8b93a3; font-size: 12px;">Speed
+        <span style="display: block; width: 110px; height: 4px; border-radius: 2px; background: #2c313b; position: relative;">
+          <span style="{{bpmFill}}"></span>
+        </span>
+        <b style="color: #e6e8ec; font-variant-numeric: tabular-nums; min-width: 30px; text-align: right;">{{bpm}}</b> bpm
+      </span>
+      <span style="margin-left: 14px; color: #ff2fd6; font-weight: 700; font-size: 14px; min-width: 130px; text-shadow: 0 0 10px rgba(255,47,214,.5); font-variant-numeric: tabular-nums;">{{playedLine}}</span>
+      <span style="{{ledStyle}}"></span>
+      <span style="margin-left: auto; color: #8b93a3; font-size: 11px;">out: Digital Piano · in: 1</span>
+    </div>
+
+    <div style="padding: 12px 14px 0; display: flex; flex-direction: column; gap: 9px; min-height: 0;">
+
+      <div style="display: flex; align-items: baseline; gap: 12px;">
+        <h2 style="font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: #8b93a3; margin: 0; font-weight: 700;">Looper</h2>
+        <span style="font-size: 11px; color: #8b93a3;">one chorus wide · loops sit where you played them</span>
+        <span style="margin-left: auto; display: flex; align-items: center; gap: 8px; font-size: 11px; color: #8b93a3;">
+          <span>snap</span>
+          <button onClick="{{onSnap}}" style="background: #22262f; color: #e6e8ec; border: 1px solid #2c313b; border-radius: 5px; padding: 3px 8px; cursor: pointer; font-size: 11px; font-variant-numeric: tabular-nums;">{{snapLabel}}</button>
+          <span>quantize</span>
+          <button onClick="{{onQuant}}" style="background: #22262f; color: #e6e8ec; border: 1px solid #2c313b; border-radius: 5px; padding: 3px 8px; cursor: pointer; font-size: 11px; font-variant-numeric: tabular-nums;">{{quantLabel}}</button>
+        </span>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 176px 1fr; gap: 8px; align-items: center;">
+        <div style="font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: #8b93a3; font-weight: 700; text-align: right; padding-right: 4px;">Form</div>
+        <div style="position: relative;">
+          <div style="display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 4px;">
+            <sc-for list="{{bars}}" as="bar" hint-placeholder-count="12">
+              <div style="{{bar.style}}">{{bar.label}}</div>
+            </sc-for>
+          </div>
+          <div style="{{headStyle}}"></div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <sc-for list="{{lanes}}" as="ln" hint-placeholder-count="4">
+          <div style="display: grid; grid-template-columns: 176px 1fr; gap: 8px;">
+
+            <div onClick="{{ln.onSel}}" style="{{ln.headStyle}}">
+              <div style="display: flex; align-items: center; gap: 7px;">
+                <span style="{{ln.dotStyle}}"></span>
+                <span style="{{ln.numStyle}}">{{ln.num}}</span>
+                <span style="{{ln.nameStyle}}">{{ln.name}}</span>
+                <span style="{{ln.stStyle}}">{{ln.stLabel}}</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: #8b93a3; font-variant-numeric: tabular-nums;">
+                <span>{{ln.spanLine}}</span>
+                <sc-if value="{{ln.showFollow}}" hint-placeholder-val="{{true}}">
+                  <button onClick="{{ln.onFollow}}" style="{{ln.followStyle}}" title="transpose each repeat to the chord underneath it">follow</button>
+                </sc-if>
+              </div>
+              <div style="display: flex; align-items: center; gap: 5px;">
+                <button onClick="{{ln.onMute}}" style="{{ln.muteStyle}}">M</button>
+                <button onClick="{{ln.onSolo}}" style="{{ln.soloStyle}}">S</button>
+                <span style="display: flex; gap: 2px; align-items: flex-end; height: 12px; margin-left: 2px;">
+                  <sc-for list="{{ln.levels}}" as="lv" hint-placeholder-count="5">
+                    <span style="{{lv.s}}"></span>
+                  </sc-for>
+                </span>
+                <span style="margin-left: auto; font-size: 10px; color: #8b93a3; font-variant-numeric: tabular-nums;">{{ln.octLabel}}</span>
+              </div>
+            </div>
+
+            <div style="{{ln.rollStyle}}">
+              <sc-for list="{{ln.notes}}" as="nt" hint-placeholder-count="14">
+                <div style="{{nt.s}}"></div>
+              </sc-for>
+              <sc-if value="{{ln.showSpan}}" hint-placeholder-val="{{true}}">
+                <div style="{{ln.spanStyle}}"></div>
+              </sc-if>
+              <sc-if value="{{ln.empty}}" hint-placeholder-val="{{false}}">
+                <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; color: #6c7382;">
+                  <span>empty —</span>
+                  <span style="{{ln.kbdStyle}}">{{ln.num}}</span>
+                  <span>then</span>
+                  <span style="{{ln.kbdStyle}}">R</span>
+                  <span>to record here</span>
+                </div>
+              </sc-if>
+              <div style="{{ln.headStyle2}}"></div>
+            </div>
+
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="margin: 12px 14px 0; border: 1px solid #2c313b; border-radius: 8px; background: #1c1f26; display: grid; grid-template-columns: auto 1px 1fr; gap: 14px; align-items: center; padding: 10px 12px;">
+
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <button onClick="{{onCapture}}" style="background: #2a2f3a; color: #e8b44a; border: 1px solid #e8b44a; border-radius: 6px; padding: 9px 14px; cursor: pointer; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e8b44a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v5h5"></path></svg>
+          Capture
+        </button>
+        <div style="display: flex; flex-direction: column; gap: 5px;">
+          <div style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: #8b93a3;">
+            <span>last</span>
+            <sc-for list="{{capOpts}}" as="c" hint-placeholder-count="4">
+              <button onClick="{{c.on}}" style="{{c.s}}">{{c.label}}</button>
+            </sc-for>
+            <span>from the buffer</span>
+          </div>
+          <div style="position: relative; width: 340px; height: 34px; border: 1px solid #2c313b; border-radius: 5px; background: #171a20; overflow: hidden;">
+            <sc-for list="{{buffer}}" as="bn" hint-placeholder-count="20">
+              <div style="{{bn.s}}"></div>
+            </sc-for>
+            <div style="{{capWinStyle}}"></div>
+          </div>
+        </div>
+        <div style="max-width: 176px; font-size: 11px; line-height: 1.4; color: #8b93a3;">Your playing is always in the buffer — you never have to arm before a good idea.</div>
+      </div>
+
+      <div style="width: 1px; align-self: stretch; background: #2c313b;"></div>
+
+      <div style="display: flex; flex-direction: column; gap: 9px; min-width: 0;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <button onClick="{{onRec}}" style="{{recBtn}}">{{recLabel}}</button>
+          <button onClick="{{onUndo}}" style="{{undoBtn}}">↶ Undo layer</button>
+          <button onClick="{{onClear}}" style="background: #2a2f3a; color: #e6e8ec; border: 1px solid #2c313b; border-radius: 6px; padding: 7px 12px; cursor: pointer; font-size: 13px;">✕ Clear</button>
+          <span style="font-size: 11px; color: #8b93a3; margin-left: 4px;">{{selLine}}</span>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 5px 14px; align-items: center; font-size: 11px; color: #8b93a3;">
+          <sc-for list="{{keymap}}" as="k" hint-placeholder-count="11">
+            <span style="display: flex; align-items: center; gap: 5px;">
+              <span style="{{k.s}}">{{k.key}}</span>
+              <span>{{k.what}}</span>
+            </span>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+
+    <div style="border-top: 1px solid #2c313b; background: #1c1f26; padding: 8px 14px; margin-top: 12px;">
+      <div style="display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 7px; font-size: 12px; align-items: center;">
+        <div>C blues scale: <b style="color: #e8b44a;">C D# F F# G A#</b></div>
+        <div>Blue note: <b style="color: #e8b44a;">F#</b></div>
+        <div style="display: flex; align-items: center; gap: 14px; margin-left: auto;">
+          <sc-for list="{{legend}}" as="lg" hint-placeholder-count="4">
+            <span style="display: flex; align-items: center; gap: 5px; color: #8b93a3;">
+              <span style="{{lg.s}}"></span>{{lg.label}}
+            </span>
+          </sc-for>
+        </div>
+      </div>
+      <div style="position: relative; height: 90px; user-select: none;">
+        <sc-for list="{{whites}}" as="w" hint-placeholder-count="29">
+          <div style="{{w.s}}"></div>
+        </sc-for>
+        <sc-for list="{{blacks}}" as="b" hint-placeholder-count="20">
+          <div style="{{b.s}}"></div>
+        </sc-for>
+      </div>
+    </div>
+
+  </main>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{
+  "bpm": {"editor": "range", "default": 100, "min": 60, "max": 200, "step": 1, "unit": " bpm", "section": "Transport", "tsType": "number"},
+  "showGhosts": {"editor": "boolean", "default": true, "section": "Lanes", "tsType": "boolean"},
+  "laneHeight": {"editor": "int", "default": 96, "min": 76, "max": 132, "step": 4, "unit": "px", "section": "Lanes", "tsType": "number"}
+}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.FORM = [0, 0, 0, 0, 5, 5, 0, 0, 7, 5, 0, 7];
+    this.ROOT = 36;
+    this.BARS = 12;
+    this.BEATS = 48;
+    this.NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    this.HUE = ['#ff2fd6', '#d250ec', '#a563ee', '#7c6fe0'];
+    this.REC = '#e63d40';
+    this.DUB = '#e8b44a';
+    this.PLAY = '#2f7fd0';
+
+    const phrase = [
+      [0, .45, 67], [.5, .45, 70], [1, .85, 72], [2, .45, 70], [2.5, .45, 67], [3, 1.1, 65],
+      [4.5, .45, 63], [5, .45, 65], [5.5, .45, 67], [6, 1.5, 60],
+      [8, .45, 72], [8.5, .45, 75], [9, .85, 72], [10, .45, 70], [10.5, .45, 67], [11, 1.3, 66],
+      [12, .45, 65], [12.5, .45, 63], [13, 2.2, 60],
+    ];
+    const shift = (ns, d) => ns.map(n => [n[0] + d, n[1], n[2]]);
+    this.INCOMING = [].concat(phrase, shift(phrase, 16), shift(phrase, 32))
+      .map(n => ({ b: n[0], len: n[1], p: n[2] }));
+
+    this.RIFF = [
+      [0, .45, 70], [.5, .45, 71], [1, .9, 72], [2, .45, 75], [2.5, .45, 72], [3, 1.2, 70],
+      [4, .45, 68], [4.5, .45, 70], [5, 1.4, 65],
+      [8, .45, 72], [8.5, .45, 75], [9, .9, 77], [10, 1.8, 75],
+      [12, .45, 70], [12.5, .45, 68], [13, 2.4, 65],
+    ].map(n => ({ b: n[0], len: n[1], p: n[2] }));
+
+    this.COUNTER = [
+      [0, 1.5, 51], [2, .9, 55], [3, .9, 58], [4, 1.8, 53], [6, 1.4, 50],
+      [8, 1.5, 55], [10, .9, 58], [11, .9, 60], [12, 1.8, 53], [14, 1.6, 48],
+    ].map(n => ({ b: n[0], len: n[1], p: n[2] }));
+
+    this.state = {
+      abs: 17.4,
+      playing: true,
+      metro: true,
+      sel: 2,
+      snap: 0,
+      quant: 1,
+      capBars: 4,
+      slots: [
+        { name: 'Comping', st: 'play', pend: null, fromBar: 0, lenBars: 12, mode: 'phrase', follow: false, mute: false, solo: false, level: 4, oct: 0, layers: [this.comping()] },
+        { name: 'Riff', st: 'play', pend: null, fromBar: 4, lenBars: 4, mode: 'fill', follow: true, mute: false, solo: false, level: 3, oct: 0, layers: [this.RIFF] },
+        { name: 'Take 3', st: 'rec', pend: null, fromBar: 4, lenBars: 4, mode: 'fill', follow: true, mute: false, solo: false, level: 4, oct: 0, layers: [[]], recStart: 16 },
+        { name: '', st: 'empty', pend: null, fromBar: 0, lenBars: 4, mode: 'fill', follow: true, mute: false, solo: false, level: 4, oct: 0, layers: [] },
+      ],
+    };
+    this.onKey = this.onKey.bind(this);
+  }
+
+  comping() {
+    const out = [];
+    for (let i = 0; i < this.BARS; i++) {
+      const r = this.ROOT + this.FORM[i] + 24;
+      [[1.66, .55], [3.0, .8]].forEach(hit => {
+        [4, 10, 14].forEach(t => out.push({ b: i * 4 + hit[0], len: hit[1], p: r + t }));
+      });
+    }
+    return out;
+  }
+
+  componentDidMount() {
+    this.last = performance.now();
+    this.timer = setInterval(() => this.advance(), 40);
+    document.addEventListener('keydown', this.onKey);
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.timer);
+    document.removeEventListener('keydown', this.onKey);
+  }
+
+  advance() {
+    const now = performance.now();
+    const dt = now - this.last;
+    this.last = now;
+    if (!this.state.playing) return;
+    const bpm = this.props.bpm ?? 100;
+    const prev = this.state.abs;
+    const next = prev + dt / (60000 / bpm);
+    if (Math.floor(next / 4) !== Math.floor(prev / 4)) this.onBar(next);
+    else this.setState({ abs: next });
+  }
+
+  /** Everything queued resolves on the bar line -- that is the whole timing model. */
+  onBar(next) {
+    const bar = Math.floor(next / 4);
+    const slots = this.state.slots.map(sl => {
+      if (!sl.pend) return sl;
+      const s = Object.assign({}, sl);
+      if (s.pend === 'rec') {
+        s.st = 'rec'; s.recStart = bar * 4; s.fromBar = bar % this.BARS; s.layers = [[]];
+      } else if (s.pend === 'dub') {
+        s.st = 'dub'; s.recStart = bar * 4; s.layers = s.layers.concat([[]]);
+      } else if (s.pend === 'play') {
+        if (s.st === 'rec') {
+          const taken = this.taken(s, bar * 4);
+          const nb = Math.max(1, Math.round((bar * 4 - s.recStart) / 4));
+          s.lenBars = nb >= this.BARS ? this.BARS : (nb >= 8 ? 12 : (nb >= 3 ? 4 : (nb >= 2 ? 2 : 1)));
+          s.mode = s.lenBars >= this.BARS ? 'phrase' : 'fill';
+          s.layers = [taken];
+          if (!s.name) s.name = 'Loop ' + (this.state.slots.indexOf(sl) + 1);
+        } else if (s.st === 'dub') {
+          s.layers = s.layers.slice(0, -1).concat([this.taken(s, bar * 4, this.COUNTER)]);
+        }
+        s.st = 'play';
+      }
+      s.pend = null;
+      return s;
+    });
+    this.setState({ abs: next, slots: slots });
+  }
+
+  /** Notes captured between the record start and `upto`, folded to loop-relative beats. */
+  taken(sl, upto, src) {
+    const from = sl.recStart, span = Math.max(1, upto - from);
+    const source = src || this.INCOMING;
+    return source
+      .filter(n => n.b >= 0 && n.b < span)
+      .map(n => ({ b: n.b, len: Math.min(n.len, span - n.b), p: n.p }));
+  }
+
+  cycle(i) {
+    const slots = this.state.slots.slice();
+    const s = Object.assign({}, slots[i]);
+    if (s.st === 'empty') s.pend = s.pend === 'rec' ? null : 'rec';
+    else if (s.st === 'rec') s.pend = 'play';
+    else if (s.st === 'play') s.pend = s.pend === 'dub' ? null : 'dub';
+    else if (s.st === 'dub') s.pend = 'play';
+    slots[i] = s;
+    this.setState({ slots: slots });
+  }
+
+  patch(i, fn) {
+    const slots = this.state.slots.slice();
+    const s = Object.assign({}, slots[i]);
+    fn(s);
+    slots[i] = s;
+    this.setState({ slots: slots });
+  }
+
+  capture() {
+    const S = this.state;
+    let i = S.slots.findIndex(s => s.st === 'empty');
+    if (i < 0) i = S.sel;
+    const n = S.capBars;
+    const endBar = Math.floor(S.abs / 4);
+    const startBar = endBar - n;
+    const slots = S.slots.slice();
+    slots[i] = Object.assign({}, slots[i], {
+      st: 'play', pend: null, name: 'Capture ' + (i + 1),
+      fromBar: ((startBar % this.BARS) + this.BARS) % this.BARS,
+      lenBars: n, mode: n >= this.BARS ? 'phrase' : 'fill', follow: n < this.BARS,
+      layers: [this.INCOMING.filter(x => x.b >= startBar * 4 && x.b < endBar * 4)
+        .map(x => ({ b: x.b - startBar * 4, len: x.len, p: x.p }))],
+    });
+    this.setState({ slots: slots, sel: i });
+  }
+
+  onKey(e) {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const t = e.target;
+    if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+    const S = this.state, i = S.sel, k = e.key.toLowerCase();
+    const hit = () => e.preventDefault();
+    if (k >= '1' && k <= '4') { hit(); this.setState({ sel: +k - 1 }); return; }
+    if (k === 'r') { hit(); this.cycle(i); return; }
+    if (k === 'c') { hit(); this.capture(); return; }
+    if (k === 'u') { hit(); this.patch(i, s => { if (s.layers.length > 1) s.layers = s.layers.slice(0, -1); }); return; }
+    if (k === 'm') { hit(); this.patch(i, s => { s.mute = !s.mute; }); return; }
+    if (k === 's') { hit(); this.patch(i, s => { s.solo = !s.solo; }); return; }
+    if (k === 'x') { hit(); this.patch(i, s => { s.st = 'empty'; s.pend = null; s.layers = []; s.name = ''; }); return; }
+    if (k === 'f') { hit(); this.patch(i, s => { s.follow = !s.follow; }); return; }
+    if (k === 'q') { hit(); this.setState({ quant: (S.quant + 1) % 4 }); return; }
+    if (k === '[') { hit(); this.patch(i, s => { s.lenBars = s.lenBars === 12 ? 4 : Math.max(1, s.lenBars / 2); s.mode = s.lenBars >= 12 ? 'phrase' : 'fill'; }); return; }
+    if (k === ']') { hit(); this.patch(i, s => { s.lenBars = s.lenBars === 4 ? 12 : Math.min(12, s.lenBars * 2); s.mode = s.lenBars >= 12 ? 'phrase' : 'fill'; }); return; }
+    if (e.key === 'ArrowUp') { hit(); this.patch(i, s => { s.oct = Math.min(2, s.oct + 1); }); return; }
+    if (e.key === 'ArrowDown') { hit(); this.patch(i, s => { s.oct = Math.max(-2, s.oct - 1); }); return; }
+    if (e.key === 'Escape') { hit(); this.setState({ slots: S.slots.map(s => Object.assign({}, s, { st: s.st === 'empty' ? 'empty' : 'play', pend: null })) }); return; }
+    if (e.code === 'Space') { hit(); this.setState({ playing: !S.playing }); return; }
+  }
+
+  chordAt(bar) { return this.NAMES[(this.ROOT + this.FORM[((bar % 12) + 12) % 12]) % 12] + '7'; }
+
+  stateOf(sl) {
+    if (sl.pend) {
+      const label = sl.pend === 'rec' ? 'REC next bar' : (sl.pend === 'dub' ? 'DUB next bar' : 'END next bar');
+      const col = sl.pend === 'dub' ? this.DUB : (sl.pend === 'play' ? '#8b93a3' : this.REC);
+      return { label: label, col: col, pending: true };
+    }
+    if (sl.st === 'rec') return { label: 'REC', col: this.REC, pending: false };
+    if (sl.st === 'dub') return { label: 'DUB', col: this.DUB, pending: false };
+    if (sl.st === 'play') return { label: sl.mute ? 'MUTE' : 'PLAY', col: sl.mute ? '#6c7382' : '#5fbf7a', pending: false };
+    return { label: '', col: '#3a3f4a', pending: false };
+  }
+
+  placeNotes(sl, i, notes, ghosts, yOf, noteH, live) {
+    const out = [], col = this.HUE[i];
+    const starts = [sl.fromBar];
+    if (ghosts && !live && sl.mode === 'fill' && sl.lenBars < this.BARS) {
+      for (let st = ((sl.fromBar % sl.lenBars) + sl.lenBars) % sl.lenBars; st + sl.lenBars <= this.BARS; st += sl.lenBars)
+        if (st !== sl.fromBar) starts.push(st);
+    }
+    starts.forEach(st => {
+      const ghost = st !== sl.fromBar;
+      notes.forEach(n => {
+        const bil = Math.floor(n.b / 4);
+        const d = (ghost && sl.follow)
+          ? this.FORM[(st + bil) % this.BARS] - this.FORM[(sl.fromBar + bil) % this.BARS] : 0;
+        const ab = st * 4 + n.b;
+        if (ab >= this.BEATS) return;
+        const w = Math.max(.4, Math.min(n.len, this.BEATS - ab) / this.BEATS * 100);
+        const body = ghost
+          ? 'background: transparent; border: 1px solid ' + col + '; opacity: .40;'
+          : 'background: ' + (live ? this.REC : col) + '; opacity: ' + (sl.mute ? '.26' : '.95') + ';';
+        out.push({
+          s: 'position: absolute; left: ' + (ab / this.BEATS * 100).toFixed(3) + '%; width: ' + w.toFixed(3)
+            + '%; top: ' + yOf(n.p + d + sl.oct * 12).toFixed(1) + 'px; height: ' + noteH + 'px; border-radius: 2px; ' + body,
+        });
+      });
+    });
+    return out;
+  }
+
+  sounding(beat) {
+    const set = {};
+    const anySolo = this.state.slots.some(s => s.solo && s.st !== 'empty');
+    this.state.slots.forEach((sl, i) => {
+      if (sl.st === 'empty' || sl.mute || (anySolo && !sl.solo)) return;
+      const notes = sl.st === 'rec' || sl.st === 'dub' ? [] : sl.layers.reduce((a, b) => a.concat(b), []);
+      const starts = [sl.fromBar];
+      if (sl.mode === 'fill' && sl.lenBars < this.BARS)
+        for (let st = ((sl.fromBar % sl.lenBars) + sl.lenBars) % sl.lenBars; st + sl.lenBars <= this.BARS; st += sl.lenBars)
+          if (st !== sl.fromBar) starts.push(st);
+      starts.forEach(st => notes.forEach(n => {
+        const bil = Math.floor(n.b / 4);
+        const d = (st !== sl.fromBar && sl.follow)
+          ? this.FORM[(st + bil) % this.BARS] - this.FORM[(sl.fromBar + bil) % this.BARS] : 0;
+        const ab = st * 4 + n.b;
+        if (beat >= ab && beat < ab + n.len) set[n.p + d + sl.oct * 12] = this.HUE[i];
+      }));
+    });
+    return set;
+  }
+
+  renderVals() {
+    const S = this.state, P = this.props;
+    const bpm = P.bpm ?? 100;
+    const lh = P.laneHeight ?? 96;
+    const ghosts = P.showGhosts !== false;
+    const beat = ((S.abs % this.BEATS) + this.BEATS) % this.BEATS;
+    const barIdx = Math.floor(beat / 4);
+    const pct = beat / this.BEATS * 100;
+    const pad = 8, noteH = 5, inner = lh - pad * 2 - noteH;
+    const yOf = p => pad + (1 - Math.max(0, Math.min(1, (p - 50) / 40))) * inner;
+    const kbd = 'padding: 1px 6px; border: 1px solid #2c313b; border-radius: 4px; background: #22262f; '
+      + 'font: 600 11px ui-monospace, SFMono-Regular, Menlo, monospace; color: #e6e8ec;';
+    const btn = 'background: #2a2f3a; color: #e6e8ec; border: 1px solid #2c313b; border-radius: 6px; '
+      + 'padding: 6px 12px; cursor: pointer; font-size: 13px;';
+    const on = 'background: #e8b44a; color: #14161a; border: 1px solid #e8b44a; border-radius: 6px; '
+      + 'padding: 6px 12px; cursor: pointer; font-size: 13px; font-weight: 600;';
+
+    const bars = this.FORM.map((f, i) => ({
+      label: this.NAMES[(this.ROOT + f) % 12] + '7',
+      style: 'border: 1px solid ' + (i === barIdx ? this.PLAY : '#2c313b') + '; border-radius: 5px; padding: 4px 2px; '
+        + 'text-align: center; font-weight: 700; font-size: 12px; background: ' + (i === barIdx ? '#1e2a3a' : '#1c1f26')
+        + '; color: ' + (i === barIdx ? '#fff' : '#e8b44a') + ';',
+    }));
+
+    const lanes = S.slots.map((sl, i) => {
+      const col = this.HUE[i], st = this.stateOf(sl), selected = S.sel === i;
+      const live = sl.st === 'rec' || sl.st === 'dub';
+      const raw = live
+        ? this.taken(sl, S.abs, sl.st === 'dub' ? this.COUNTER : null)
+        : sl.layers.reduce((a, b) => a.concat(b), []);
+      const shown = Object.assign({}, sl);
+      if (live) { shown.fromBar = Math.floor(sl.recStart / 4) % this.BARS; shown.mode = 'phrase'; }
+      const notes = sl.st === 'empty' ? [] : this.placeNotes(shown, i, raw, ghosts, yOf, noteH, live && sl.st === 'rec');
+      const spanFrom = live ? shown.fromBar : sl.fromBar;
+      const spanLen = live ? Math.max(.25, (S.abs - sl.recStart) / 4) : sl.lenBars;
+      return {
+        num: String(i + 1),
+        name: sl.name || '—',
+        empty: sl.st === 'empty',
+        stLabel: st.label,
+        showSpan: sl.st !== 'empty',
+        showFollow: sl.st !== 'empty' && sl.lenBars < this.BARS,
+        octLabel: sl.oct === 0 ? '8ve 0' : (sl.oct > 0 ? '8ve +' + sl.oct : '8ve ' + sl.oct),
+        spanLine: sl.st === 'empty' ? 'no material'
+          : sl.lenBars + ' bar · from bar ' + (sl.fromBar + 1) + (sl.layers.length > 1 ? ' · ' + sl.layers.length + ' layers' : ''),
+        onSel: () => this.setState({ sel: i }),
+        onMute: () => this.patch(i, s => { s.mute = !s.mute; }),
+        onSolo: () => this.patch(i, s => { s.solo = !s.solo; }),
+        onFollow: () => this.patch(i, s => { s.follow = !s.follow; }),
+        notes: notes,
+        levels: [0, 1, 2, 3, 4].map(k => ({
+          s: 'width: 3px; height: ' + (4 + k * 2) + 'px; border-radius: 1px; background: '
+            + (k < sl.level && sl.st !== 'empty' && !sl.mute ? col : '#3a3f4a') + ';',
+        })),
+        headStyle: 'background: ' + (selected ? '#22262f' : '#1c1f26') + '; border: 1px solid '
+          + (selected ? col : '#2c313b') + '; border-radius: 6px; padding: 7px 9px; display: flex; '
+          + 'flex-direction: column; justify-content: center; gap: 5px; cursor: pointer; min-width: 0;'
+          + (selected ? ' box-shadow: inset 2px 0 0 ' + col + ';' : ''),
+        dotStyle: 'width: 8px; height: 8px; border-radius: 50%; flex: 0 0 auto; background: ' + st.col + ';'
+          + (st.pending ? ' animation: pend 1s ease-in-out infinite;' : '')
+          + (sl.st === 'rec' ? ' box-shadow: 0 0 8px ' + this.REC + ';' : ''),
+        numStyle: 'font: 600 10px ui-monospace, SFMono-Regular, Menlo, monospace; color: #14161a; background: '
+          + col + '; border-radius: 3px; padding: 0 4px; flex: 0 0 auto;',
+        nameStyle: 'font-size: 13px; font-weight: 600; color: ' + (sl.st === 'empty' ? '#6c7382' : '#e6e8ec')
+          + '; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;',
+        stStyle: 'margin-left: auto; font: 600 9px ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .06em; '
+          + 'color: ' + st.col + '; white-space: nowrap; flex: 0 0 auto;' + (st.pending ? ' animation: pend 1s ease-in-out infinite;' : ''),
+        followStyle: 'border-radius: 4px; padding: 1px 6px; cursor: pointer; font-size: 10px; font-weight: 600; '
+          + (sl.follow ? 'background: #e8b44a; color: #14161a; border: 1px solid #e8b44a;'
+            : 'background: #22262f; color: #6c7382; border: 1px solid #2c313b;'),
+        muteStyle: 'border-radius: 4px; padding: 2px 7px; cursor: pointer; font: 600 10px ui-monospace, SFMono-Regular, Menlo, monospace; '
+          + (sl.mute ? 'background: #e8b44a; color: #14161a; border: 1px solid #e8b44a;'
+            : 'background: #22262f; color: #8b93a3; border: 1px solid #2c313b;'),
+        soloStyle: 'border-radius: 4px; padding: 2px 7px; cursor: pointer; font: 600 10px ui-monospace, SFMono-Regular, Menlo, monospace; '
+          + (sl.solo ? 'background: #2f7fd0; color: #fff; border: 1px solid #2f7fd0;'
+            : 'background: #22262f; color: #8b93a3; border: 1px solid #2c313b;'),
+        rollStyle: 'position: relative; height: ' + lh + 'px; border-radius: 6px; border: 1px solid #2c313b; overflow: hidden; '
+          + 'background-image: repeating-linear-gradient(to right, rgba(70,78,92,.55) 0 1px, transparent 1px 8.3333%), '
+          + 'repeating-linear-gradient(to right, rgba(70,78,92,.18) 0 1px, transparent 1px 2.0833%); background-color: '
+          + (sl.st === 'empty' ? '#171a20' : '#191d24') + ';',
+        spanStyle: 'position: absolute; top: 0; bottom: 0; pointer-events: none; left: '
+          + (spanFrom * 4 / this.BEATS * 100).toFixed(3) + '%; width: ' + (spanLen * 4 / this.BEATS * 100).toFixed(3) + '%; '
+          + 'background: ' + (sl.st === 'rec' ? 'rgba(230,61,64,.10)' : 'rgba(255,255,255,.028)') + '; '
+          + 'border-left: 1px solid ' + (sl.st === 'rec' ? this.REC : col) + '; border-right: 1px solid '
+          + (sl.st === 'rec' ? 'transparent' : col) + ';',
+        headStyle2: 'position: absolute; top: 0; bottom: 0; width: 1px; pointer-events: none; left: ' + pct.toFixed(3) + '%; '
+          + 'background: ' + (sl.st === 'rec' ? this.REC : '#7f8796') + '; box-shadow: 0 0 6px '
+          + (sl.st === 'rec' ? 'rgba(230,61,64,.9)' : 'rgba(0,0,0,0)') + ';',
+        kbdStyle: kbd,
+      };
+    });
+
+    const sel = S.slots[S.sel];
+    const selSt = this.stateOf(sel);
+    const recLabel = sel.st === 'empty' ? '● Record' : (sel.st === 'rec' ? '■ End loop'
+      : (sel.st === 'dub' ? '■ End overdub' : '● Overdub'));
+    const recActive = sel.st === 'rec' || sel.st === 'dub' || !!sel.pend;
+
+    const snaps = ['bar', '2 bars', '4 bars', 'chorus'];
+    const quants = ['off', '1/8', '1/16', 'triplet'];
+
+    const sound = this.sounding(beat);
+    const scalePc = { 0: 1, 3: 1, 5: 1, 6: 1, 7: 1, 10: 1 };
+    const blackPc = { 1: 1, 3: 1, 6: 1, 8: 1, 10: 1 };
+    const whitesN = [];
+    for (let n = 36; n <= 84; n++) if (!blackPc[n % 12]) whitesN.push(n);
+    const w = 100 / whitesN.length;
+    const whites = whitesN.map((n, k) => {
+      const c = sound[n];
+      return {
+        s: 'position: absolute; top: 0; height: 90px; border: 1px solid #333; border-radius: 0 0 4px 4px; left: '
+          + (k * w).toFixed(4) + '%; width: ' + w.toFixed(4) + '%; background: '
+          + (c ? c : (scalePc[((n % 12) - 0 + 12) % 12] ? '#ffeec2' : '#f2f2f2')) + ';'
+          + (c ? ' border-color: ' + c + '; box-shadow: 0 0 10px rgba(255,47,214,.35);' : ''),
+      };
+    });
+    const blacks = [];
+    whitesN.forEach((n, k) => {
+      if (![0, 2, 5, 7, 9].includes(n % 12) || n + 1 > 84) return;
+      const c = sound[n + 1];
+      blacks.push({
+        s: 'position: absolute; top: 0; height: 56px; border-radius: 0 0 3px 3px; border: 1px solid #000; z-index: 2; left: '
+          + ((k + 1) * w - w * .3).toFixed(4) + '%; width: ' + (w * .6).toFixed(4) + '%; background: '
+          + (c ? c : (scalePc[(n + 1) % 12] ? '#6b5520' : '#22252b')) + ';'
+          + (c ? ' border-color: ' + c + ';' : ''),
+      });
+    });
+
+    const bufEnd = Math.floor(S.abs / 4);
+    const bufStart = bufEnd - 12;
+    const buffer = this.INCOMING.filter(n => n.b >= bufStart * 4 && n.b < bufEnd * 4).map(n => ({
+      s: 'position: absolute; border-radius: 1px; background: #ff2fd6; opacity: .55; left: '
+        + ((n.b - bufStart * 4) / 48 * 100).toFixed(3) + '%; width: ' + Math.max(.5, n.len / 48 * 100).toFixed(3)
+        + '%; top: ' + (4 + (1 - Math.max(0, Math.min(1, (n.p - 50) / 40))) * 23).toFixed(1) + 'px; height: 3px;',
+    }));
+
+    return {
+      bpm: bpm,
+      bars: bars,
+      lanes: lanes,
+      whites: whites,
+      blacks: blacks,
+      buffer: buffer,
+      setLine: S.slots.filter(s => s.st !== 'empty').length + ' of 4 lanes used',
+      posLine: 'bar ' + (barIdx + 1) + '/12 · ' + this.chordAt(barIdx),
+      playedLine: Object.keys(sound).length ? 'D#3 F#3 A#3' : '–',
+      playLabel: S.playing ? '❚❚ Pause' : '▶ Play',
+      playBtn: S.playing ? on : btn,
+      metroBtn: S.metro ? on : btn,
+      bpmFill: 'position: absolute; left: 0; top: 0; bottom: 0; border-radius: 2px; background: #e8b44a; width: '
+        + ((bpm - 50) / 150 * 100).toFixed(1) + '%;',
+      ledStyle: 'width: 9px; height: 9px; border-radius: 50%; background: #ff2fd6; box-shadow: 0 0 8px #ff2fd6;',
+      headStyle: 'position: absolute; top: -3px; left: ' + pct.toFixed(3) + '%; width: 0; height: 0; '
+        + 'border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 5px solid #7f8796; transform: translateX(-4px);',
+      snapLabel: snaps[S.snap],
+      quantLabel: quants[S.quant],
+      onSnap: () => this.setState({ snap: (S.snap + 1) % 4 }),
+      onQuant: () => this.setState({ quant: (S.quant + 1) % 4 }),
+      onPlay: () => this.setState({ playing: !S.playing }),
+      onMetro: () => this.setState({ metro: !S.metro }),
+      onStopAll: () => this.setState({ slots: S.slots.map(s => Object.assign({}, s, { st: s.st === 'empty' ? 'empty' : 'play', pend: null })) }),
+      onRec: () => this.cycle(S.sel),
+      onUndo: () => this.patch(S.sel, s => { if (s.layers.length > 1) s.layers = s.layers.slice(0, -1); }),
+      onClear: () => this.patch(S.sel, s => { s.st = 'empty'; s.pend = null; s.layers = []; s.name = ''; }),
+      onCapture: () => this.capture(),
+      recLabel: recLabel,
+      recBtn: recActive
+        ? 'background: #e63d40; color: #fff; border: 1px solid #e63d40; border-radius: 6px; padding: 7px 12px; cursor: pointer; font-size: 13px; font-weight: 600;'
+        : 'background: #2a2f3a; color: #e6e8ec; border: 1px solid #2c313b; border-radius: 6px; padding: 7px 12px; cursor: pointer; font-size: 13px;',
+      undoBtn: sel.layers.length > 1
+        ? 'background: #2a2f3a; color: #e6e8ec; border: 1px solid #2c313b; border-radius: 6px; padding: 7px 12px; cursor: pointer; font-size: 13px;'
+        : 'background: #22262f; color: #4d545f; border: 1px solid #23272f; border-radius: 6px; padding: 7px 12px; cursor: default; font-size: 13px;',
+      selLine: 'lane ' + (S.sel + 1) + (sel.name ? ' · ' + sel.name : '') + (selSt.label ? ' · ' + selSt.label : ''),
+      capOpts: [1, 2, 4, 12].map(n => ({
+        label: n === 12 ? 'chorus' : n + ' bar',
+        on: () => this.setState({ capBars: n }),
+        s: 'border-radius: 4px; padding: 1px 7px; cursor: pointer; font-size: 11px; font-variant-numeric: tabular-nums; '
+          + (S.capBars === n ? 'background: #e8b44a; color: #14161a; border: 1px solid #e8b44a; font-weight: 600;'
+            : 'background: #22262f; color: #8b93a3; border: 1px solid #2c313b;'),
+      })),
+      capWinStyle: 'position: absolute; top: 0; bottom: 0; pointer-events: none; right: 0; width: '
+        + (S.capBars / 12 * 100).toFixed(2) + '%; background: rgba(232,180,74,.10); border: 1px solid #e8b44a; border-radius: 4px;',
+      keymap: [
+        { key: '1–4', what: 'select lane' }, { key: 'R', what: 'rec / end / overdub' },
+        { key: 'C', what: 'capture' }, { key: 'U', what: 'undo layer' },
+        { key: 'M', what: 'mute' }, { key: 'S', what: 'solo' }, { key: 'X', what: 'clear' },
+        { key: 'F', what: 'follow changes' }, { key: '[ ]', what: 'halve / double' },
+        { key: '↑↓', what: 'octave' }, { key: 'Esc', what: 'all loops back to play' },
+      ].map(k => ({ key: k.key, what: k.what, s: kbd })),
+      legend: [
+        { label: 'scale', s: 'width: 10px; height: 10px; border-radius: 2px; background: #ffeec2;' },
+        { label: 'loop 1–4', s: 'width: 10px; height: 10px; border-radius: 2px; background: linear-gradient(90deg, #ff2fd6, #7c6fe0);' },
+        { label: 'you', s: 'width: 10px; height: 10px; border-radius: 2px; background: #ff2fd6; box-shadow: 0 0 8px rgba(255,47,214,.6);' },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

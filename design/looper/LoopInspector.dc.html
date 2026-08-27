@@ -1,0 +1,288 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; background: #14161a; }
+    a { color: #e8b44a; text-decoration: none; }
+    a:hover { color: #f0c76e; }
+  </style>
+</helmet>
+
+<div style="width: 640px; height: 820px; background: #1c1f26; color: #e6e8ec; font: 14px/1.45 ui-sans-serif, system-ui, sans-serif; border-left: 1px solid #2c313b; display: flex; flex-direction: column; overflow: hidden;">
+
+  <div style="padding: 12px 14px; border-bottom: 1px solid #2c313b; display: flex; flex-direction: column; gap: 8px;">
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <span style="font: 600 10px ui-monospace, SFMono-Regular, Menlo, monospace; color: #14161a; background: #d250ec; border-radius: 3px; padding: 1px 5px;">2</span>
+      <span style="font-size: 15px; font-weight: 600;">Riff</span>
+      <span style="font: 600 9px ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .06em; color: #5fbf7a;">PLAY</span>
+      <span style="margin-left: auto; font-size: 11px; color: #8b93a3; font-variant-numeric: tabular-nums;">{{headSpan}}</span>
+    </div>
+    <div style="font-size: 11px; color: #8b93a3;">Everything here is non-destructive — the loop is a list of MIDI events, so any of it can be undone or changed later.</div>
+  </div>
+
+  <div style="padding: 12px 14px; display: flex; flex-direction: column; gap: 16px; overflow: hidden;">
+
+    <div style="display: flex; flex-direction: column; gap: 7px;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <h2 style="font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: #8b93a3; margin: 0; font-weight: 700;">Length &amp; placement</h2>
+        <span style="margin-left: auto; display: flex; gap: 4px;">
+          <sc-for list="{{lens}}" as="l" hint-placeholder-count="4">
+            <button onClick="{{l.on}}" style="{{l.s}}">{{l.label}}</button>
+          </sc-for>
+        </span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 3px;">
+        <sc-for list="{{formBars}}" as="b" hint-placeholder-count="12">
+          <div style="{{b.s}}">{{b.label}}</div>
+        </sc-for>
+      </div>
+      <div style="display: flex; gap: 6px;">
+        <sc-for list="{{modes}}" as="m" hint-placeholder-count="2">
+          <button onClick="{{m.on}}" style="{{m.s}}">
+            <span style="font-weight: 600; font-size: 12px;">{{m.title}}</span>
+            <span style="font-size: 11px; color: #8b93a3; display: block; line-height: 1.35;">{{m.desc}}</span>
+          </button>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 7px;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <h2 style="font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: #8b93a3; margin: 0; font-weight: 700;">Follow the changes</h2>
+        <button onClick="{{onFollow}}" style="{{followBtn}}">{{followLabel}}</button>
+        <span style="margin-left: auto; font-size: 11px; color: #8b93a3; font-variant-numeric: tabular-nums;">{{followHint}}</span>
+      </div>
+      <div style="position: relative; height: 104px; border: 1px solid #2c313b; border-radius: 6px; overflow: hidden; background-image: repeating-linear-gradient(to right, rgba(70,78,92,.5) 0 1px, transparent 1px 8.3333%), repeating-linear-gradient(to right, rgba(70,78,92,.18) 0 1px, transparent 1px 2.0833%); background-color: #191d24;">
+        <sc-for list="{{followNotes}}" as="n" hint-placeholder-count="32">
+          <div style="{{n.s}}"></div>
+        </sc-for>
+        <sc-for list="{{followTags}}" as="t" hint-placeholder-count="3">
+          <div style="{{t.s}}">{{t.label}}</div>
+        </sc-for>
+      </div>
+      <div style="font-size: 11px; color: #8b93a3; line-height: 1.5;">A lick played over the <b style="color: #e8b44a;">F7</b> repeats over <b style="color: #e8b44a;">C7</b> and <b style="color: #e8b44a;">G7</b>, moved by the interval between the chords. Audio loopers cannot do this; a MIDI loop is just numbers.</div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 7px;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <h2 style="font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: #8b93a3; margin: 0; font-weight: 700;">Quantize</h2>
+        <span style="display: flex; gap: 4px;">
+          <sc-for list="{{grids}}" as="g" hint-placeholder-count="4">
+            <button onClick="{{g.on}}" style="{{g.s}}">{{g.label}}</button>
+          </sc-for>
+        </span>
+        <span style="margin-left: auto; font-size: 11px; color: #8b93a3; font-variant-numeric: tabular-nums;">{{strengthLabel}} strength</span>
+      </div>
+      <div style="display: flex; gap: 3px; height: 22px;">
+        <sc-for list="{{steps}}" as="s" hint-placeholder-count="5">
+          <button onClick="{{s.on}}" style="{{s.s}}"></button>
+        </sc-for>
+      </div>
+      <div style="position: relative; height: 74px; border: 1px solid #2c313b; border-radius: 6px; overflow: hidden; background-color: #191d24;">
+        <sc-for list="{{qGrid}}" as="g" hint-placeholder-count="16">
+          <div style="{{g.s}}"></div>
+        </sc-for>
+        <sc-for list="{{qNotes}}" as="n" hint-placeholder-count="20">
+          <div style="{{n.s}}"></div>
+        </sc-for>
+      </div>
+      <div style="font-size: 11px; color: #8b93a3;">Nothing is rewritten — the played timings are kept, and the grid is applied on the way out.</div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 7px;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <h2 style="font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: #8b93a3; margin: 0; font-weight: 700;">Layers</h2>
+        <span style="margin-left: auto; font-size: 11px; color: #8b93a3;">newest on top · <span style="padding: 1px 6px; border: 1px solid #2c313b; border-radius: 4px; background: #22262f; font: 600 11px ui-monospace, SFMono-Regular, Menlo, monospace; color: #e6e8ec;">U</span> drops one</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 4px;">
+        <sc-for list="{{layers}}" as="ly" hint-placeholder-count="3">
+          <div style="{{ly.row}}">
+            <span style="{{ly.dot}}"></span>
+            <span style="font-size: 12px;">{{ly.name}}</span>
+            <span style="margin-left: auto; font-size: 11px; color: #8b93a3; font-variant-numeric: tabular-nums;">{{ly.count}}</span>
+            <button onClick="{{ly.onDrop}}" style="background: none; border: none; color: #6c7382; cursor: pointer; font-size: 13px; padding: 0 2px;">✕</button>
+          </div>
+        </sc-for>
+        <sc-if value="{{noLayers}}" hint-placeholder-val="{{false}}">
+          <div style="font-size: 12px; color: #6c7382; padding: 6px 0;">All layers dropped — the lane is empty again.</div>
+        </sc-if>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="margin-top: auto; border-top: 1px solid #2c313b; padding: 11px 14px; display: flex; align-items: center; gap: 10px;">
+    <button style="background: #2a2f3a; color: #e6e8ec; border: 1px solid #2c313b; border-radius: 6px; padding: 7px 12px; cursor: pointer; font-size: 13px;">Save as melody</button>
+    <div style="font-size: 11px; color: #8b93a3; line-height: 1.4;">Writes the loop into <span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace;">tracks.json</span> as a melody, so it comes back engraved on the staff to practise against.</div>
+  </div>
+
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{
+  "accent": {"editor": "color", "default": "#d250ec", "options": ["#ff2fd6", "#d250ec", "#a563ee", "#7c6fe0"], "section": "Lane"}
+}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.FORM = [0, 0, 0, 0, 5, 5, 0, 0, 7, 5, 0, 7];
+    this.NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    this.RIFF = [
+      [0, .45, 70], [.5, .45, 71], [1, .9, 72], [2, .45, 75], [2.5, .45, 72], [3, 1.2, 70],
+      [4, .45, 68], [4.5, .45, 70], [5, 1.4, 65],
+      [8, .45, 72], [8.5, .45, 75], [9, .9, 77], [10, 1.8, 75],
+      [12, .45, 70], [12.5, .45, 68], [13, 2.4, 65],
+    ].map(n => ({ b: n[0], len: n[1], p: n[2] }));
+    // deliberately loose timings, so quantize has something to pull
+    this.LOOSE = [0.07, 0.61, 1.04, 1.93, 2.44, 3.12, 0.13, 0.58, 1.09, 1.88, 2.55, 3.04, 0.09, 0.66, 1.11, 1.96]
+      .map((b, i) => ({ b: b, len: .38, p: [70, 71, 72, 75, 72, 70, 68, 70, 72, 75, 73, 70, 68, 66, 65, 63][i] }));
+    this.state = { len: 4, mode: 'fill', follow: true, grid: 1, strength: 3, drop: 0 };
+  }
+
+  chord(bar) { return this.NAMES[(36 + this.FORM[((bar % 12) + 12) % 12]) % 12] + '7'; }
+
+  renderVals() {
+    const S = this.state;
+    const col = this.props.accent ?? '#d250ec';
+    const fromBar = 4;
+    const gridDiv = [0, 0.5, 0.25, 1 / 3][S.grid];
+    const strength = S.strength / 4;
+
+    const seg = (active, accent) => 'border-radius: 4px; padding: 2px 9px; cursor: pointer; font-size: 11px; '
+      + 'font-variant-numeric: tabular-nums; ' + (active
+        ? 'background: ' + (accent || '#e8b44a') + '; color: #14161a; border: 1px solid ' + (accent || '#e8b44a') + '; font-weight: 600;'
+        : 'background: #22262f; color: #8b93a3; border: 1px solid #2c313b;');
+
+    const formBars = this.FORM.map((f, i) => {
+      const inLoop = i >= fromBar && i < fromBar + S.len;
+      const isRep = !inLoop && S.mode === 'fill' && S.len < 12
+        && ((i - fromBar) % S.len + S.len) % S.len === 0;
+      return {
+        label: this.NAMES[(36 + f) % 12] + '7',
+        s: 'border: 1px solid ' + (inLoop ? col : (isRep ? 'rgba(210,80,236,.45)' : '#2c313b')) + '; border-radius: 4px; '
+          + 'padding: 3px 1px; text-align: center; font-weight: 700; font-size: 10px; overflow: hidden; background: '
+          + (inLoop ? 'rgba(210,80,236,.16)' : '#1c1f26') + '; color: #e8b44a;',
+      };
+    });
+
+    const yF = p => 8 + (1 - Math.max(0, Math.min(1, (p - 58) / 26))) * 88;
+    const followNotes = [], followTags = [];
+    const starts = [fromBar];
+    for (let st = ((fromBar % S.len) + S.len) % S.len; st + S.len <= 12; st += S.len)
+      if (st !== fromBar) starts.push(st);
+    starts.forEach(st => {
+      const ghost = st !== fromBar;
+      let shift = null;
+      this.RIFF.forEach(n => {
+        const bil = Math.floor(n.b / 4);
+        const d = (ghost && S.follow) ? this.FORM[(st + bil) % 12] - this.FORM[(fromBar + bil) % 12] : 0;
+        if (shift === null) shift = d;
+        const ab = st * 4 + n.b;
+        if (ab >= 48) return;
+        followNotes.push({
+          s: 'position: absolute; border-radius: 2px; left: ' + (ab / 48 * 100).toFixed(3) + '%; width: '
+            + Math.max(.4, Math.min(n.len, 48 - ab) / 48 * 100).toFixed(3) + '%; top: ' + yF(n.p + d).toFixed(1)
+            + 'px; height: 5px; ' + (ghost
+              ? 'background: transparent; border: 1px solid ' + col + '; opacity: .5;'
+              : 'background: ' + col + ';'),
+        });
+      });
+      followTags.push({
+        label: ghost ? (shift > 0 ? '+' + shift : (shift < 0 ? String(shift) : '±0')) : 'as played',
+        s: 'position: absolute; bottom: 4px; font: 600 9px ui-monospace, SFMono-Regular, Menlo, monospace; color: '
+          + (ghost ? '#8b93a3' : col) + '; left: ' + (st * 4 / 48 * 100).toFixed(3) + '%; padding-left: 4px;',
+      });
+    });
+
+    const qGrid = [];
+    const div = gridDiv || 1;
+    for (let b = 0; b <= 16; b += (gridDiv || 1)) {
+      qGrid.push({
+        s: 'position: absolute; top: 0; bottom: 0; width: 1px; left: ' + (b / 16 * 100).toFixed(3) + '%; background: '
+          + (b % 4 === 0 ? 'rgba(70,78,92,.75)' : 'rgba(70,78,92,.30)') + ';',
+      });
+    }
+    const yQ = p => 8 + (1 - Math.max(0, Math.min(1, (p - 60) / 20))) * 52;
+    const qNotes = [];
+    this.LOOSE.forEach((n, i) => {
+      const barOff = Math.floor(i / 6) * 4;
+      const raw = n.b + barOff;
+      const snapped = gridDiv ? Math.round(raw / gridDiv) * gridDiv : raw;
+      const out = raw + (snapped - raw) * strength;
+      if (strength > 0.02 && Math.abs(out - raw) > 0.005) {
+        qNotes.push({
+          s: 'position: absolute; border-radius: 2px; left: ' + (raw / 16 * 100).toFixed(3) + '%; width: '
+            + (n.len / 16 * 100).toFixed(3) + '%; top: ' + yQ(n.p).toFixed(1) + 'px; height: 5px; '
+            + 'background: transparent; border: 1px dashed rgba(139,147,163,.6);',
+        });
+      }
+      qNotes.push({
+        s: 'position: absolute; border-radius: 2px; left: ' + (out / 16 * 100).toFixed(3) + '%; width: '
+          + (n.len / 16 * 100).toFixed(3) + '%; top: ' + yQ(n.p).toFixed(1) + 'px; height: 5px; background: ' + col
+          + '; transition: left .18s ease;',
+      });
+    });
+
+    const allLayers = [
+      { name: 'pass 1 — the lick', count: '16 notes' },
+      { name: 'pass 2 — thumb line under it', count: '9 notes' },
+      { name: 'pass 3 — top voice', count: '6 notes' },
+    ];
+    const kept = allLayers.slice(0, allLayers.length - S.drop);
+
+    return {
+      headSpan: S.len + ' bar · from bar ' + (fromBar + 1) + ' · over ' + this.chord(fromBar),
+      formBars: formBars,
+      lens: [1, 2, 4, 12].map(n => ({
+        label: n === 12 ? 'chorus' : n + ' bar',
+        on: () => this.setState({ len: n, mode: n >= 12 ? 'phrase' : S.mode }),
+        s: seg(S.len === n, col),
+      })),
+      modes: [
+        { key: 'fill', title: 'Fill', desc: 'repeats every ' + S.len + ' bars, through the whole chorus' },
+        { key: 'phrase', title: 'Phrase', desc: 'plays once per chorus, only in its own bars' },
+      ].map(m => ({
+        title: m.title, desc: m.desc,
+        on: () => this.setState({ mode: m.key }),
+        s: 'flex: 1; text-align: left; border-radius: 6px; padding: 7px 9px; cursor: pointer; background: '
+          + (S.mode === m.key ? '#22262f' : '#1c1f26') + '; border: 1px solid ' + (S.mode === m.key ? col : '#2c313b') + ';'
+          + ' color: #e6e8ec;',
+      })),
+      onFollow: () => this.setState({ follow: !S.follow }),
+      followBtn: 'border-radius: 4px; padding: 2px 9px; cursor: pointer; font-size: 11px; font-weight: 600; ' + (S.follow
+        ? 'background: #e8b44a; color: #14161a; border: 1px solid #e8b44a;'
+        : 'background: #22262f; color: #8b93a3; border: 1px solid #2c313b;'),
+      followLabel: S.follow ? 'on' : 'off',
+      followHint: S.follow ? 'repeats move with the harmony' : 'repeats play at the pitches you played',
+      followNotes: followNotes,
+      followTags: followTags,
+      grids: ['off', '1/8', '1/16', 'triplet'].map((g, i) => ({
+        label: g, on: () => this.setState({ grid: i }), s: seg(S.grid === i, col),
+      })),
+      steps: [0, 1, 2, 3, 4].map(k => ({
+        on: () => this.setState({ strength: k }),
+        s: 'flex: 1; border-radius: 3px; cursor: pointer; border: 1px solid ' + (k <= S.strength ? col : '#2c313b')
+          + '; background: ' + (k <= S.strength ? col : '#22262f') + '; opacity: ' + (k <= S.strength ? (0.35 + k * 0.16) : 1) + ';',
+      })),
+      strengthLabel: (S.strength * 25) + '%',
+      qGrid: qGrid,
+      qNotes: qNotes,
+      layers: kept.map((l, i) => ({
+        name: l.name, count: l.count,
+        onDrop: () => this.setState({ drop: Math.min(3, allLayers.length - i) }),
+        row: 'display: flex; align-items: center; gap: 8px; padding: 5px 9px; border-radius: 5px; background: #22262f; border: 1px solid #2c313b;',
+        dot: 'width: 7px; height: 7px; border-radius: 50%; background: ' + col + '; opacity: ' + (0.45 + i * 0.28) + ';',
+      })).reverse(),
+      noLayers: kept.length === 0,
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,241 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; background: #14161a; }
+    a { color: #e8b44a; text-decoration: none; }
+    a:hover { color: #f0c76e; }
+  </style>
+</helmet>
+
+<div style="width: 1040px; height: 740px; background: #14161a; color: #e6e8ec; font: 14px/1.45 ui-sans-serif, system-ui, sans-serif; padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; overflow: hidden;">
+
+  <div style="display: flex; align-items: baseline; gap: 12px;">
+    <h2 style="font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: #8b93a3; margin: 0; font-weight: 700;">Capture</h2>
+    <div style="font-size: 15px; color: #e6e8ec;">Take the loop <em style="color: #e8b44a; font-style: normal;">after</em> you played it.</div>
+    <div style="margin-left: auto; font-size: 11px; color: #8b93a3;">the last 24 bars of your playing are always held</div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 6px;">
+    <div style="display: grid; grid-template-columns: repeat(24, minmax(0, 1fr)); gap: 3px;">
+      <sc-for list="{{bars}}" as="bar" hint-placeholder-count="24">
+        <div style="{{bar.s}}">{{bar.label}}</div>
+      </sc-for>
+    </div>
+
+    <div style="position: relative; height: 148px; border: 1px solid #2c313b; border-radius: 6px; overflow: hidden; background-image: repeating-linear-gradient(to right, rgba(70,78,92,.5) 0 1px, transparent 1px 4.1666%), repeating-linear-gradient(to right, rgba(70,78,92,.16) 0 1px, transparent 1px 1.0416%); background-color: #191d24;">
+      <sc-for list="{{buffer}}" as="n" hint-placeholder-count="40">
+        <div style="{{n.s}}"></div>
+      </sc-for>
+      <div style="{{winStyle}}"></div>
+      <div style="{{winLabelStyle}}">{{winLabel}}</div>
+      <div style="position: absolute; top: 0; bottom: 0; right: 0; width: 1px; background: #7f8796;"></div>
+      <div style="position: absolute; right: 6px; bottom: 5px; font: 10px ui-monospace, SFMono-Regular, Menlo, monospace; color: #7f8796;">now</div>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 14px; font-size: 11px; color: #8b93a3;">
+      <span style="color: #ff2fd6; font-weight: 600;">■ your playing, kept but not recorded</span>
+      <span style="margin-left: auto; display: flex; align-items: center; gap: 7px;">
+        <span>how far back</span>
+        <button onClick="{{onBack}}" style="{{stepBtn}}">◀</button>
+        <span style="min-width: 62px; text-align: center; font-variant-numeric: tabular-nums; color: #e6e8ec;">{{offLabel}}</span>
+        <button onClick="{{onFwd}}" style="{{stepBtn}}">▶</button>
+        <span style="width: 1px; height: 16px; background: #2c313b;"></span>
+        <span>length</span>
+        <sc-for list="{{opts}}" as="o" hint-placeholder-count="4">
+          <button onClick="{{o.on}}" style="{{o.s}}">{{o.label}}</button>
+        </sc-for>
+      </span>
+    </div>
+  </div>
+
+  <div style="border: 1px solid #2c313b; border-radius: 8px; background: #1c1f26; padding: 12px; display: flex; flex-direction: column; gap: 9px;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#e8b44a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v5h5"></path></svg>
+      <span style="font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: #8b93a3; font-weight: 700;">lands as</span>
+      <span style="font: 600 10px ui-monospace, SFMono-Regular, Menlo, monospace; color: #14161a; background: #7c6fe0; border-radius: 3px; padding: 0 5px;">4</span>
+      <span style="font-size: 13px; font-weight: 600;">{{resultName}}</span>
+      <span style="font-size: 11px; color: #8b93a3; font-variant-numeric: tabular-nums;">{{resultSpan}}</span>
+      <span style="margin-left: auto; font-size: 11px; color: #8b93a3;">snapped to the bar line — the phrase keeps its place in the form</span>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 3px;">
+      <sc-for list="{{resultBars}}" as="rb" hint-placeholder-count="12">
+        <div style="{{rb.s}}">{{rb.label}}</div>
+      </sc-for>
+    </div>
+
+    <div style="position: relative; height: 92px; border: 1px solid #2c313b; border-radius: 6px; overflow: hidden; background-image: repeating-linear-gradient(to right, rgba(70,78,92,.5) 0 1px, transparent 1px 8.3333%), repeating-linear-gradient(to right, rgba(70,78,92,.18) 0 1px, transparent 1px 2.0833%); background-color: #191d24;">
+      <sc-for list="{{resultNotes}}" as="n" hint-placeholder-count="24">
+        <div style="{{n.s}}"></div>
+      </sc-for>
+      <div style="{{resultSpanStyle}}"></div>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 16px; font-size: 11px; color: #8b93a3;">
+      <span style="display: flex; align-items: center; gap: 6px;"><span style="width: 14px; height: 5px; border-radius: 2px; background: #7c6fe0;"></span>captured</span>
+      <span style="display: flex; align-items: center; gap: 6px;"><span style="width: 14px; height: 5px; border-radius: 2px; border: 1px solid #7c6fe0;"></span>repeats, transposed to the chord underneath</span>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+    <div style="border: 1px solid #2c313b; border-radius: 8px; padding: 11px 13px; display: flex; flex-direction: column; gap: 6px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="width: 9px; height: 9px; border-radius: 50%; background: #e63d40;"></span>
+        <span style="font-size: 13px; font-weight: 600;">Record</span>
+        <span style="padding: 1px 6px; border: 1px solid #2c313b; border-radius: 4px; background: #22262f; font: 600 11px ui-monospace, SFMono-Regular, Menlo, monospace;">R</span>
+      </div>
+      <div style="font-size: 12px; color: #8b93a3; line-height: 1.5;">Arm, play the pass, end it. You decide the length in advance, and you have to be ready on the bar line. Right when you already know what you want to lay down.</div>
+    </div>
+    <div style="border: 1px solid #e8b44a; border-radius: 8px; padding: 11px 13px; display: flex; flex-direction: column; gap: 6px; background: rgba(232,180,74,.05);">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e8b44a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v5h5"></path></svg>
+        <span style="font-size: 13px; font-weight: 600;">Capture</span>
+        <span style="padding: 1px 6px; border: 1px solid #2c313b; border-radius: 4px; background: #22262f; font: 600 11px ui-monospace, SFMono-Regular, Menlo, monospace;">C</span>
+      </div>
+      <div style="font-size: 12px; color: #8b93a3; line-height: 1.5;">Improvise. When something works, take it. No arming, no count-in, no lost first note — the buffer is timestamped against the same clock as the backing track, so it snaps to the same bar lines a live take would.</div>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{
+  "showTransposed": {"editor": "boolean", "default": true, "section": "Result", "tsType": "boolean"}
+}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.FORM = [0, 0, 0, 0, 5, 5, 0, 0, 7, 5, 0, 7];
+    this.NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    this.COL = '#7c6fe0';
+    const phrase = [
+      [0, .45, 67], [.5, .45, 70], [1, .85, 72], [2, .45, 70], [2.5, .45, 67], [3, 1.1, 65],
+      [4.5, .45, 63], [5, .45, 65], [5.5, .45, 67], [6, 1.5, 60],
+      [8, .45, 72], [8.5, .45, 75], [9, .85, 72], [10, .45, 70], [10.5, .45, 67], [11, 1.3, 66],
+      [12, .45, 65], [12.5, .45, 63], [13, 2.2, 60],
+    ];
+    const alt = [
+      [0, .45, 63], [.5, .45, 66], [1, .85, 67], [2, 1.4, 70], [3.5, .45, 72],
+      [4, .9, 75], [5, .45, 72], [5.5, .45, 70], [6, 1.6, 67],
+      [8, .45, 60], [8.5, .45, 63], [9, .45, 65], [9.5, .45, 66], [10, 2, 67],
+      [12, .45, 70], [12.5, .45, 72], [13, .85, 75], [14, 1.6, 72],
+    ];
+    const at = (ns, d) => ns.map(n => ({ b: n[0] + d, len: n[1], p: n[2] }));
+    this.BUF = [].concat(at(phrase, 0), at(alt, 16), at(phrase, 32), at(alt, 48), at(phrase, 64), at(alt, 80));
+    this.state = { len: 4, off: 4 };
+  }
+
+  chord(bar) { return this.NAMES[(36 + this.FORM[((bar % 12) + 12) % 12]) % 12] + '7'; }
+
+  renderVals() {
+    const S = this.state, P = this.props;
+    const showT = P.showTransposed !== false;
+    const NB = 24, BEATS = NB * 4;
+    const nowBar = 24;
+    const chip = (label, active, accent) =>
+      'border: 1px solid ' + (active ? (accent || '#2f7fd0') : '#2c313b') + '; border-radius: 4px; padding: 3px 1px; '
+      + 'text-align: center; font-weight: 700; font-size: 10px; overflow: hidden; background: '
+      + (active ? '#1e2a3a' : '#1c1f26') + '; color: ' + (active ? '#fff' : '#e8b44a') + ';';
+
+    const winStartBar = NB - S.off - S.len;
+    const winEndBar = NB - S.off;
+
+    const bars = [];
+    for (let i = 0; i < NB; i++) {
+      const inWin = i >= winStartBar && i < winEndBar;
+      bars.push({
+        label: this.chord(i),
+        s: 'border: 1px solid ' + (inWin ? '#e8b44a' : '#2c313b') + '; border-radius: 4px; padding: 3px 1px; '
+          + 'text-align: center; font-weight: 700; font-size: 10px; overflow: hidden; background: '
+          + (inWin ? 'rgba(232,180,74,.12)' : '#1c1f26') + '; color: #e8b44a;',
+      });
+    }
+
+    const yBuf = p => 8 + (1 - Math.max(0, Math.min(1, (p - 48) / 42))) * 132;
+    const buffer = this.BUF.filter(n => n.b < BEATS).map(n => {
+      const inWin = n.b >= winStartBar * 4 && n.b < winEndBar * 4;
+      return {
+        s: 'position: absolute; border-radius: 2px; background: #ff2fd6; left: ' + (n.b / BEATS * 100).toFixed(3)
+          + '%; width: ' + Math.max(.35, n.len / BEATS * 100).toFixed(3) + '%; top: ' + yBuf(n.p).toFixed(1)
+          + 'px; height: 5px; opacity: ' + (inWin ? '1' : '.30') + ';'
+          + (inWin ? ' box-shadow: 0 0 6px rgba(255,47,214,.55);' : ''),
+      };
+    });
+
+    const captured = this.BUF
+      .filter(n => n.b >= winStartBar * 4 && n.b < winEndBar * 4)
+      .map(n => ({ b: n.b - winStartBar * 4, len: n.len, p: n.p }));
+
+    const fromBar = ((winStartBar % 12) + 12) % 12;
+    const yRes = p => 8 + (1 - Math.max(0, Math.min(1, (p - 48) / 42))) * 76;
+    const resultNotes = [];
+    const starts = [fromBar];
+    for (let st = ((fromBar % S.len) + S.len) % S.len; st + S.len <= 12; st += S.len)
+      if (st !== fromBar) starts.push(st);
+    starts.forEach(st => {
+      const ghost = st !== fromBar;
+      captured.forEach(n => {
+        const bil = Math.floor(n.b / 4);
+        const d = (ghost && showT && S.len < 12)
+          ? this.FORM[(st + bil) % 12] - this.FORM[(fromBar + bil) % 12] : 0;
+        const ab = st * 4 + n.b;
+        if (ab >= 48) return;
+        resultNotes.push({
+          s: 'position: absolute; border-radius: 2px; left: ' + (ab / 48 * 100).toFixed(3) + '%; width: '
+            + Math.max(.4, Math.min(n.len, 48 - ab) / 48 * 100).toFixed(3) + '%; top: ' + yRes(n.p + d).toFixed(1)
+            + 'px; height: 5px; ' + (ghost
+              ? 'background: transparent; border: 1px solid ' + this.COL + '; opacity: .45;'
+              : 'background: ' + this.COL + ';'),
+        });
+      });
+    });
+
+    const resultBars = this.FORM.map((f, i) => ({
+      label: this.NAMES[(36 + f) % 12] + '7',
+      s: chip(null, i >= fromBar && i < fromBar + S.len, this.COL),
+    }));
+
+    const stepBtn = 'background: #22262f; color: #e6e8ec; border: 1px solid #2c313b; border-radius: 4px; '
+      + 'padding: 2px 8px; cursor: pointer; font-size: 11px;';
+
+    return {
+      bars: bars,
+      buffer: buffer,
+      resultNotes: resultNotes,
+      resultBars: resultBars,
+      resultName: S.len === 12 ? 'Chorus 1' : 'Capture 4',
+      resultSpan: S.len + ' bar · from bar ' + (fromBar + 1) + ' · over ' + this.chord(fromBar)
+        + (S.len < 12 ? ' · follow on' : ''),
+      resultSpanStyle: 'position: absolute; top: 0; bottom: 0; pointer-events: none; left: '
+        + (fromBar * 4 / 48 * 100).toFixed(3) + '%; width: ' + (S.len * 4 / 48 * 100).toFixed(3)
+        + '%; background: rgba(124,111,224,.07); border-left: 1px solid ' + this.COL + '; border-right: 1px solid ' + this.COL + ';',
+      winStyle: 'position: absolute; top: 0; bottom: 0; pointer-events: none; left: '
+        + (winStartBar / NB * 100).toFixed(3) + '%; width: ' + (S.len / NB * 100).toFixed(3)
+        + '%; background: rgba(232,180,74,.09); border: 1px solid #e8b44a; border-radius: 4px;',
+      winLabelStyle: 'position: absolute; top: 5px; pointer-events: none; left: '
+        + (winStartBar / NB * 100).toFixed(3) + '%; padding-left: 6px; font: 600 10px ui-monospace, SFMono-Regular, Menlo, monospace; color: #e8b44a;',
+      winLabel: S.len === 12 ? 'chorus' : S.len + ' bar',
+      offLabel: S.off === 0 ? 'now' : S.off + ' bar' + (S.off === 1 ? '' : 's'),
+      stepBtn: stepBtn,
+      onBack: () => this.setState({ off: Math.min(24 - S.len, S.off + 1) }),
+      onFwd: () => this.setState({ off: Math.max(0, S.off - 1) }),
+      opts: [1, 2, 4, 12].map(n => ({
+        label: n === 12 ? 'chorus' : n + ' bar',
+        on: () => this.setState({ len: n, off: Math.min(S.off, 24 - n) }),
+        s: 'border-radius: 4px; padding: 2px 8px; cursor: pointer; font-size: 11px; font-variant-numeric: tabular-nums; '
+          + (S.len === n ? 'background: #e8b44a; color: #14161a; border: 1px solid #e8b44a; font-weight: 600;'
+            : 'background: #22262f; color: #8b93a3; border: 1px solid #2c313b;'),
+      })),
+    };
+  }
+}
+</script>
+</body>
+</html>

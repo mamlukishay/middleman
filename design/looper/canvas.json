@@ -1,0 +1,27 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 1440, "h": 900, "title": "Looper", "is_interactive": true },
+    { "file": "Capture.dc.html", "x": 0, "y": 1020, "w": 1040, "h": 740, "title": "Capture", "is_interactive": true },
+    { "file": "LoopInspector.dc.html", "x": 1120, "y": 1020, "w": 640, "h": 820, "title": "Loop inspector", "is_interactive": true },
+    { "file": "Keys.dc.html", "x": 0, "y": 1980, "w": 900, "h": 660, "title": "Keys", "is_interactive": true },
+    { "file": "States.dc.html", "x": 980, "y": 1980, "w": 1040, "h": 600, "title": "Lane states", "is_interactive": true }
+  ],
+  "annotations": [
+    {
+      "id": "why-lanes",
+      "x": -330, "y": 40, "w": 270,
+      "text": "The decision everything hangs off:\n\nA loop is not just N bars long — it remembers WHERE in the form it was played, and over which chord.\n\nThat is why the lanes sit under the chord strip and are one chorus wide. A lick played over the IV cannot blindly repeat over the I; either it moves with the harmony (follow), or it stays in its own bars (phrase)."
+    },
+    {
+      "id": "why-midi",
+      "x": -330, "y": 1060, "w": 270,
+      "text": "These loops are MIDI, not audio — there is no audio input in the app at all.\n\nWhat that buys, and what no pedal can do: exact undo per layer, quantize after the fact, transpose to follow the changes, move an octave, and hand the phrase back to the staff as a melody.\n\nIt also means the buffer is cheap: a few thousand timestamped numbers, not minutes of PCM."
+    },
+    {
+      "id": "open",
+      "x": -330, "y": 2020, "w": 270,
+      "text": "Worth your call:\n\n1. Four lanes, or five? Four keeps the colour ramp legible and leaves the backing track as the fifth voice.\n\n2. Does the piano echo MIDI back on its output? If it does, a loop playing back could re-enter the buffer and pile up. Worth checking on your instrument before any of this is built."
+    }
+  ],
+  "launch": { "view": "canvas" }
+}
