@@ -38,6 +38,7 @@ const engine = makeEngine({ clock, buffer });
 
 let TRACKS = [];
 let ti = 0, sel = 0, capIdx = 2, capOff = 0, ledTimer = null, saveTimer = null;
+let shownRev = -1, shownSel = -1;      // what the deck and inspector last drew
 
 const capBars = () => CAP_BARS[capIdx] || engine.nbars;
 const ui = makeUi(engine, clock, el, { held, buffer, capBars, capOff: () => capOff });
@@ -149,7 +150,14 @@ function syncInsp() {
     : '<div class="ihint">Nothing recorded here yet.</div>';
 }
 
-function syncAll() { ui.sync(sel); syncDeck(); syncInsp(); scheduleSave(); }
+function syncAll() {
+  ui.sync(sel);
+  syncDeck();
+  syncInsp();
+  scheduleSave();
+  shownRev = engine.rev;
+  shownSel = sel;
+}
 
 // ---------------------------------------------------------------- persistence
 const setKey = () => 'middleman.looper.' + (engine.track?.id ?? '?');
@@ -418,8 +426,15 @@ onMidi(ev => buffer.feed(ev));
   ui.sync(sel);
   ui.frame(sel);
   ui.setPlayed([...held].sort((a, b) => a - b).map(noteName).join(' ') || '–');
-  const s = engine.slots[sel];
-  if (s.pend || s.st === 'rec' || s.st === 'dub') syncDeck();
+  // These used to refresh only *while* a lane was busy, so the last frame drawn was
+  // the busy one: when a take resolved to play the button stayed red for good.
+  // Follow the same revision the lanes do, and the settled state gets drawn too.
+  if (engine.rev !== shownRev || sel !== shownSel) {
+    shownRev = engine.rev;
+    shownSel = sel;
+    syncDeck();
+    syncInsp();
+  }
 })();
 
 // exposed for debugging, and to drive the page without a piano attached
