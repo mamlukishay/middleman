@@ -336,10 +336,10 @@ el.melody.onclick = async () => {
   const text = JSON.stringify({ [engine.track.id + '-lane' + (sel + 1)]: m }, null, 2);
   try {
     await navigator.clipboard.writeText(text);
-    el.status.textContent = 'melody copied — paste into the "melodies" block of tracks.json';
+    el.status.textContent = 'melody copied to clipboard';
   } catch {
     console.log(text);
-    el.status.textContent = 'clipboard blocked — the melody is on the console';
+    el.status.textContent = 'clipboard blocked — melody is on the console';
   }
 };
 

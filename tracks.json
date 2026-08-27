@@ -4,13 +4,20 @@
   "_comment": "Backing tracks. Tracks reference the shared patterns/scales/forms below by name so the three blues keys don't repeat the same arrays. See README for the schema.",
 
   "patterns": {
-    "boogie":    [0, 7, 9, 10, 12, 10, 9, 7],
+    "boogie": [0, 7, 9, 10, 12, 10, 9, 7],
     "minorVamp": [0, 0, 3, 0, 7, 0, 10, 7]
   },
 
   "scales": {
-    "blues":           { "name": "blues scale",      "intervals": [0, 3, 5, 6, 7, 10], "blue": 6 },
-    "minorPentatonic": { "name": "minor pentatonic", "intervals": [0, 3, 5, 7, 10] }
+    "blues": {
+      "name": "blues scale",
+      "intervals": [0, 3, 5, 6, 7, 10],
+      "blue": 6
+    },
+    "minorPentatonic": {
+      "name": "minor pentatonic",
+      "intervals": [0, 3, 5, 7, 10]
+    }
   },
 
   "melodies": {
@@ -18,14 +25,153 @@
       "name": "verse line",
       "_comment": "An original F# minor pentatonic line over the vamp -- in the style, not a transcription. Cells are [note, eighths]; null is a rest; each bar must sum to 8.",
       "bars": [
-        [[null, 2], ["C#5", 1], ["B4", 1], ["A4", 2], ["F#4", 2]],
-        [["F#4", 3], ["E4", 1], ["F#4", 2], [null, 2]],
-        [[null, 2], ["C#5", 1], ["B4", 1], ["C#5", 2], ["E5", 2]],
-        [["E5", 4], [null, 4]],
-        [[null, 2], ["A4", 1], ["B4", 1], ["C#5", 2], ["B4", 2]],
-        [["A4", 3], ["F#4", 1], ["A4", 2], [null, 2]],
-        [[null, 1], ["E5", 1], ["C#5", 2], ["B4", 2], ["A4", 2]],
-        [["F#4", 6], [null, 2]]
+        [
+          [null, 2],
+          ["C#5", 1],
+          ["B4", 1],
+          ["A4", 2],
+          ["F#4", 2]
+        ],
+        [
+          ["F#4", 3],
+          ["E4", 1],
+          ["F#4", 2],
+          [null, 2]
+        ],
+        [
+          [null, 2],
+          ["C#5", 1],
+          ["B4", 1],
+          ["C#5", 2],
+          ["E5", 2]
+        ],
+        [
+          ["E5", 4],
+          [null, 4]
+        ],
+        [
+          [null, 2],
+          ["A4", 1],
+          ["B4", 1],
+          ["C#5", 2],
+          ["B4", 2]
+        ],
+        [
+          ["A4", 3],
+          ["F#4", 1],
+          ["A4", 2],
+          [null, 2]
+        ],
+        [
+          [null, 1],
+          ["E5", 1],
+          ["C#5", 2],
+          ["B4", 2],
+          ["A4", 2]
+        ],
+        [
+          ["F#4", 6],
+          [null, 2]
+        ]
+      ]
+    },
+
+    "blues-c-lane1": {
+      "name": "Capture 1",
+      "bars": [
+        [
+          ["G#4", 1],
+          ["D4", 1],
+          ["G4", 1],
+          ["F4", 1],
+          ["D4", 1],
+          ["G4", 1],
+          ["F4", 1],
+          ["G4", 1]
+        ],
+        [
+          ["A#4", 1],
+          ["G4", 1],
+          ["F4", 1],
+          ["D4", 1],
+          ["F4", 1],
+          ["A#4", 1],
+          ["G4", 1],
+          ["F4", 1]
+        ],
+        [
+          [null, 7],
+          ["A#4", 1]
+        ],
+        [
+          [null, 2],
+          ["C5", 1],
+          ["A#4", 2],
+          ["C5", 1],
+          ["A#4", 2]
+        ],
+        [
+          ["C#5", 1],
+          ["G4", 1],
+          ["C5", 1],
+          ["A#4", 1],
+          ["G4", 1],
+          ["C5", 1],
+          ["A#4", 1],
+          ["C5", 1]
+        ],
+        [
+          ["D#5", 1],
+          ["C5", 1],
+          ["A#4", 1],
+          ["G4", 1],
+          ["A#4", 1],
+          ["D#5", 1],
+          ["C5", 1],
+          ["A#4", 1]
+        ],
+        [
+          [null, 7],
+          ["A#4", 1]
+        ],
+        [
+          [null, 2],
+          ["C5", 1],
+          ["A#4", 2],
+          ["C5", 1],
+          ["A#4", 2]
+        ],
+        [
+          ["D#5", 1],
+          ["A4", 1],
+          ["D5", 1],
+          ["C5", 1],
+          ["A4", 1],
+          ["D5", 1],
+          ["C5", 1],
+          ["D5", 1]
+        ],
+        [
+          ["D#5", 1],
+          ["C5", 1],
+          ["A#4", 1],
+          ["G4", 1],
+          ["A#4", 1],
+          ["D#5", 1],
+          ["C5", 1],
+          ["A#4", 1]
+        ],
+        [
+          [null, 7],
+          ["A#4", 1]
+        ],
+        [
+          [null, 2],
+          ["G5", 1],
+          ["F5", 2],
+          ["G5", 1],
+          ["F5", 2]
+        ]
       ]
     }
   },
@@ -47,7 +193,8 @@
       "quality": "7",
       "form": "blues12",
       "scale": "blues",
-      "cols": 6
+      "cols": 6,
+      "melody": "blues-c-lane1"
     },
     {
       "id": "blues-f",

@@ -16,7 +16,7 @@
    the page grew past the viewport instead of the lanes giving up their space */
 body.looper{grid-template-columns:200px minmax(0,1fr);grid-template-rows:minmax(0,1fr)}
 body.looper.insp{grid-template-columns:200px minmax(0,1fr) 296px}
-body.looper > *{min-height:0}
+body.looper > *{min-height:0;min-width:0}
 
 #side{display:flex;flex-direction:column;gap:16px}
 #setbox{margin-top:auto;border-top:1px solid var(--line);padding-top:12px;
@@ -27,23 +27,36 @@ body.looper > *{min-height:0}
 #backlink{font-size:11px;color:var(--dim)}
 #backlink:hover{color:var(--fg)}
 
-main{grid-template-rows:auto minmax(0,1fr) auto auto}
+/* main is a grid, so its implicit column is content-sized: a row that cannot shrink
+   (the transport) makes main wider than its track and paints over the inspector.
+   The explicit column caps it; overflow:hidden is the backstop. */
+body.looper main{grid-template-rows:auto minmax(0,1fr) auto auto;
+                 grid-template-columns:minmax(0,1fr);overflow:hidden}
 /* the transport, the deck and the keys stay put; the lanes are what scrolls */
 #work{overflow-y:auto;overflow-x:hidden}
 body.looper #kb{height:var(--kbh)}
 body.looper .w{height:var(--kbh)}
 body.looper .b{height:calc(var(--kbh) * .62)}
 /* a long MIDI error would otherwise wrap the whole bar onto two lines */
-#bar #statusEl{max-width:230px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#bar .sep{width:1px;height:20px;background:var(--line)}
+#bar #statusEl{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* every part of the transport has to be able to give way; the readouts truncate
+   rather than holding the bar open at their min-width */
+#bar{flex-wrap:wrap;min-width:0}
+#bar > *{min-width:0}
+#bar .sep{flex:0 0 1px;width:1px;height:20px;background:var(--line)}
+#bar button{flex:0 0 auto}
+#bar #pos,#bar #played{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #bar #played{margin-left:8px}
+#bar #speed{flex:0 1 auto;min-width:0}
+#bar #speed input{width:clamp(64px,9vw,110px);min-width:0}
 
 #work{padding:12px 14px 0;display:flex;flex-direction:column;gap:9px;min-height:0}
 #lanes{flex:1 1 auto;min-height:0}
-#lphead{display:flex;align-items:baseline;gap:12px}
+#lphead{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;min-width:0}
 #lphead h2{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin:0}
-#lphead .hint{font-size:11px;color:var(--dim)}
-#lphead .opts{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:11px;color:var(--dim)}
+#lphead .hint{font-size:11px;color:var(--dim);flex:1 1 auto;min-width:0;
+              overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#lphead .opts{margin-left:auto;flex:0 0 auto;display:flex;align-items:center;gap:8px;font-size:11px;color:var(--dim)}
 button:disabled{opacity:.45;cursor:default}
 button.mini{background:#22262f;border:1px solid var(--line);border-radius:5px;
             padding:3px 8px;font-size:11px;font-variant-numeric:tabular-nums}

@@ -250,4 +250,11 @@ Two CSS traps cost time on the looper and will again:
   is `auto` — so it silently behaves like `height: auto` and the page grows past
   the viewport instead of the content giving up space. The body grid needs an
   explicit `grid-template-rows: minmax(0, 1fr)`.
+- The same on the other axis, one level down: a grid container's *implicit column*
+  is content-sized, so `min-width: 0` on the container is not enough — a child row
+  that cannot shrink (a no-wrap flex bar with `min-width`s in it) makes the
+  container wider than its track and paints over whatever is beside it. `main`
+  needs `grid-template-columns: minmax(0, 1fr)`, and the transport needs to wrap.
+  Check overflow on **both** axes when testing a layout; the vertical one is the
+  obvious half.
 
