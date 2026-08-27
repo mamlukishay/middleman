@@ -65,5 +65,8 @@ button:hover{background:#333947}
 .b.you{background:var(--you);border-color:#c2149f}
 .w.you,.b.you{box-shadow:0 0 10px rgba(255,47,214,.65)}
 
+#looperlink{display:block;margin-top:14px;font-size:12px;color:var(--dim);text-decoration:none}
+#looperlink:hover{color:var(--accent)}
+
 .trk-err{padding:8px 9px;border-radius:6px;background:#3a2126;color:#ff9d9d;font-size:12px}
 .trk-err small{color:#c98080}

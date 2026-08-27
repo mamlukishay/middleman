@@ -3,10 +3,15 @@
 A MIDI practice app for a digital piano. It plays backing tracks out to the piano
 and shows what you're playing back, in the browser.
 
+There are two pages: the **practice view** (`index.html`), and the **looper**
+(`looper.html`), where you record your own playing into loops that keep going
+underneath you.
+
 ## Running
 
 ```bash
 ./serve.sh          # then open http://localhost:8765 in Chrome
+npm test            # or: node --test 'test/*.test.mjs'
 ```
 
 Chrome is required — this uses the **Web MIDI API**, which needs a secure context.
@@ -34,6 +39,78 @@ Your played notes also light up on the staff by **pitch class** — you'll be
 soloing an octave or two above the written bass line, so exact-pitch matching
 would essentially never fire.
 
+## The looper
+
+`looper.html` records what you play into four lanes that loop underneath the
+backing track. They are MIDI loops, not audio -- the piano is the only sound
+source either way, so a loop is just a list of notes going back out to it.
+
+The lanes sit **under the chord strip, one chorus wide**. That is the whole idea:
+a loop remembers not only how long it is, but *where in the form* it was played
+and *over which chord*. Everything else follows from that.
+
+### Getting a loop in
+
+Two ways, and the second is the one you will use:
+
+- **Record** (`R`) -- arms, and starts on the next bar line. Press `R` again to
+  end it. The take's length becomes the loop's length.
+- **Capture** (`C`) -- take the last few bars *after* playing them. Nothing has
+  to be armed: everything you play is already in a rolling 32-bar buffer, so a
+  good idea does not have to be announced in advance.
+
+Because the buffer is always there, the two are the same mechanism. Pressing `R`
+late does not cost you the first note -- the take still starts on the bar line,
+and what you already played since that line is pulled back in. Pressing early
+just waits. Snapping is to the nearest line, so neither direction is a mistake.
+
+### What a loop can do that an audio loop cannot
+
+- **Follow the changes.** A four-bar lick played over the `F7` repeats over the
+  `C7` and the `G7`, moved by the interval between the chords. On by default for
+  a loop that repeats inside a form whose harmony actually moves.
+- **Fill or phrase.** *Fill* tiles the chorus, every N bars; *phrase* plays once,
+  in its own bars. Fill is only offered when the length divides the form.
+- **Quantize after the fact**, non-destructively, and **on the track's shuffle** --
+  a straight 1/8 grid would fight the boogie feel, so the grid points sit where
+  the bass line puts them.
+- **Layers.** Each overdub pass is kept separately, so `U` takes exactly one off.
+  Clearing a lane is undoable too, which is why it asks for no confirmation.
+- **Copy lane as melody** writes the loop out in the `melodies` shape from this
+  file, so a captured line can come back engraved on the staff in the practice
+  view. It exports a whole chorus, repeats and transpositions included -- both
+  because that is what the loop sounds like, and because the loader only accepts
+  a melody that is a multiple of the form.
+
+Loop sets are kept in `localStorage` per track, and **Restore last set** brings
+one back.
+
+### Keys
+
+Your hands are on the piano, so nothing needs to be hit *at* a musical moment --
+arm early, or capture afterwards. The bindings are also printed along the deck.
+
+| | |
+|---|---|
+| `1`–`4` | select a lane |
+| `R` | record → end → overdub → end |
+| `C` | capture the last bars from the buffer |
+| `U` / `⇧U` | drop the last layer / put it back (also undoes a clear) |
+| `X` | clear the lane |
+| `M` / `S` | mute / solo |
+| `F` | follow the changes |
+| `[` `]` | halve / double the length |
+| `↑` `↓` | move the lane an octave |
+| `+` `-` | level |
+| `Q` | quantize grid |
+| `I` | inspector |
+| `Esc` | every lane back to plain playback |
+| `Space` | start / stop |
+
+The damper pedal sends `CC64` and you need it for sustain, so it is deliberately
+*not* bound to anything. `midi.js` passes controller messages through on its
+event stream, so a second pedal on its own CC could be learned later.
+
 ## Tracks
 
 | Track | Form | Feel |
@@ -49,22 +126,35 @@ the vocal line; swap the notes in `tracks.json` for whatever you want to work on
 ## Layout
 
 ```
-index.html          markup only
-style.css
+index.html          the practice view
+looper.html         the looper
+style.css           shared: tokens, buttons, track list, key strip
+looper.css          the looper's own furniture, on top of style.css
 tracks.json         the backing tracks (data, not code)
 src/
-  app.js            wiring: transport, playhead, panels, event handlers
+  app.js            practice view: transport, playhead, panels, event handlers
+  clock.js          performance.now() <-> absolute beats; shared by the looper
   tracks.js         loads/validates tracks.json, build() -> event list
   theory.js         note spelling, scales, bass patterns, chord labels
-  midi.js           Web MIDI in/out, the `held` set, panic()
+  midi.js           Web MIDI in/out, the `held` set, the timestamped event stream
   metronome.js      WebAudio click
   keyboard.js       the piano strip
   notation.js       abcjs rendering, chord-box geometry, played-note painting
+  looper/
+    buffer.js       the rolling input buffer, and what a take slices out of it
+    loops.js        the loop model: placement, follow, quantize, melody export
+    engine.js       scheduler and the one-key state machine
+    ui.js           lanes, rolls, playhead, key strip
+    app.js          wiring: keys, MIDI in, inspector, persistence
+test/
+  looper.test.mjs   the musical logic, run with `node --test`
 vendor/
   abcjs-basic-min.js   abcjs 6.4.4, vendored so the app works offline
 ```
 
-Native ES modules — no build step, no `node_modules`. Edit and refresh.
+Native ES modules — no build step, no `node_modules`. Edit and refresh. The
+`package.json` exists only so `node --test` reads `src/` as ES modules; there are
+no dependencies.
 
 ## Adding a track
 
@@ -150,4 +240,14 @@ Two abcjs behaviours cost real debugging time and are worth remembering:
   `#`/`b` as the glyphs `♯`/`♭` — so they're matched by normalised text content.
 - A blank line anywhere in an ABC header **terminates the tune** and silently
   drops the entire body.
+
+Two CSS traps cost time on the looper and will again:
+
+- The `hidden` attribute is only `display: none` at the *user-agent* level, so any
+  rule setting `display` on the element beats it. Anything toggled with `.hidden`
+  needs its own `[hidden] { display: none }`.
+- `height: 100%` on a grid item resolves against the **row**, and an implicit row
+  is `auto` — so it silently behaves like `height: auto` and the page grows past
+  the viewport instead of the content giving up space. The body grid needs an
+  explicit `grid-template-rows: minmax(0, 1fr)`.
 

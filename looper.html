@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Middleman · Looper</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="looper.css">
+</head>
+<body class="looper">
+
+<div id="side">
+  <h2>Backing tracks</h2>
+  <div id="tracks"></div>
+  <div id="setbox">
+    <h2>Loop set</h2>
+    <div id="setline">–</div>
+    <div class="setbtns">
+      <button id="restoreBtn" hidden>Restore last set</button>
+      <button id="melodyBtn">Copy lane as melody</button>
+    </div>
+    <a id="backlink" href="index.html">← practice view</a>
+  </div>
+</div>
+
+<main>
+  <div id="bar">
+    <button id="play">▶ Play</button>
+    <button id="stop">■ Stop</button>
+    <button id="metroBtn" class="tgl">● Click</button>
+    <button id="backBtn" class="tgl on" title="mute the backing track and loop against nothing">♩ Backing</button>
+    <span class="sep"></span>
+    <span id="pos">–</span>
+    <span id="speed">Speed
+      <input type="range" id="tempo" min="50" max="200" step="1" value="100">
+      <b id="bpmv" contenteditable="plaintext-only" inputmode="numeric"
+         title="click to type a tempo">100</b> bpm</span>
+    <span id="played">–</span><span id="inled" title="MIDI in"></span>
+    <span id="statusEl">connecting…</span>
+  </div>
+
+  <div id="work">
+    <div id="lphead">
+      <h2>Looper</h2>
+      <span class="hint">one chorus wide · loops sit where you played them</span>
+      <span class="opts">
+        <span>snap</span><button id="snapBtn" class="mini">bar</button>
+        <span>quantize</span><button id="gridBtn" class="mini">off</button>
+        <button id="inspBtn" class="mini">inspector</button>
+      </span>
+    </div>
+
+    <div id="ruler">
+      <div class="rlabel">Form</div>
+      <div class="rwrap"><div class="strip" id="strip"></div><div id="rhead"></div></div>
+    </div>
+
+    <div id="lanes"></div>
+  </div>
+
+  <div id="deck">
+    <div class="dgroup">
+      <button id="capBtn" class="cap">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v5h5"></path></svg>
+        Capture
+      </button>
+      <div class="capcol">
+        <div class="caprow">
+          <span>last</span><span id="capOpts"></span><span>from the buffer</span>
+          <span class="sep" style="height:14px"></span>
+          <span>back</span>
+          <button id="capBack" class="mini">◀</button>
+          <span id="capOff" style="min-width:56px;text-align:center;color:var(--fg)">now</span>
+          <button id="capFwd" class="mini">▶</button>
+        </div>
+        <div id="bufwrap"><div id="bufnotes"></div><div id="bufwin"></div></div>
+      </div>
+      <div class="note">Your playing is always in the buffer — you never have to arm
+        before a good idea.</div>
+    </div>
+
+    <div class="vsep"></div>
+
+    <div class="dgroup reccol">
+      <div class="recrow">
+        <button id="recBtn">● Record</button>
+        <button id="undoBtn">↶ Undo</button>
+        <button id="clearBtn">✕ Clear</button>
+        <span id="selline">–</span>
+      </div>
+      <div id="legend"></div>
+    </div>
+  </div>
+
+  <div id="bottom">
+    <div id="info"></div>
+    <div id="kb"></div>
+  </div>
+</main>
+
+<aside id="insp" hidden>
+  <div class="isec">
+    <div class="irow">
+      <span id="iNum" class="lnum">1</span>
+      <b id="iName" style="font-size:14px">–</b>
+      <span id="iState" class="lst"></span>
+    </div>
+    <div id="iSpan" class="ihint"></div>
+  </div>
+
+  <div class="isec">
+    <h2>Length</h2>
+    <div class="irow" id="iLens"></div>
+    <div class="modes" id="iModes"></div>
+  </div>
+
+  <div class="isec">
+    <h2>Follow the changes</h2>
+    <div class="irow">
+      <button id="iFollow" class="chip">off</button>
+      <span id="iFollowHint" class="ihint" style="flex:1"></span>
+    </div>
+  </div>
+
+  <div class="isec">
+    <h2>Quantize</h2>
+    <div class="irow" id="iGrids"></div>
+    <div class="strength" id="iStrength"></div>
+    <div class="ihint">The played timings are kept — the grid is applied on the way out,
+      and follows the track's shuffle.</div>
+  </div>
+
+  <div class="isec">
+    <h2>Layers</h2>
+    <div class="layers" id="iLayers"></div>
+    <div class="ihint">Newest on top. <span class="kbd">U</span> drops one,
+      <span class="kbd">⇧U</span> puts it back.</div>
+  </div>
+</aside>
+
+<script type="module" src="src/looper/app.js"></script>
+</body>
+</html>

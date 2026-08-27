@@ -1,0 +1,9 @@
+{
+  "name": "middleman",
+  "private": true,
+  "type": "module",
+  "description": "Marks src/ as ES modules for `node --test`. There are no dependencies and no build step -- the browser loads the same files directly.",
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  }
+}

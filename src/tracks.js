@@ -17,7 +17,7 @@ function parseSwing(v, where) {
 }
 
 /** Beat offset of eighth-note `k` within a bar: offbeats land `sw` of the way through. */
-const swung = (k, sw) => Math.floor(k / 2) + (k % 2 ? sw : 0);
+export const swung = (k, sw) => Math.floor(k / 2) + (k % 2 ? sw : 0);
 
 /** Named reference, or an inline value of the expected shape. */
 function deref(value, table, kind, where) {

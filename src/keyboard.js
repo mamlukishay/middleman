@@ -19,12 +19,20 @@ export function renderKeys(el) {
   el.innerHTML = html;
 }
 
-export function paintKeys(el, { scale, root, sounding, held }) {
+/**
+ * `colours` is an optional Map of note -> css colour, painted over the classes --
+ * the looper uses it to tint a key with the lane that is sounding it.
+ */
+export function paintKeys(el, { scale, root, sounding, held, colours }) {
   const inScale = n => scale && scale.includes(((n % 12) - root + 12) % 12);
   el.querySelectorAll('[data-n]').forEach(key => {
     const n = +key.dataset.n;
+    const c = colours?.get(n);
     key.classList.toggle('scale', inScale(n));
     key.classList.toggle('play',  sounding.has(n));
     key.classList.toggle('you',   held.has(n));
+    key.classList.toggle('lit',   !!c);
+    key.style.background = c || '';
+    key.style.borderColor = c || '';
   });
 }
