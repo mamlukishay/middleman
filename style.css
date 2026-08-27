@@ -1,0 +1,61 @@
+/* Middleman - blues/groove practice app */
+:root{--bg:#14161a;--pane:#1c1f26;--line:#2c313b;--fg:#e6e8ec;--dim:#8b93a3;
+      --accent:#e8b44a;--play:#2f7fd0;--you:#ff2fd6}
+*{box-sizing:border-box}
+html,body{height:100%;overflow:hidden}
+body{margin:0;display:grid;grid-template-columns:200px 1fr;
+     font:14px/1.45 ui-sans-serif,system-ui,sans-serif;background:var(--bg);color:var(--fg)}
+#side{background:var(--pane);border-right:1px solid var(--line);padding:10px;overflow:auto}
+#side h2{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin:0 0 8px}
+.trk{padding:7px 9px;border-radius:6px;cursor:pointer;margin-bottom:3px}
+.trk:hover{background:#242832}
+.trk.on{background:var(--accent);color:#14161a;font-weight:600}
+.trk small{display:block;color:var(--dim);font-size:11px}
+.trk.on small{color:#5c4a1c}
+
+main{display:grid;grid-template-rows:auto minmax(0,1fr) auto;min-width:0;height:100%}
+#bar{display:flex;gap:10px;align-items:center;padding:8px 14px;border-bottom:1px solid var(--line);flex:0 0 auto}
+button{background:#2a2f3a;color:var(--fg);border:1px solid var(--line);border-radius:6px;
+       padding:6px 12px;cursor:pointer;font-size:13px}
+button:hover{background:#333947}
+.tgl.on{background:var(--accent);border-color:var(--accent);color:#14161a;font-weight:600}
+#pos{font-variant-numeric:tabular-nums;color:var(--dim);min-width:120px}
+#speed{display:flex;align-items:center;gap:7px;color:var(--dim);font-size:12px}
+#speed input{width:110px;accent-color:var(--accent)}
+#speed b{color:var(--fg);font-variant-numeric:tabular-nums;min-width:30px;text-align:right;
+  cursor:text;border-radius:4px;padding:1px 4px;border:1px solid transparent}
+#speed b:hover{border-color:var(--line)}
+#speed b:focus{outline:none;border-color:var(--accent);background:#22262f;text-align:center}
+#played{color:var(--you);font-weight:700;min-width:130px;font-size:14px;
+  text-shadow:0 0 10px rgba(255,47,214,.5)}
+#inled{width:9px;height:9px;border-radius:50%;background:#3a3f4a;transition:background .1s}
+#inled.hit{background:var(--you);box-shadow:0 0 8px var(--you)}
+#statusEl{margin-left:auto;color:var(--dim);font-size:11px}
+
+#sheet{padding:10px 14px;display:flex;flex-direction:column;gap:8px;min-height:0;overflow:hidden}
+.strip{display:grid;grid-template-columns:repeat(12,1fr);gap:4px;flex:0 0 auto}
+.bar{border:1px solid var(--line);border-radius:5px;padding:4px 2px;text-align:center;
+     background:var(--pane);font-weight:700;color:var(--accent);font-size:12px}
+.bar.cur{border-color:var(--play);background:#1e2a3a;color:#fff}
+#notewrap{flex:1 1 auto;min-height:0;overflow:hidden;background:#fff;border-radius:8px;
+          padding:4px 6px;color:#000;position:relative}
+#notation{height:100%;overflow:hidden}
+#notation svg{display:block}
+#notation .abcjs-notehead,#notation .abcjs-notehead *{fill:#000;stroke:none}
+#notation .cur-note,#notation .cur-note *{fill:var(--play)!important;stroke:var(--play)!important}
+#notation .you-note,#notation .you-note *{fill:var(--you)!important;stroke:var(--you)!important}
+#barhl{position:absolute;display:none;pointer-events:none;border-radius:6px;
+       background:rgba(124,111,224,.30);border:1.5px solid #7c6fe0;
+       transition:left .1s ease,top .1s ease,width .1s ease}
+
+#bottom{border-top:1px solid var(--line);background:var(--pane);padding:8px 14px;flex:0 0 auto}
+#info{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:7px;font-size:12px}
+#info b{color:var(--accent)}
+#kb{position:relative;height:90px;user-select:none}
+.w{position:absolute;top:0;height:90px;border:1px solid #333;border-radius:0 0 4px 4px;background:#f2f2f2}
+.b{position:absolute;top:0;height:56px;border-radius:0 0 3px 3px;background:#22252b;border:1px solid #000;z-index:2}
+.w.scale{background:#ffeec2}.b.scale{background:#6b5520}
+.w.play{background:var(--play)}.b.play{background:var(--play)}
+.w.you{background:var(--you);border-color:#c2149f}
+.b.you{background:var(--you);border-color:#c2149f}
+.w.you,.b.you{box-shadow:0 0 10px rgba(255,47,214,.65)}

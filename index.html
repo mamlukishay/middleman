@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Middleman</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="side"><h2>Backing tracks</h2><div id="tracks"></div></div>
+
+<main>
+  <div id="bar">
+    <button id="play">▶ Play</button>
+    <button id="stop">■ Stop</button>
+    <button id="metroBtn" class="tgl">● Click</button>
+    <span id="pos">–</span>
+    <span id="speed">Speed
+      <input type="range" id="tempo" min="50" max="200" step="1" value="100">
+      <b id="bpmv" contenteditable="plaintext-only" inputmode="numeric"
+         title="click to type a tempo">100</b> bpm</span>
+    <span id="played">–</span><span id="inled" title="MIDI in"></span>
+    <span id="statusEl">connecting…</span>
+  </div>
+
+  <div id="sheet">
+    <div class="strip" id="grid"></div>
+    <div id="notewrap"><div id="notation"></div><div id="barhl"></div></div>
+  </div>
+
+  <div id="bottom"><div id="info"></div><div id="kb"></div></div>
+</main>
+
+<script src="vendor/abcjs-basic-min.js"></script>
+<script type="module" src="src/app.js"></script>
+</body>
+</html>
