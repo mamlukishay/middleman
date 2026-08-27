@@ -1,17 +1,9 @@
-// Note spelling, scales and the raw material chords/bass lines are built from.
+// Note spelling and chord theory. Anything a track author would want to change
+// lives in tracks.json instead.
 
 export const NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 const FLAT  = ['C','_D','D','_E','E','F','_G','G','_A','A','_B','B'];
 const SHARP = ['C','^C','D','^D','E','F','^F','G','^G','A','^A','B'];
-
-export const BLUES   = [0,3,5,6,7,10];
-export const MINPENT = [0,3,5,7,10];
-
-// 8 eighth-note offsets per bar, relative to the chord root
-export const PATTERNS = {
-  boogie:    [0,7,9,10,12,10,9,7],   // root 5 6 b7 8 b7 6 5
-  minorVamp: [0,0,3,0,7,0,10,7],     // driving minor-seventh vamp
-};
 
 // the two notes that define each chord quality
 export const GUIDES = { '7': [4,10], 'm7': [3,10] };
@@ -26,4 +18,15 @@ export function abcPitch(n, sharps) {
   const letter = s.slice(-1), acc = s.slice(0, -1);
   if (oct >= 5) return acc + letter.toLowerCase() + "'".repeat(oct - 5);
   return acc + letter + ','.repeat(Math.max(0, 4 - oct));
+}
+
+const LETTER_PC = { C:0, D:2, E:4, F:5, G:7, A:9, B:11 };
+
+/** Scientific pitch name -> MIDI number, e.g. "F#4" -> 66, "Bb3" -> 58. */
+export function pitchOf(s, where) {
+  const m = /^([A-Ga-g])([#b♯♭]*)(-?\d+)$/.exec(String(s ?? '').trim());
+  if (!m) throw new Error(`${where}: bad note ${JSON.stringify(s)} (want e.g. "F#4", "Bb3", "C4")`);
+  let pc = LETTER_PC[m[1].toUpperCase()];
+  for (const c of m[2]) pc += (c === '#' || c === '♯') ? 1 : -1;
+  return pc + (+m[3] + 1) * 12;
 }

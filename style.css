@@ -19,6 +19,10 @@ button{background:#2a2f3a;color:var(--fg);border:1px solid var(--line);border-ra
        padding:6px 12px;cursor:pointer;font-size:13px}
 button:hover{background:#333947}
 .tgl.on{background:var(--accent);border-color:var(--accent);color:#14161a;font-weight:600}
+.chk{display:flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;white-space:nowrap}
+.chk input{accent-color:var(--accent);cursor:pointer;margin:0}
+.chk.off{color:var(--dim);cursor:default}
+.chk.off input{cursor:default}
 #pos{font-variant-numeric:tabular-nums;color:var(--dim);min-width:120px}
 #speed{display:flex;align-items:center;gap:7px;color:var(--dim);font-size:12px}
 #speed input{width:110px;accent-color:var(--accent)}
@@ -44,6 +48,7 @@ button:hover{background:#333947}
 #notation .abcjs-notehead,#notation .abcjs-notehead *{fill:#000;stroke:none}
 #notation .cur-note,#notation .cur-note *{fill:var(--play)!important;stroke:var(--play)!important}
 #notation .you-note,#notation .you-note *{fill:var(--you)!important;stroke:var(--you)!important}
+#notation .cur-note.you-note,#notation .cur-note.you-note *{fill:var(--you)!important;stroke:var(--you)!important}
 #barhl{position:absolute;display:none;pointer-events:none;border-radius:6px;
        background:rgba(124,111,224,.30);border:1.5px solid #7c6fe0;
        transition:left .1s ease,top .1s ease,width .1s ease}
@@ -59,3 +64,6 @@ button:hover{background:#333947}
 .w.you{background:var(--you);border-color:#c2149f}
 .b.you{background:var(--you);border-color:#c2149f}
 .w.you,.b.you{box-shadow:0 0 10px rgba(255,47,214,.65)}
+
+.trk-err{padding:8px 9px;border-radius:6px;background:#3a2126;color:#ff9d9d;font-size:12px}
+.trk-err small{color:#c98080}

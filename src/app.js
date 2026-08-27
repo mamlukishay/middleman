@@ -1,6 +1,6 @@
 // Wiring: transport, playhead, and the panels. Everything DOM-facing lives here.
 
-import { TRACKS, build } from './tracks.js';
+import { loadTracks, build } from './tracks.js';
 import { NAMES, noteName } from './theory.js';
 import { held, initMidi, getOutput, send, panic } from './midi.js';
 import { audio, schedClick } from './metronome.js';
@@ -13,13 +13,15 @@ const el = {
   barhl: $('barhl'), info: $('info'), kb: $('kb'), pos: $('pos'), played: $('played'),
   inled: $('inled'), status: $('statusEl'), tempo: $('tempo'), bpmv: $('bpmv'),
   play: $('play'), stop: $('stop'), metro: $('metroBtn'),
+  melody: $('melody'), melLabel: $('melLabel'), melSound: $('melSoundBtn'),
 };
 
 const LOOKAHEAD_MS = 200;   // schedule this far ahead; keeps Stop immediate
 const TICK_MS = 50;
 
 let cur = null;             // active track + its expanded event list
-let view = { noteEls: [], chordEls: [], abcNotes: [] };
+let view = { bars: [], chordEls: [], hasMel: false };
+let melOn = false, melSound = true;   // show the melody staff / send it to the piano
 let timer = null, t0 = 0, idx = 0, gen = 0;
 let metroOn = false, clickBeat = 0;
 let lastBi = -1, ledTimer = null;
@@ -34,8 +36,9 @@ function play(ti) {
   el.tracks.querySelectorAll('.trk').forEach((n, i) => n.classList.toggle('on', i === ti));
   el.tempo.value = t.bpm;
   el.bpmv.textContent = t.bpm;
+  syncMelUi();
   renderSheet();
-  view = renderNotation(el.notation, cur);
+  view = renderNotation(el.notation, cur, melOn);
   lastBi = -1;
   el.barhl.style.display = 'none';
   renderInfo();
@@ -50,6 +53,7 @@ function play(ti) {
 
     while (idx < cur.ev.length && t0 + cur.ev[idx].b * spb < now + LOOKAHEAD_MS) {
       const e = cur.ev[idx++];
+      if (e.mel && e.on && !melSound) continue;
       send(e.on ? [0x90, e.n, e.v] : [0x80, e.n, 0], t0 + e.b * spb);
     }
     if (metroOn) while (t0 + clickBeat * spb < now + LOOKAHEAD_MS && clickBeat <= cur.total) {
@@ -69,7 +73,7 @@ function stop() {
   timer = null;
   panic();
   el.grid.querySelectorAll('.bar').forEach(b => b.classList.remove('cur'));
-  view.noteEls.forEach(n => n.classList.remove('cur-note'));
+  clearCur();
   el.barhl.style.display = 'none';
   lastBi = -1;
   el.pos.textContent = '–';
@@ -89,17 +93,41 @@ function tick(beat) {
   const local = beat >= cur.start ? cur.start + ((beat - cur.start) % cur.formBeats) : beat;
   const bi = Math.floor((local - cur.start) / 4);
 
-  let ni = -1;
-  if (bi >= 0 && bi < cur.nbars) {
-    const notes = cur.bars[bi].notes;
-    for (let k = 0; k < notes.length; k++) if (notes[k].at <= local) ni = bi * 8 + k;
-  }
   el.grid.querySelectorAll('.bar').forEach((n, i) => n.classList.toggle('cur', i === bi));
-  view.noteEls.forEach((n, i) => n.classList.toggle('cur-note', i === ni));
+  clearCur();
+  const bar = cur.bars[bi], vb = view.bars[bi];
+  if (bar && vb) {
+    mark(vb.bass, bar.notes, local);
+    // rests hold no element, so walk the sounding notes only -- same order as vb.mel
+    mark(vb.mel, bar.mel.filter(m => m.n != null), local);
+  }
   if (bi !== lastBi) { lastBi = bi; updateBarHl(el.barhl, el.notewrap, view, bi); }
   if (bi >= 0 && bi < cur.nbars)
     el.pos.textContent = `bar ${bi + 1}/${cur.nbars} · ${cur.bars[bi].chord}`;
   paint();
+}
+
+/** Blue the last note whose onset has passed, in one bar of one staff. */
+function mark(els, notes, local) {
+  let k = -1;
+  for (let i = 0; i < notes.length; i++) if (notes[i].at <= local) k = i;
+  if (k >= 0 && els[k]) els[k].classList.add('cur-note');
+}
+
+function clearCur() {
+  for (const b of view.bars) {
+    for (const e of b.bass) e.classList.remove('cur-note');
+    for (const e of b.mel)  e.classList.remove('cur-note');
+  }
+}
+
+/** The melody controls only make sense on a track that has one. */
+function syncMelUi() {
+  const has = !!cur?.melody;
+  el.melody.disabled = !has;
+  el.melLabel.classList.toggle('off', !has);
+  el.melLabel.title = has ? `melody: ${cur.melody.name}` : 'this track has no melody';
+  el.melSound.hidden = !(has && melOn);
 }
 
 function paint() {
@@ -118,7 +146,7 @@ function renderInfo() {
   const r = cur.root % 12;
   const chords = [...new Set(cur.bars.slice(0, cur.nbars).map(b => b.chord))];
   el.info.innerHTML =
-    `<div>${cur.scaleName}: <b>${cur.scale.map(i => NAMES[(r + i) % 12]).join(' ')}</b></div>` +
+    `<div>${NAMES[r]} ${cur.scaleName}: <b>${cur.scale.map(i => NAMES[(r + i) % 12]).join(' ')}</b></div>` +
     `<div>Chords: <b>${chords.join('  ')}</b></div>` +
     (cur.blue != null ? `<div>Blue note: <b>${NAMES[(r + cur.blue) % 12]}</b></div>` : '');
   paint();
@@ -137,8 +165,19 @@ function setBpm(v) {
 }
 
 // ---------------------------------------------------------------- wiring
+// top-level await: the rest of the wiring runs once the track file has loaded
+let TRACKS = [];
+try {
+  TRACKS = await loadTracks();
+} catch (err) {
+  el.status.textContent = 'tracks.json: ' + err.message;
+  el.tracks.innerHTML = `<div class="trk-err">Could not load tracks.json<br><small>${err.message}</small></div>`;
+  console.error(err);
+}
+
 el.tracks.innerHTML = TRACKS.map((t, i) =>
-  `<div class="trk" data-i="${i}"><div>${t.name}</div><small>${t.sub}</small></div>`).join('');
+  `<div class="trk" data-i="${i}" title="${t.note || ''}">`
+  + `<div>${t.name}</div><small>${t.sub}</small></div>`).join('') || el.tracks.innerHTML;
 el.tracks.onclick = e => {
   const d = e.target.closest('.trk');
   if (d) play(+d.dataset.i);
@@ -151,6 +190,21 @@ el.metro.onclick = () => {
   audio();
   if (metroOn && timer) clickBeat = Math.ceil((performance.now() - t0) / (60000 / cur.bpm));
 };
+
+el.melody.onchange = () => {
+  melOn = el.melody.checked;
+  syncMelUi();
+  if (!cur) return;
+  view = renderNotation(el.notation, cur, melOn);
+  lastBi = -1;                                  // force the chord box to re-measure
+  paint();
+};
+el.melSound.onclick = () => {
+  melSound = !melSound;
+  el.melSound.classList.toggle('on', melSound);
+  if (!melSound) panic();                       // kill anything the melody is holding
+};
+el.melSound.classList.toggle('on', melSound);
 
 el.tempo.oninput = e => setBpm(+e.target.value);
 const BPM_MIN = +el.tempo.min, BPM_MAX = +el.tempo.max;
@@ -169,7 +223,7 @@ el.bpmv.onblur = () => {
 
 addEventListener('resize', () => {
   if (!cur) return;
-  view = renderNotation(el.notation, cur);
+  view = renderNotation(el.notation, cur, melOn);
   lastBi = -1;
 });
 addEventListener('keydown', e => {
@@ -181,6 +235,7 @@ addEventListener('keydown', e => {
   if (timer) stop(); else play(cur ? cur.ti : 0);
 });
 
+syncMelUi();
 renderKeys(el.kb);
 initMidi({
   onStatus: s => el.status.textContent = s,
