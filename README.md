@@ -257,4 +257,9 @@ Two CSS traps cost time on the looper and will again:
   needs `grid-template-columns: minmax(0, 1fr)`, and the transport needs to wrap.
   Check overflow on **both** axes when testing a layout; the vertical one is the
   obvious half.
+- A flex item wraps on its **flex-basis**, not on its shrunk width — so `min-width: 0`
+  plus `overflow: hidden` still lets a growing label wrap the row and change the
+  page's height. Text whose length varies with state (`PLAY` → `DUB NEXT`) needs
+  `flex: 1 1 0`, and a label that must not move things needs a `min-width` wide
+  enough for its longest value.
 

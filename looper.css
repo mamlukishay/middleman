@@ -38,7 +38,8 @@ body.looper #kb{height:var(--kbh)}
 body.looper .w{height:var(--kbh)}
 body.looper .b{height:calc(var(--kbh) * .62)}
 /* a long MIDI error would otherwise wrap the whole bar onto two lines */
-#bar #statusEl{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#bar #statusEl{flex:1 1 0;min-width:0;text-align:right;
+               overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* every part of the transport has to be able to give way; the readouts truncate
    rather than holding the bar open at their min-width */
 #bar{flex-wrap:wrap;min-width:0}
@@ -57,6 +58,8 @@ body.looper .b{height:calc(var(--kbh) * .62)}
 #lphead .hint{font-size:11px;color:var(--dim);flex:1 1 auto;min-width:0;
               overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #lphead .opts{margin-left:auto;flex:0 0 auto;display:flex;align-items:center;gap:8px;font-size:11px;color:var(--dim)}
+#snapBtn{min-width:58px}   /* bar .. chorus */
+#gridBtn{min-width:40px}   /* off .. 1/16 */
 button:disabled{opacity:.45;cursor:default}
 button.mini{background:#22262f;border:1px solid var(--line);border-radius:5px;
             padding:3px 8px;font-size:11px;font-variant-numeric:tabular-nums}
@@ -80,10 +83,12 @@ button.mini.on{background:var(--accent);border-color:var(--accent);color:#14161a
 .lrow{display:flex;align-items:center;gap:6px}
 .ldot{width:8px;height:8px;border-radius:50%;background:#3a3f4a;flex:0 0 auto}
 .lnum{font:600 10px var(--mono);color:#14161a;border-radius:3px;padding:0 4px;flex:0 0 auto}
-.lname{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lname{font-size:13px;font-weight:600;min-width:0;
+       overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lane.empty .lname{color:#6c7382}
-.lst{margin-left:auto;font:600 9px var(--mono);letter-spacing:.06em;white-space:nowrap;flex:0 0 auto}
-.lspan{font-size:11px;color:var(--dim);font-variant-numeric:tabular-nums;
+.lst{margin-left:auto;font:600 9px var(--mono);letter-spacing:.06em;white-space:nowrap;
+     flex:0 0 auto;min-width:54px;text-align:right}   /* fits REC/DUB/END NEXT */
+.lspan{font-size:11px;color:var(--dim);font-variant-numeric:tabular-nums;flex:1 1 0;min-width:0;
        overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pending .ldot,.pending .lst{animation:pend 1s ease-in-out infinite}
 @keyframes pend{0%,100%{opacity:1}50%{opacity:.35}}
@@ -137,7 +142,8 @@ button.cap:hover{background:#333947}
 .reccol{flex-direction:column;align-items:stretch;gap:9px;flex:1 1 330px}
 .recrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 #recBtn.armed,#recBtn.on{background:var(--rec);border-color:var(--rec);color:#fff;font-weight:600}
-#selline{font-size:11px;color:var(--dim)}
+#selline{font-size:11px;color:var(--dim);flex:1 1 0;min-width:0;
+         white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #legend{display:flex;flex-wrap:wrap;gap:5px 14px;align-items:center;font-size:11px;color:var(--dim)}
 #legend span.k{display:flex;align-items:center;gap:5px}
 #legend .kbd.hot{background:var(--accent);color:#14161a;border-color:var(--accent)}
