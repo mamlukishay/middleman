@@ -47,17 +47,22 @@ export function makeUi(engine, clock, el, opts) {
       <div class="lhead">
         <div class="lrow">
           <span class="ldot"></span>
-          <span class="lnum" style="background:${LANE_COLOURS[i]}">${i + 1}</span>
-          <span class="lname">–</span>
+          <span class="lnum" style="background:${LANE_COLOURS[i]}"
+                data-tip="Lane ${i + 1}" data-key="${i + 1}">${i + 1}</span>
+          <span class="lname" data-tip="Double-click to rename">–</span>
           <span class="lst"></span>
         </div>
         <div class="lrow"><span class="lspan">no material</span>
-          <button class="chip follow" title="transpose each repeat to the chord underneath">follow</button></div>
+          <button class="chip follow" data-key="F"
+            data-tip="Follow the changes: each repeat moves by the interval between the chord this was played over and the one underneath it now">follow</button></div>
         <div class="lrow lmix">
-          <button class="chip mute">M</button>
-          <button class="chip solo">S</button>
-          <span class="lev">${'<i></i>'.repeat(5)}</span>
-          <span class="loct">8ve 0</span>
+          <button class="chip mute" data-key="M"
+            data-tip="Mute — the lane keeps its place in the form, silently">M</button>
+          <button class="chip solo" data-key="S"
+            data-tip="Solo — hear this lane against the backing track, with the other lanes silent">S</button>
+          <span class="lev" data-tip="Level. Click along it to set.">${'<i></i>'.repeat(5)}</span>
+          <span class="loct" data-key="↑ ↓"
+                data-tip="Move the lane an octave, to keep it clear of the bass">8ve 0</span>
         </div>
       </div>
       <div class="lroll">
@@ -110,7 +115,7 @@ export function makeUi(engine, clock, el, opts) {
       l.dot.style.background = st.col;
       l.dot.style.boxShadow = (s.st === 'rec' || s.st === 'dub') ? `0 0 8px ${st.col}` : '';
       if (l.name !== document.activeElement) l.name.textContent = s.name || '–';
-      l.name.title = s.st === 'empty' ? '' : 'double-click to rename';
+      l.name.dataset.tip = s.st === 'empty' ? '' : 'Double-click to rename';
       l.st.textContent = st.label;
       l.st.style.color = st.col;
       const taking = s.st === 'rec' || s.st === 'dub';

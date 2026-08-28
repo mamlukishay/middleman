@@ -107,6 +107,10 @@ arm early, or capture afterwards. The bindings are also printed along the deck.
 | `Esc` | every lane back to plain playback |
 | `Space` | start / stop |
 
+Every control also carries a tooltip, after a short hover — including its shortcut.
+They dismiss on a keypress, so one is never left hanging over the lanes while you
+are playing.
+
 The damper pedal sends `CC64` and you need it for sustain, so it is deliberately
 *not* bound to anything. `midi.js` passes controller messages through on its
 event stream, so a second pedal on its own CC could be learned later.

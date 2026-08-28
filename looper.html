@@ -16,8 +16,10 @@
     <h2>Loop set</h2>
     <div id="setline">–</div>
     <div class="setbtns">
-      <button id="restoreBtn" hidden>Restore last set</button>
-      <button id="melodyBtn">Copy lane as melody</button>
+      <button id="restoreBtn" hidden
+        data-tip="Bring back the last set of loops saved for this track">Restore last set</button>
+      <button id="melodyBtn"
+        data-tip="Copy the selected lane as a tracks.json melody, so it comes back engraved on the staff in the practice view">Copy lane as melody</button>
     </div>
     <a id="backlink" href="index.html">← practice view</a>
   </div>
@@ -25,17 +27,22 @@
 
 <main>
   <div id="bar">
-    <button id="play">▶ Play</button>
-    <button id="stop">■ Stop</button>
-    <button id="metroBtn" class="tgl">● Click</button>
-    <button id="backBtn" class="tgl on" title="mute the backing track and loop against nothing">♩ Backing</button>
+    <button id="play" data-key="Space"
+            data-tip="Start everything — the backing track, the click and every loop">▶ Play</button>
+    <button id="stop"
+            data-tip="Stop, and close any take that is still running rather than losing it">■ Stop</button>
+    <button id="metroBtn" class="tgl"
+            data-tip="A click on every beat. It is browser audio, so it never reaches the piano.">● Click</button>
+    <button id="backBtn" class="tgl on"
+            data-tip="Silence the backing track and loop against nothing">♩ Backing</button>
     <span class="sep"></span>
-    <span id="pos">–</span>
+    <span id="pos" data-tip="Where the playhead is in the form">–</span>
     <span id="speed">Speed
-      <input type="range" id="tempo" min="50" max="200" step="1" value="100">
+      <input type="range" id="tempo" min="50" max="200" step="1" value="100"
+             data-tip="Tempo. The playhead stays where it is across the change.">
       <b id="bpmv" contenteditable="plaintext-only" inputmode="numeric"
-         title="click to type a tempo">100</b> bpm</span>
-    <span id="played">–</span><span id="inled" title="MIDI in"></span>
+         data-tip="Click to type a tempo">100</b> bpm</span>
+    <span id="played" data-tip="What you are holding down right now">–</span><span id="inled" data-tip="Flashes when a note arrives from the piano"></span>
     <span id="statusEl">connecting…</span>
   </div>
 
@@ -44,9 +51,12 @@
       <h2>Looper</h2>
       <span class="hint">one chorus wide · loops sit where you played them</span>
       <span class="opts">
-        <span>snap</span><button id="snapBtn" class="mini">bar</button>
-        <span>quantize</span><button id="gridBtn" class="mini">off</button>
-        <button id="inspBtn" class="mini">inspector</button>
+        <span>snap</span><button id="snapBtn" class="mini"
+          data-tip="Where a take begins and ends: the nearest line of this size. Press a little early or a little late — either way it lands on the line.">bar</button>
+        <span>quantize</span><button id="gridBtn" class="mini" data-key="Q"
+          data-tip="Pull played notes onto a grid. Applied on the way out, so the take itself is never rewritten — and the grid follows the track shuffle.">off</button>
+        <button id="inspBtn" class="mini" data-key="I"
+          data-tip="Length, mode, quantize and layers for the selected lane">inspector</button>
       </span>
     </div>
 
@@ -60,7 +70,8 @@
 
   <div id="deck">
     <div class="dgroup">
-      <button id="capBtn" class="cap">
+      <button id="capBtn" class="cap" data-key="C"
+        data-tip="Take the last bars straight out of the buffer. No arming, no count-in — play first, decide after.">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
              stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v5h5"></path></svg>
@@ -71,11 +82,11 @@
           <span>last</span><span id="capOpts"></span><span>from the buffer</span>
           <span class="sep" style="height:14px"></span>
           <span>back</span>
-          <button id="capBack" class="mini">◀</button>
+          <button id="capBack" class="mini" data-tip="Move the window further back in what you played">◀</button>
           <span id="capOff" style="min-width:56px;text-align:center;color:var(--fg)">now</span>
-          <button id="capFwd" class="mini">▶</button>
+          <button id="capFwd" class="mini" data-tip="Move the window closer to now">▶</button>
         </div>
-        <div id="bufwrap"><div id="bufnotes"></div><div id="bufwin"></div></div>
+        <div id="bufwrap" data-tip="The last chorus of your playing, always kept. The boxed part is what Capture would take."><div id="bufnotes"></div><div id="bufwin"></div></div>
       </div>
       <div class="note">Your playing is always in the buffer — you never have to arm
         before a good idea.</div>
@@ -85,9 +96,12 @@
 
     <div class="dgroup reccol">
       <div class="recrow">
-        <button id="recBtn">● Record</button>
-        <button id="undoBtn">↶ Undo</button>
-        <button id="clearBtn">✕ Clear</button>
+        <button id="recBtn" data-key="R"
+          data-tip="One key for the whole cycle: record → end the take → overdub → end. Each press lands on the next line.">● Record</button>
+        <button id="undoBtn" data-key="U"
+          data-tip="Drop the last overdub layer — or bring back a lane you cleared">↶ Undo</button>
+        <button id="clearBtn" data-key="X"
+          data-tip="Empty the lane. Undo puts it back, which is why it does not ask.">✕ Clear</button>
         <span id="selline">–</span>
       </div>
       <div id="legend"></div>
@@ -119,7 +133,8 @@
   <div class="isec">
     <h2>Follow the changes</h2>
     <div class="irow">
-      <button id="iFollow" class="chip">off</button>
+      <button id="iFollow" class="chip" data-key="F"
+        data-tip="Move each repeat to the chord underneath it">off</button>
       <span id="iFollowHint" class="ihint" style="flex:1"></span>
     </div>
   </div>

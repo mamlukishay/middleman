@@ -7,7 +7,7 @@
   /* lanes give up height first on a short screen, and the key strip second */
   --lh:clamp(70px,calc((100vh - 520px) / 4),150px);
   --kbh:clamp(64px,11vh,90px);
-  --headw:176px;                  /* lane header column */
+  --headw:194px;                  /* lane header column */
   --roll:#191d24; --rollEmpty:#171a20;
   --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
 }
@@ -66,11 +66,11 @@ button.mini{background:#22262f;border:1px solid var(--line);border-radius:5px;
 button.mini.on{background:var(--accent);border-color:var(--accent);color:#14161a;font-weight:600}
 
 #strip{gap:0}
-#strip .bar{margin:0 2px}
+#strip .bar{margin:0 2px;min-width:0;overflow:hidden}
 #ruler{display:grid;grid-template-columns:var(--headw) 1fr;gap:8px;align-items:center}
 .rlabel{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);
         font-weight:700;text-align:right;padding-right:4px}
-.rwrap{position:relative}
+.rwrap{position:relative;min-width:0}
 #rhead{position:absolute;top:-4px;width:0;height:0;border-left:4px solid transparent;
        border-right:4px solid transparent;border-top:5px solid #7f8796;
        transform:translateX(-4px);pointer-events:none}
@@ -152,6 +152,14 @@ button.cap:hover{background:#333947}
 #bottom .keylegend span{display:flex;align-items:center;gap:5px;color:var(--dim)}
 #bottom .sw{width:10px;height:10px;border-radius:2px;display:inline-block}
 .w.lit,.b.lit{box-shadow:0 0 10px rgba(255,47,214,.4)}
+
+.tip{position:fixed;z-index:60;pointer-events:none;max-width:264px;
+     background:#2a2f3a;color:var(--fg);border:1px solid #3a4150;border-radius:6px;
+     padding:6px 9px;font-size:11.5px;line-height:1.45;
+     box-shadow:0 6px 18px rgba(0,0,0,.5)}
+.tip[hidden]{display:none}
+.tip kbd{margin-left:7px;vertical-align:1px}
+[data-tip]{cursor:pointer}
 
 #insp[hidden]{display:none}
 #insp{background:var(--pane);border-left:1px solid var(--line);padding:12px;overflow:auto;

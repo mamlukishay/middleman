@@ -9,6 +9,7 @@ import { makeClock, mod } from '../clock.js';
 import { makeBuffer } from './buffer.js';
 import { makeEngine } from './engine.js';
 import { makeUi } from './ui.js';
+import { initTips } from './tips.js';
 import {
   GRIDS, SNAPS, LANE_COLOURS, LEVELS, canFill, toMelody,
 } from './loops.js';
@@ -99,7 +100,8 @@ function syncDeck() {
   el.grid.textContent = GRIDS[engine.grid].name;
   el.grid.classList.toggle('on', engine.grid > 0);
   el.capOpts.innerHTML = CAP_BARS.map((n, i) =>
-    `<button class="mini${i === capIdx ? ' on' : ''}" data-cap="${i}">`
+    `<button class="mini${i === capIdx ? ' on' : ''}" data-cap="${i}" `
+    + `data-tip="Capture ${n ? 'the last ' + n + ' bar' + (n === 1 ? '' : 's') : 'a whole chorus'}">`
     + `${n ? n + ' bar' : 'chorus'}</button>`).join('');
   el.capOff.textContent = capOff ? `${capOff} bar${capOff === 1 ? '' : 's'}` : 'now';
   const used = engine.slots.filter(x => x.st !== 'empty').length;
@@ -119,7 +121,8 @@ function syncInsp() {
 
   const lens = [1, 2, 4, engine.nbars].filter((v, i, a) => a.indexOf(v) === i);
   el.iLens.innerHTML = lens.map(n =>
-    `<button class="mini${s.lenBars === n ? ' on' : ''}" data-len="${n}">`
+    `<button class="mini${s.lenBars === n ? ' on' : ''}" data-len="${n}" `
+    + `data-tip="Make the loop ${n === engine.nbars ? 'a whole chorus' : n + ' bar' + (n === 1 ? '' : 's')} long">`
     + `${n === engine.nbars ? 'chorus' : n + ' bar'}</button>`).join('');
 
   const fill = canFill(s.lenBars, engine.nbars);
@@ -137,10 +140,13 @@ function syncInsp() {
     : s.follow ? 'repeats move with the harmony' : 'repeats play at the pitches you played';
 
   el.iGrids.innerHTML = GRIDS.map((g, i) =>
-    `<button class="mini${engine.grid === i ? ' on' : ''}" data-grid="${i}">${g.name}</button>`).join('');
+    `<button class="mini${engine.grid === i ? ' on' : ''}" data-grid="${i}" `
+    + `data-tip="${i ? 'Snap onto ' + g.name + ' — swung to match the track' : 'Leave the timings exactly as played'}"`
+    + `>${g.name}</button>`).join('');
   el.iStrength.innerHTML = [0, .25, .5, .75, 1].map(v =>
     `<button class="mini${engine.strength >= v ? ' on' : ''}" data-str="${v}" `
-    + `title="${Math.round(v * 100)}%"></button>`).join('');
+    + `data-tip="${v ? 'Pull notes ' + Math.round(v * 100) + '% of the way onto the grid' : 'Leave the timings alone'}"`
+    + `></button>`).join('');
 
   el.iLayers.innerHTML = s.layers.length
     ? s.layers.map((ly, i) =>
@@ -393,7 +399,7 @@ try {
 
 if (TRACKS.length) {
   el.tracks.innerHTML = TRACKS.map((t, i) =>
-    `<div class="trk" data-i="${i}" title="${t.note || ''}">`
+    `<div class="trk" data-i="${i}"${t.note ? ` data-tip="${t.note.replace(/"/g, '&quot;')}"` : ''}>`
     + `<div>${t.name}</div><small>${t.sub}</small></div>`).join('');
   el.tracks.onclick = e => {
     const d = e.target.closest('.trk');
@@ -406,6 +412,7 @@ if (TRACKS.length) {
 }
 
 renderKeys(el.kb);
+initTips();
 if (TRACKS.length) pick(0);
 syncTransport();
 syncDeck();
