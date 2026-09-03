@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<!-- viewport-fit=cover so the layout runs under the notch; the insets come back via env() -->
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#14161a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="description" content="Learn a song at the piano, on the phone on the music stand.">
+<title>Middleman · Learn on the phone</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="looper.css">
+<link rel="stylesheet" href="learn.css">
+<link rel="stylesheet" href="learn-m.css">
+</head>
+<body class="mob">
+
+<!-- Opened on a laptop by mistake -- a bookmark, or the QR scanned on the wrong
+     machine. Shown by media query alone, on a wide screen with a mouse; there is no
+     state to it and no JS behind it. -->
+<div id="deskbar">This is the phone screen.<a href="learn.html">→ Learn on the laptop</a></div>
+
+<!-- ------------------------------------------------------------------ home -->
+<section id="home" class="screen">
+  <header class="phead">
+    <h1>Learn</h1>
+    <span class="grow"></span>
+    <button id="leaveBtn" class="leave" hidden>Stop mirroring</button>
+  </header>
+  <!-- which of its two lives this page is living, said in words rather than in a
+       setting: `on this phone`, or `showing the laptop · 4 ms` -->
+  <div id="modeLine" class="pmode">on this phone</div>
+  <div id="hint" hidden>
+    <span>Add to Home screen — it opens with no browser bar at all.</span>
+    <button id="hintAdd">Add</button><button id="hintX" aria-label="dismiss">✕</button>
+  </div>
+  <h2 class="lbl">Songs</h2>
+  <div id="songs"></div>
+  <div class="dashed">More songs appear here as they are added to <code>songs/</code> on the laptop.
+    The phone only plays what the laptop serves.</div>
+  <!-- Safari has no Web MIDI on any iPhone, so there the laptop keeps the piano and
+       runs the whole lesson, and this page is its screen and its hands. The code
+       comes off the QR on the laptop's Learn page; the way back out is the button in
+       the header above. -->
+  <h2 class="lbl">The laptop</h2>
+  <div class="row2">
+    <button id="connectBtn" class="btn2">Connect to the laptop</button>
+  </div>
+  <p class="note" id="remoteNote">On an iPhone the piano stays on the laptop. Scan the QR on the
+    laptop's Learn page, or type the code under it.</p>
+  <div class="spacer"></div>
+  <p class="note">Turn the phone sideways on the music stand to play; upright to browse the lesson path.</p>
+</section>
+
+<!-- ------------------------------------------------------------------ path -->
+<section id="path" class="screen" hidden>
+  <header class="phead">
+    <button class="icon" data-go="home" aria-label="back">‹</button>
+    <div class="ttl"><div id="pathTitle">–</div><div id="pathSub" class="sub"></div></div>
+    <button id="startOver" class="icon" aria-label="start this song over">⟲</button>
+  </header>
+  <div class="progrow"><span id="pathProg">–</span><span id="pathWhere"></span></div>
+  <div class="pbar"><i id="pathBar"></i></div>
+  <div id="pathList"></div>
+  <div id="pathFoot">
+    <button id="contBtn" class="primary">▷ <span id="contLabel">Continue</span></button>
+    <div class="row2">
+      <button id="freeBtn">Free practice</button>
+      <button id="hearBtn">♪ Hear it</button>
+    </div>
+  </div>
+</section>
+
+<!-- ------------------------------------------------------------------ play -->
+<section id="play" class="screen" hidden>
+  <header id="topbar">
+    <button class="icon" data-go="path" aria-label="back">‹</button>
+    <div class="ttl"><div id="stepTitle">–</div><div id="stepWhere" class="sub"></div></div>
+    <div id="viewSeg" class="mseg">
+      <button data-view="staff">Staff</button>
+      <button data-view="roll">Roll</button>
+      <button data-view="fall">Falling</button>
+      <button data-view="scroll">Scroll</button>
+    </div>
+    <button id="metroBtn" class="mchip">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v8"/><path d="M6 20l6-8 6 8z"/></svg>Click</button>
+    <button id="waitBtn" class="mchip">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>Wait</button>
+    <button id="loopBtn" class="mchip">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 0 1 14-5.3"/><path d="M18 3v4h-4"/><path d="M20 12a8 8 0 0 1-14 5.3"/><path d="M6 21v-4h4"/></svg>Loop</button>
+    <div class="stepper">
+      <button id="bpmDn" aria-label="slower">−</button>
+      <span class="bpmv"><b id="bpmv">60</b><small>bpm</small></span>
+      <button id="bpmUp" aria-label="faster">+</button>
+    </div>
+    <!-- how loud the app plays, against your own playing. The level is applied
+         wherever the sound is actually made, so in mirror mode this slider turns
+         down what this phone's speaker plays and the laptop's turns down what the
+         laptop plays -- each machine its own, which is what you want when the two
+         are in different rooms. No readout: the handle is the reading. -->
+    <label id="mvol" aria-label="volume">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9v6h4l5 4V5L9 9z"/><path d="M17 9.5a4 4 0 0 1 0 5"/></svg>
+      <input type="range" id="volume" min="0" max="100" step="1" value="100">
+    </label>
+    <button id="fsBtn" class="icon" aria-label="full screen">⛶</button>
+    <span id="midiPlay" class="mstat">…</span>
+  </header>
+
+  <div id="midibar" hidden>No piano found — connect it by USB OTG or pair it as Bluetooth MIDI, then tap here.</div>
+
+  <div id="stagewrap">
+    <div id="stage">
+      <div id="vStaff" class="view" hidden></div>
+      <div id="vRoll" class="view" hidden></div>
+      <div id="vFall" class="view" hidden></div>
+      <div id="vScroll" class="view" hidden></div>
+    </div>
+    <!-- what is loaded, while nothing is playing. It belongs to the stage rather
+         than to the screen, and it takes no taps: one on the music is a seek -->
+    <div id="idle" hidden>
+      <div class="ibox">
+        <div id="iTitle"></div>
+        <div id="iSub"></div>
+        <div id="iHint">tap Start — or just play a note on the piano</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- over the whole playing screen, not only the stage: sideways the stage is
+       about 160px tall and the card is taller than that, and the line it would
+       lose off the top is the one that says which step you have just passed -->
+  <div id="card" hidden>
+    <div class="cbox">
+      <div id="cTitle" class="ctitle">–</div>
+      <div id="cSub" class="csub"></div>
+      <div id="cNext" class="cnext"></div>
+      <div class="cbar"><i></i></div>
+      <div class="crow">
+        <button id="cGo" class="primary">▷ Go now</button>
+        <button id="cAgain">Play this again</button>
+        <button id="cPath">Lesson path</button>
+      </div>
+      <div id="cHint" class="chint"></div>
+    </div>
+  </div>
+
+  <div id="meterrow">
+    <div id="meter" class="meter"></div>
+    <div id="waitbox" hidden>
+      <div class="wfound"><span class="wlabel">Notes found</span><b id="waitFound">–</b></div>
+      <div class="wnote"><span class="wlabel">waiting on</span><b id="waitNote">–</b><span class="whint">play it and the song moves on</span></div>
+    </div>
+    <button id="startBtn" class="primary big">▶ Start</button>
+  </div>
+
+  <div id="mkb" class="mkeys"></div>
+</section>
+
+<!-- ---------------------------------------------------------- free practice -->
+<div id="scrim" hidden></div>
+<aside id="sheet" hidden>
+  <div class="grab"></div>
+  <header class="phead">
+    <button id="sheetX" class="icon" aria-label="close">‹</button>
+    <div class="ttl"><div>Free practice</div><div id="freeSub" class="sub"></div></div>
+  </header>
+  <div class="sbody">
+    <h2 class="lbl">Bars</h2>
+    <div class="stepper wide">
+      <button id="barsDn" aria-label="fewer bars">−</button>
+      <span class="bpmv"><b id="barsv">1 – 1</b></span>
+      <button id="barsUp" aria-label="more bars">+</button>
+    </div>
+    <div id="secChips" class="mchips"></div>
+    <h2 class="lbl">Hands</h2>
+    <div class="handrow"><span class="hlabel lh">Left</span><span id="lhChips" class="mchips"></span></div>
+    <div class="handrow"><span class="hlabel rh">Right</span><span id="rhChips" class="mchips"></span></div>
+    <h2 class="lbl">Challenge</h2>
+    <div id="chChips" class="mchips"></div>
+    <div class="togrow">
+      <button id="metroBtn2" class="mchip">Click</button>
+      <button id="waitBtn2" class="mchip">Wait</button>
+      <button id="loopBtn2" class="mchip">Loop</button>
+      <button id="guideBtn" class="mchip">Guide</button>
+      <!-- the playing screen's bar is full at 844px, and this is a per-device
+           setting rather than something reached for mid-loop -->
+      <span id="outsel"></span>
+      <div class="stepper">
+        <button id="bpmDn2" aria-label="slower">−</button>
+        <span class="bpmv"><b id="bpmv2">60</b></span>
+        <button id="bpmUp2" aria-label="faster">+</button>
+      </div>
+    </div>
+    <div id="freeState" class="lstate"></div>
+  </div>
+  <button id="freeStart" class="primary big">▷ Start · turn the phone sideways</button>
+</aside>
+
+<script src="vendor/abcjs-basic-min.js"></script>
+<script type="module" src="src/learn/mobile.js"></script>
+</body>
+</html>

@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Middleman · Learn</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="looper.css">
+<link rel="stylesheet" href="learn.css">
+</head>
+<body class="looper learn">
+
+<div id="side">
+  <nav id="nav" class="seg nav">
+    <a href="index.html">Practice</a>
+    <a href="looper.html">Looper</a>
+    <a href="learn.html" class="on" aria-current="page">Learn</a>
+  </nav>
+  <h2>Songs</h2>
+  <div id="tracks"></div>
+  <div id="setbox">
+    <div class="modes2">
+      <button id="tutorBtn" class="on" data-key="T"
+        data-tip="The tutor: a step-by-step course through the song, hand by hand, section by section">Tutor</button>
+      <button id="freeBtn" data-key="F"
+        data-tip="Free practice: pick any bars, loop them, choose which hands you play">Free practice</button>
+    </div>
+    <div id="progline" class="setline">–</div>
+    <div id="progbar"><i></i></div>
+    <button id="shareBtn" class="mini share"
+      data-tip="Put this lesson on a phone on the music stand. The laptop keeps the piano and does all the work; the phone mirrors it and controls it. On an iPhone, where there is no Web MIDI at all, this is the only way in.">Put it on the phone</button>
+    <div id="sharebox" hidden>
+      <div id="shareqr"></div>
+      <div id="sharehint"></div>
+      <a id="shareurl" target="_blank" rel="noopener">…</a>
+      <div id="sharestate" class="setline">Connecting…</div>
+    </div>
+  </div>
+</div>
+
+<main>
+  <div id="bar">
+    <button id="play" data-key="Space" data-tip="Start the loop. One bar of click counts you in.">▶ Play</button>
+    <button id="metroBtn" class="tgl on" data-key="M"
+            data-tip="The click, on every beat. Browser audio, so it never reaches the piano.">● Click</button>
+    <span id="outsel"></span>
+    <button id="waitBtn" class="tgl" data-key="W"
+            data-tip="Wait mode: no clock. The song only moves on once you have played the notes it is waiting on.">⏸ Wait for me</button>
+    <button id="loopBtn" class="tgl on" data-key="L"
+            data-tip="Loop the bars endlessly, or play them once and stop">↻ Loop</button>
+    <span class="sep"></span>
+    <span id="pos" data-tip="Where you are in the loop">–</span>
+    <span id="speed">Speed
+      <input type="range" id="tempo" min="30" max="200" step="1" value="60"
+             data-tip="Tempo. The playhead stays where it is across the change.">
+      <b id="bpmv" contenteditable="plaintext-only" inputmode="numeric"
+         data-tip="Click to type a tempo">60</b> bpm<button id="tempoMark" class="tmark" hidden
+         data-tip="your tempo · click to reset">•</button></span>
+    <span id="vol">Volume
+      <input type="range" id="volume" min="0" max="100" step="1" value="100"
+             data-tip="How loud the app plays, against your own playing">
+      <b id="volumev">100%</b></span>
+    <span id="played" data-tip="What you are holding down right now">–</span><span id="inled" data-tip="Flashes when a note arrives from the piano"></span>
+    <span id="statusEl">connecting…</span>
+  </div>
+
+  <div id="work">
+    <aside id="lesson">
+      <!-- tutor -->
+      <div id="tutor">
+        <button id="startBtn" class="start" data-key="Space"
+          data-tip="Start this step: one bar of click counts you in, then the bars loop until you move on">▶ Start step</button>
+        <div class="lsec">
+          <h2 id="stepWhere">Section</h2>
+          <div id="stepTitle" class="ltitle">–</div>
+          <div id="stepText" class="ltext"></div>
+        </div>
+        <div class="lsec">
+          <h2>This step</h2>
+          <div id="stepGoal" class="ltext"></div>
+          <div id="stepMeter" class="meter"></div>
+          <div id="stepState" class="lstate"></div>
+        </div>
+        <div class="lrow">
+          <button id="prevBtn" data-key="P" data-tip="Back one step">◀ Back</button>
+          <button id="nextBtn" data-key="N" data-tip="On to the next step — you can skip ahead any time">Next ▶</button>
+        </div>
+        <div class="lrow">
+          <button id="hearBtn" class="mini" data-key="H"
+            data-tip="The app plays these bars once, both hands, then hands the step back to you. Nothing is scored while it plays.">♪ Hear the app play it</button>
+          <button id="guideBtn" class="mini" data-key="G"
+            data-tip="Guide: the app plays your hand quietly along with you, so the notes are in your ear">Guide</button>
+          <button id="resetBtn" class="mini" data-tip="Forget the progress on this song and start the course again">Start over</button>
+        </div>
+        <div id="steplist"></div>
+      </div>
+
+      <!-- free practice -->
+      <div id="free" hidden>
+        <div class="lsec">
+          <h2>Bars</h2>
+          <div id="rangeLine" class="ltitle">–</div>
+          <div class="ltext">Click a bar in the strip to loop it. Shift-click another bar to stretch the loop, or pick a section:</div>
+          <div id="secChips" class="chips"></div>
+        </div>
+        <div class="lsec">
+          <h2>Hands</h2>
+          <div class="handrow"><span class="hlabel lh">Left</span><span id="lhChips" class="chips"></span></div>
+          <div class="handrow"><span class="hlabel rh">Right</span><span id="rhChips" class="chips"></span></div>
+          <div class="ltext"><b>You</b> play it and get scored · <b>App</b> plays it out to the piano · <b>Off</b> is silent.</div>
+        </div>
+        <div class="lrow">
+          <button id="guideBtn2" class="mini" data-key="G"
+            data-tip="Guide: the app plays your hands quietly along with you">Guide</button>
+        </div>
+        <div class="lsec">
+          <h2>Challenge</h2>
+          <div id="chChips" class="chips"></div>
+          <div id="freeMeter" class="meter"></div>
+          <div id="freeState" class="lstate"></div>
+        </div>
+      </div>
+    </aside>
+
+    <div id="stage">
+      <div id="ruler">
+        <div class="rlabel" id="secName">–</div>
+        <div class="rwrap"><div class="strip" id="strip"></div></div>
+        <div id="viewSeg" class="seg">
+          <button data-view="staff" data-tip="The bars engraved on a grand staff, coloured as you play">Staff</button>
+          <button data-view="roll" data-tip="The bars as a piano roll: pitch up, time across">Roll</button>
+          <button data-view="fall" data-tip="Notes streaming down onto the keys, tutorial style">Falling</button>
+          <button data-view="scroll" data-tip="The whole loop on one staff, sliding under a fixed playhead">Scroll</button>
+        </div>
+      </div>
+      <div id="rollwrap">
+        <div id="rollcanvas">
+          <div id="viewStaff" class="view" hidden></div>
+          <div id="viewRoll" class="view" hidden></div>
+          <div id="viewFall" class="view" hidden></div>
+          <div id="viewScroll" class="view" hidden></div>
+        </div>
+        <div id="overlay" hidden>
+          <div class="otitle"></div>
+          <div class="osub"></div>
+          <div class="obar"><i></i></div>
+          <div class="ohint"></div>
+        </div>
+      </div>
+      <div id="scoreline"></div>
+    </div>
+  </div>
+
+  <div id="bottom">
+    <div id="info"></div>
+    <div id="kb"></div>
+  </div>
+</main>
+
+<script src="vendor/abcjs-basic-min.js"></script>
+<script type="module" src="src/learn/app.js"></script>
+</body>
+</html>

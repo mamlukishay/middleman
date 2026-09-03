@@ -1,0 +1,315 @@
+/* The phone's learn page. Sits on style.css + looper.css + learn.css: the tokens,
+   the key strip, the meter slots and all three views come from there unchanged, and
+   this file replaces the page furniture around them with a touch layout.
+
+   Two things drive every size here. Landscape is the playing orientation, so the
+   step screen is one column -- top bar, stage, meter + Start, keys -- and nothing on
+   it is smaller than 40px. Portrait is for browsing, so Home and Path are ordinary
+   scrolling lists with a sticky primary button at the bottom.
+
+   `100dvh` rather than `100vh`: the dynamic viewport shrinks and grows with Chrome's
+   address bar, which is exactly the height the layout has to fill. `env(safe-area-*)`
+   then keeps the notch out of the controls, since the viewport runs under it. */
+
+:root{
+  --mkbh:96px;                       /* the key strip on the playing screen */
+  --sat:env(safe-area-inset-top,0px);
+  --sar:env(safe-area-inset-right,0px);
+  --sab:env(safe-area-inset-bottom,0px);
+  --sal:env(safe-area-inset-left,0px);
+}
+
+html,body{height:100%;overflow:hidden;overscroll-behavior:none}
+body.mob{display:block;background:var(--bg);color:var(--fg);
+  font:14px/1.45 ui-sans-serif,system-ui,sans-serif;
+  -webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent;
+  /* iOS: a long press on the stage would otherwise raise the copy/share callout,
+     and a hand resting on a phone on a music stand is a long press */
+  -webkit-touch-callout:none}
+/* and a second tap on the music is a second seek, never a zoom */
+#stage,#stagewrap,#mkb,#meterrow{touch-action:manipulation;user-select:none;-webkit-user-select:none}
+
+/* one screen at a time, each filling the dynamic viewport */
+.screen{position:fixed;left:0;top:0;width:100%;height:100vh;height:100svh;height:100dvh;
+  display:flex;flex-direction:column;min-height:0;
+  padding:var(--sat) var(--sar) var(--sab) var(--sal)}
+.screen[hidden]{display:none}
+
+button{font-family:inherit;touch-action:manipulation}
+/* `hidden` is only display:none at the user-agent level, and half the things
+   toggled here are addressed by id -- which outranks it. One rule, once. */
+.mob [hidden]{display:none!important}
+
+/* ---------------------------------------------------------------- headers */
+.phead{display:flex;align-items:center;gap:10px;flex:0 0 auto;padding:6px 8px 6px 4px}
+.phead h1{font-size:26px;margin:6px 8px}
+.ttl{display:flex;flex-direction:column;min-width:0;flex:1 1 0}
+.ttl > div:first-child{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sub{font-size:11px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.icon{width:44px;height:44px;min-width:44px;background:none;border:0;color:var(--dim);
+  font-size:26px;line-height:1;display:flex;align-items:center;justify-content:center;border-radius:8px}
+.icon:active{background:#22262f}
+/* ⛶ is a toggle: lit while the browser bar is gone, so the way back is visible */
+.icon.on{background:var(--accent);color:#14161a}
+.mstat{font-size:11px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  flex:0 1 auto;max-width:112px;text-align:right}
+.mstat.bad{color:var(--accent)}
+.grow{flex:1 1 auto}
+/* Home says where it is in a line of its own under the title, because it is a
+   sentence rather than a status chip, and the way out sits beside the title. */
+.pmode{font-size:12px;color:var(--dim);padding:0 12px 10px;margin-top:-2px;
+  flex:0 0 auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pmode.bad{color:var(--accent)}
+.leave{background:#2a2f3a;border:1px solid var(--line);border-radius:9px;color:var(--fg);
+  min-height:38px;padding:0 14px;font-size:13px}
+.lbl{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin:14px 12px 6px}
+
+/* ------------------------------------------------------------------- home */
+#home,#path,#sheet{overflow:hidden}
+#songs{padding:0 12px;display:flex;flex-direction:column;gap:10px}
+.songcard{background:var(--pane);border:1px solid var(--line);border-radius:12px;padding:14px}
+.songcard .st1{font-size:20px;font-weight:700}
+.songcard .st2{font-size:13px;color:var(--dim);margin-top:2px}
+.songcard .st3{font-size:13px;color:var(--dim);margin:12px 0 10px}
+.songhead{display:flex;align-items:center;gap:12px}
+.songhead .ttl2{flex:1 1 auto;min-width:0}
+.ring{width:64px;height:64px;flex:0 0 auto;position:relative;display:grid;place-items:center}
+.ring svg{position:absolute;inset:0;transform:rotate(-90deg)}
+.ring .rbg2{fill:none;stroke:#22262f;stroke-width:6}
+.ring .rfg{fill:none;stroke:var(--hit);stroke-width:6;stroke-linecap:round}
+.ring b{font:700 14px var(--mono)}
+.dashed{margin:12px;padding:14px;border:1px dashed var(--line);border-radius:12px;
+  font-size:13px;color:var(--dim);line-height:1.6}
+.dashed code{font:12px var(--mono);color:var(--fg)}
+.spacer{flex:1 1 auto;min-height:0}
+.row2{display:flex;gap:12px;padding:0 12px}
+.btn2{flex:1 1 0;display:flex;align-items:center;justify-content:center;min-height:52px;
+  background:#2a2f3a;border:1px solid var(--line);border-radius:10px;color:var(--fg);
+  text-decoration:none;font-size:14px}
+.btn2.wide{margin:12px;min-height:44px;color:var(--dim);font-size:13px}
+/* `flex:0 0 auto` because looper.css gives its own `.note` a 180px flex basis for a
+   row in the transport bar, and here they are paragraphs in a column: without it each
+   one claims 180px of the height the spacer should be taking, and the last line ends
+   up floating a finger above the bottom of the screen. */
+.note{flex:0 0 auto;margin:10px 12px calc(12px + var(--sab));font-size:12px;color:var(--dim);line-height:1.5}
+
+/* ------------------------------------------------------------------- path */
+.progrow{display:flex;justify-content:space-between;padding:0 14px;font-size:13px;color:var(--dim)}
+.pbar{height:6px;border-radius:3px;background:#22262f;margin:8px 14px 4px;overflow:hidden}
+.pbar i{display:block;height:100%;width:0;background:var(--hit);transition:width .3s}
+#pathList{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:8px 12px 16px}
+.psec{display:flex;gap:10px;align-items:baseline;margin:18px 0 6px}
+.psec b{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.psec.done b{color:var(--hit)}
+.psec span{font-size:12px;color:var(--dim)}
+.pgroup{border-left:2px solid var(--line);margin-left:20px;padding-left:0}
+.node{display:flex;align-items:center;gap:16px;min-height:64px;padding:6px 12px 6px 0;
+  margin-left:-20px;border-radius:12px;background:none;border:0;width:calc(100% + 20px);
+  text-align:left;color:var(--fg)}
+.node.cur{background:#22262f}
+.node i{width:44px;height:44px;min-width:44px;border-radius:50%;display:grid;place-items:center;
+  background:#171a20;border:2px solid var(--line);color:var(--dim);font-size:18px;font-style:normal}
+.node.done i{background:var(--hit);border-color:var(--hit);color:#14161a}
+.node.cur i{border-color:var(--accent);color:var(--accent)}
+.node .n1{font-size:16px;font-weight:700}
+.node .n2{font-size:12px;color:var(--dim)}
+.node .now{margin-left:auto;font-size:12px;font-weight:700;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--accent)}
+#pathFoot{flex:0 0 auto;padding:10px 12px calc(10px + var(--sab));background:var(--bg);
+  border-top:1px solid var(--line);display:flex;flex-direction:column;gap:10px}
+#pathFoot .row2{padding:0}
+#pathFoot .row2 button{flex:1 1 0;min-height:52px;border-radius:10px;font-size:14px}
+
+/* ------------------------------------------------------------- the playing screen */
+#topbar{display:flex;align-items:center;gap:6px;height:48px;flex:0 0 auto;
+  padding:0 6px 0 2px;border-bottom:1px solid var(--line);overflow:hidden}
+#topbar .ttl{flex:1 1 40px}
+.mseg{display:flex;height:40px;border:1px solid var(--line);border-radius:8px;
+  background:#171a20;overflow:hidden;flex:0 0 auto}
+.mseg button{height:40px;min-width:46px;padding:0 8px;border:0;border-radius:0;background:none;
+  color:var(--dim);font:600 11px ui-sans-serif,system-ui,sans-serif}
+.mseg button + button{border-left:1px solid var(--line)}
+.mseg button.on{background:#2a2f3a;color:var(--accent)}
+.mchip{height:40px;display:inline-flex;align-items:center;justify-content:center;gap:5px;
+  padding:0 9px;border-radius:8px;background:#2a2f3a;border:1px solid var(--line);
+  color:var(--fg);font-size:12px;white-space:nowrap;flex:0 0 auto}
+.mchip svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round}
+.mchip.on{background:var(--accent);border-color:var(--accent);color:#14161a;font-weight:600}
+/* on, but with nothing to act on: the click in wait mode */
+.mchip.na{opacity:.45;text-decoration:line-through}
+.stepper{display:flex;align-items:center;height:40px;border:1px solid var(--line);
+  border-radius:8px;overflow:hidden;flex:0 0 auto}
+.stepper button{width:40px;height:40px;border:0;border-radius:0;background:#22262f;
+  color:var(--fg);font-size:19px;padding:0}
+.stepper .bpmv{min-width:52px;padding:0 4px;text-align:center;font:700 14px var(--mono)}
+.stepper .bpmv small{font:10px ui-sans-serif,system-ui,sans-serif;color:var(--dim);margin-left:2px}
+.stepper.wide{width:100%}
+.stepper.wide .bpmv{flex:1 1 auto;font-size:20px}
+.stepper.wide button{width:64px;height:56px;font-size:24px}
+/* the app's volume, beside the tempo: a speaker and a short slider, one chip tall */
+#mvol{display:flex;align-items:center;gap:6px;height:40px;padding:0 9px;flex:0 0 auto;
+  border:1px solid var(--line);border-radius:8px;background:#22262f}
+#mvol svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round;color:var(--dim);flex:0 0 auto}
+#mvol input{width:76px;height:20px;margin:0;accent-color:var(--accent)}
+
+#midibar{flex:0 0 auto;padding:5px 12px;background:#2a2618;color:var(--accent);
+  font-size:11px;border-bottom:1px solid var(--line);text-align:center}
+
+#stagewrap{position:relative;flex:1 1 auto;min-height:0;margin:8px 10px 0;
+  border:1px solid var(--line);border-radius:8px;background:#171a20;overflow:hidden}
+#stage{position:absolute;inset:0;cursor:crosshair}
+#stage .view{position:absolute;inset:0}
+#stage .view[hidden]{display:none}
+
+#meterrow{display:flex;gap:8px;align-items:stretch;flex:0 0 auto;height:52px;margin:8px 10px 0}
+#meterrow .meter{flex:1 1 auto;min-width:0;gap:8px;min-height:0}
+/* the slot's label and its number share a line, with the bar under both -- on a
+   52px row there is no height for the desktop's stack */
+#meterrow .slot{display:grid;grid-template-columns:minmax(0,1fr) auto;
+  grid-template-rows:1fr auto;gap:4px 8px;align-items:baseline;padding:6px 10px;border-radius:8px}
+#meterrow .slot .slabel{grid-area:1/1;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#meterrow .sval{grid-area:1/2;font-size:16px;text-align:right}
+#meterrow .sbar{grid-area:2/1/3/3;height:6px}
+/* wait mode has no clock, so a live percentage would be measuring nothing: the row
+   counts the notes found instead, and names the one the song is waiting on */
+#waitbox{flex:1 1 auto;min-width:0;display:flex;align-items:stretch;gap:8px}
+#waitbox > div{display:flex;align-items:center;gap:10px;padding:0 12px;min-width:0;
+  border:1px solid var(--line);border-radius:8px;background:#22262f;font-size:13px;color:var(--dim)}
+#waitbox .wfound{flex:0 1 auto;justify-content:space-between}
+#waitbox .wnote{flex:1 1 0}
+#waitbox .wlabel{font-size:10px;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+#waitbox .wfound b{font:700 16px var(--mono);color:#ffb0b0}
+#waitbox .wnote b{font:700 15px var(--mono);color:var(--accent);border:1px solid var(--accent);
+  border-radius:6px;padding:3px 9px}
+#waitbox .whint{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+button.primary{background:var(--accent);border:1px solid var(--accent);color:#14161a;
+  border-radius:8px;font-weight:700;font-size:16px;min-height:52px;padding:0 14px}
+button.primary.big{font-size:17px}
+#startBtn{width:150px;flex:0 0 auto}
+/* running, the one big button is a Stop and stops looking like the next thing to do */
+#startBtn.on{background:#2a2f3a;border-color:var(--line);color:var(--fg)}
+
+#mkb{position:relative;height:var(--mkbh);flex:0 0 auto;margin:8px 10px calc(8px + var(--sab));
+  user-select:none}
+#mkb .w{height:var(--mkbh)}
+#mkb .b{height:calc(var(--mkbh) * .62)}
+/* the falling view carries its own keys under its own bars, so the strip would
+   only repeat them -- and the meter moves up, since the keys own the bottom edge */
+body.mob.fallview #mkb{display:none}
+body.mob.fallview #meterrow{order:1;margin-bottom:0}
+body.mob.fallview #stagewrap{order:2;margin-bottom:calc(8px + var(--sab))}
+body.mob{--kbh:var(--mkbh)}
+
+/* ------------------------------------------------------- the step-done card */
+/* the whole playing screen, so the card is not clipped by a 160px stage; the top bar
+   goes under the scrim too, which is what "tap anywhere to go now" means */
+#card{position:absolute;inset:0;z-index:4;display:flex;align-items:center;justify-content:center;
+  padding:10px;background:rgba(20,22,26,.72);backdrop-filter:blur(2px);text-align:center}
+#card[hidden]{display:none}
+.cbox{background:#1c1f26;border:1px solid var(--line);border-radius:14px;padding:16px 22px;
+  max-width:min(600px,100%);max-height:100%;overflow:auto;
+  display:flex;flex-direction:column;gap:8px;align-items:center}
+/* the card only ever says a step is done, so the tick and its colour are the card's */
+.ctitle{font-size:22px;font-weight:700;color:var(--hit)}
+.csub{font-size:14px}
+.cnext{font-size:13px;color:var(--dim)}
+.cnext b{color:var(--fg);font-weight:700}
+.cbar{width:min(320px,70vw);height:6px;border-radius:3px;background:#2a2f3a;overflow:hidden}
+.cbar i{display:block;height:100%;width:0;background:var(--accent)}
+.crow{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.crow button{min-height:48px;border-radius:8px;font-size:15px;padding:0 16px}
+.chint{font-size:12px;color:var(--dim)}
+
+/* what is loaded, while nothing plays: inside the stage, on its own plate, because
+   the staff view is a white page and dimmed-white-on-white reads as nothing */
+#idle{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  padding:8px;pointer-events:none;text-align:center}
+#idle[hidden]{display:none}
+.ibox{background:rgba(20,22,26,.88);border:1px solid var(--line);border-radius:12px;
+  padding:10px 18px;max-width:100%;display:flex;flex-direction:column;gap:3px}
+#iTitle{font-size:18px;font-weight:700}
+#iSub,#iHint{font-size:12px;color:var(--dim)}
+
+/* --------------------------------------------------- free practice, as a sheet */
+#scrim{position:fixed;inset:0;background:rgba(10,11,13,.6);z-index:5}
+#scrim[hidden]{display:none}
+#sheet{position:fixed;left:0;right:0;bottom:0;z-index:6;max-height:92dvh;
+  display:flex;flex-direction:column;background:var(--pane);
+  border-top:1px solid var(--line);border-radius:16px 16px 0 0;
+  padding-bottom:var(--sab)}
+#sheet[hidden]{display:none}
+.grab{width:44px;height:5px;border-radius:3px;background:#3a3f4a;margin:8px auto 0;flex:0 0 auto}
+.sbody{flex:1 1 auto;min-height:0;overflow-y:auto;padding:0 12px 12px}
+.mchips{display:flex;flex-wrap:wrap;gap:8px}
+.mchips button{min-height:44px;padding:0 14px;border-radius:8px;background:#2a2f3a;
+  border:1px solid var(--line);color:var(--fg);font-size:14px}
+.mchips button.on{background:var(--accent);border-color:var(--accent);color:#14161a;font-weight:700}
+.handrow{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.handrow .hlabel{width:44px;flex:0 0 auto;font-size:13px;font-weight:700}
+.handrow .mchips{flex:1 1 auto}
+.handrow .mchips button{flex:1 1 0}
+.togrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px}
+/* the out toggle is the shared .seg markup; the desktop's is 20px tall, which is a
+   control you can only hit with a mouse */
+.mob .seg{display:inline-flex;align-items:stretch;height:44px;flex:0 0 auto;
+  border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.mob .seg > b{display:flex;align-items:center;padding:0 10px;background:#20242c;
+  color:var(--dim);font-size:11px;font-weight:600}
+.mob .seg > button{border:0;border-radius:0;padding:0 14px;font-size:14px;
+  background:#2a2f3a;color:var(--fg)}
+.mob .seg > button + button{border-left:1px solid var(--line)}
+.mob .seg > button.on{background:var(--accent);color:#14161a;font-weight:700}
+.mob .seg > button:disabled{color:var(--dim);background:#23272f}
+#freeStart{margin:10px 12px 12px;flex:0 0 auto}
+#freeState{margin-top:10px}
+
+/* ----------------------------------------------------------- the install hint */
+/* it lives on Home, in the flow: covering the playing screen's top bar with an
+   advert for a nicer window is exactly the wrong trade while you are playing */
+#hint{display:flex;align-items:center;gap:8px;margin:0 12px 4px;padding:8px 10px;
+  background:#22262f;border:1px solid var(--line);border-radius:10px;
+  font-size:12px;color:var(--dim)}
+#hint[hidden]{display:none}
+#hint span{flex:1 1 auto;min-width:0}
+#hint button{min-height:32px;padding:0 10px;border-radius:6px;font-size:12px}
+
+/* --------------------------------------------------------------- orientation */
+/* Portrait can still play: the same screen, stacked, with the top bar wrapping onto
+   two rows. Blocking it would mean the phone stops working the moment it is picked
+   up off the stand. */
+@media (orientation: portrait){
+  :root{--mkbh:64px}
+  #topbar{height:auto;flex-wrap:wrap;padding:4px 6px 6px 2px;row-gap:6px}
+  #topbar .ttl{flex:1 1 100%;order:-1}
+  #topbar .icon{order:-2}
+  #viewSeg{flex:1 1 auto}
+  .mseg button{flex:1 1 0}
+  #midiPlay{flex:1 1 100%;text-align:left;max-width:none}
+  #meterrow{height:auto;flex-wrap:wrap}
+  #meterrow .meter{flex:1 1 100%}
+  #startBtn{width:100%}
+  #waitbox{flex:1 1 100%;min-height:48px}
+  .crow button{flex:1 1 auto}
+}
+
+@media (orientation: landscape){
+  /* the path and the sheet are reachable sideways too, just narrower */
+  #pathList,.sbody{padding-left:max(12px,var(--sal))}
+  #sheet{max-height:96dvh}
+}
+
+/* --------------------------------------------------- the phone page on a laptop
+   A bookmark, or the QR scanned on the wrong machine: this page is unusable with a
+   mouse and there is no other way back, so a wide screen with a pointer gets one
+   strip and one link. Media query only -- no state, no JS. */
+#deskbar{display:none}
+@media (min-width:900px) and (pointer:fine){
+  #deskbar{display:flex;align-items:center;gap:12px;padding:8px 14px;background:#22262f;
+    border-bottom:1px solid var(--line);font-size:13px;color:var(--dim);
+    position:fixed;left:0;top:0;width:100%;box-sizing:border-box;z-index:50}
+  #deskbar a{margin-left:auto;color:var(--accent);text-decoration:none;font-weight:600}
+  .screen{padding-top:calc(var(--sat) + 37px)}
+}
