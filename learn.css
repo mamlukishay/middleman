@@ -34,6 +34,15 @@ body.learn #work > *{min-height:0;min-width:0}
 #shareurl:hover{color:var(--fg)}
 #sharestate.ok{color:var(--hit)}
 
+/* the jam panel: the same furniture as the share panel above it, minus the QR --
+   the other player types an address, they do not point a camera at the sidebar */
+#jamBtn.share{width:100%;margin-top:6px}
+#jambox{display:flex;flex-direction:column;gap:6px;align-items:stretch;margin-top:6px}
+#jambox[hidden]{display:none}
+#jamhint{font-size:11px;color:var(--dim);line-height:1.4;overflow-wrap:anywhere}
+#jamhint b{color:var(--fg);font-weight:700}
+#jamstate.ok{color:var(--hit)}
+
 #lesson{background:var(--pane);border:1px solid var(--line);border-radius:8px;padding:12px;
         overflow:hidden;display:flex;flex-direction:column;gap:12px}
 #tutor,#free{display:flex;flex-direction:column;gap:12px;min-height:0;flex:1 1 auto}

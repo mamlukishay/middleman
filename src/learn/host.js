@@ -48,8 +48,14 @@ const write = (k, v) => { try { localStorage.setItem(k, v); } catch { /* private
  * Who owns the speakers. Only when a phone is actually there and the app is playing
  * audio rather than driving the piano -- sharing alone must not silence a laptop that
  * nobody is listening to on a phone.
+ *
+ * `mirrors` is the number of phones that have *said* they are mirroring this laptop,
+ * not the number of connections in the room. It used to be the connection count, and
+ * that stopped being the same thing the moment a room could hold a second player with
+ * a piano of their own (jam.js): a jam partner joining would have muted this laptop's
+ * speakers on the theory that it was a phone asking for the sound.
  */
-export const soundOnPhone = (on, peers, mode) => !!on && peers > 0 && mode === 'audio';
+export const soundOnPhone = (on, mirrors, mode) => !!on && mirrors > 0 && mode === 'audio';
 
 /** Everything the phone needs to find the same notehead again. */
 const markOf = e => ({ n: e.n, hand: e.hand, b: e.b, bar: e.note?.bar ?? null, beat: e.note?.b ?? null });
@@ -218,10 +224,15 @@ export function mountHost(el, ctx) {
 
   // ---------------------------------------------------------------- the sound
   let onPhone = false;
+  /**
+   * The phones that have said they are mirroring this laptop, by relay client id.
+   * A room can hold devices that are not phones now, and only a phone wants the sound.
+   */
+  const mirrors = new Set();
 
   /** Hand the speakers over, or take them back, whenever the answer changes. */
   function syncAudio() {
-    const want = soundOnPhone(on, relay.peers, getOutputMode());
+    const want = soundOnPhone(on, mirrors.size, getOutputMode());
     if (want === onPhone) return;
     onPhone = want;
     setSynthMuted(want);            // the toggle relabels itself off the back of this
@@ -230,9 +241,15 @@ export function mountHost(el, ctx) {
   // The note goes out with the timestamp it was scheduled for, in relay time: the
   // engine schedules 120 ms ahead and the relay is a LAN away, so most of them are
   // still in the future when the phone gets them and land exactly on the beat.
+  //
+  // `from` names the device it came from, on every note that crosses the relay -- the
+  // room may hold more than two devices now (see jam.js), and a note nobody has signed
+  // is a note no receiver can decide about. This one is *not* `live`: it is the app's
+  // output on its way to a speaker, not a pair of hands, and only the mirror plays it.
   onSend((data, timestamp) => {
     if (!onPhone || !audible(data)) return;
-    relay.send({ type: 'note', data: [...data], t: toServer(timestamp ?? performance.now(), relay.offset) });
+    relay.send({ type: 'note', from: relay.client, data: [...data],
+                 t: toServer(timestamp ?? performance.now(), relay.offset) });
   });
   onOutputChange(() => { syncAudio(); publish(); });
 
@@ -271,7 +288,11 @@ export function mountHost(el, ctx) {
   // a phone that has just connected, or a relay that has just restarted, needs a
   // snapshot with a *fresh* anchor rather than whatever was left in the room
   relay.on('join', () => { syncAudio(); publish(true); });
-  relay.on('leave', () => syncAudio());        // the phone is gone; the speakers come back
+  // a phone saying what it is. It says so when its stream goes live, again on every
+  // join, and again on every resync -- so a laptop that started sharing after the
+  // phone was already connected still learns about it within half a minute.
+  relay.on('mirror', ev => { if (ev.from) { mirrors.add(ev.from); syncAudio(); publish(true); } });
+  relay.on('leave', ev => { mirrors.delete(ev.client); syncAudio(); });   // the speakers come back
   // A restarted server loses every room, so a reconnected stream is an empty one: the
   // snapshot has to go again, with a fresh anchor, the moment it is back.
   relay.onStatus(s => { paint(); if (s === 'live') publish(true); });
@@ -330,7 +351,7 @@ export function mountHost(el, ctx) {
     if (!open) return;
     paintLink();
     // the round trip is only worth saying once there is a phone at the other end of it
-    const here = !noRelay && relay.status === 'live' && relay.peers > 0;
+    const here = !noRelay && relay.status === 'live' && mirrors.size > 0;
     const rtt = relay.synced ? ` · ${Math.round(relay.rtt)} ms` : '';
     el.state.textContent = noRelay ? 'No relay on this server'
       : relay.status === 'live' ? (here ? `Phone connected${rtt}` : 'Waiting for the phone…')
@@ -368,6 +389,7 @@ export function mountHost(el, ctx) {
   function stop() {
     on = false;
     noRelay = false;
+    mirrors.clear();                  // nothing is connected to us any more
     write(ON_KEY, '');
     clearInterval(timer); timer = null;
     relay.close();

@@ -14,7 +14,7 @@ Learn also has a phone layout, `learn-m.html`, for the music stand.
 ./serve.sh          # the one command: this laptop, and the phone on the same Wi-Fi
 ./phone.sh          # only for a phone with the piano plugged into it — see below
 npm test            # or: node --test 'test/*.test.mjs'
-npm run smoke       # headless end-to-end check of the laptop + phone-mirror flow
+npm run smoke       # headless end-to-end check of the mirror and the two-player jam
 ```
 
 Never `python3 -m http.server`. It serves the files, but the two browsers cannot
@@ -566,6 +566,67 @@ reconnect. The anchor travels in relay time, so neither end has to know anything
 the other's `performance.now()`. On a home LAN the two playheads sit within a
 thousandth of a beat of each other.
 
+### Jamming with another player
+
+The room the phone mirrors into can hold a second **player**: another machine with a
+piano of its own, hearing you and heard by you. It is the same room, the same agreed
+clock and the same three messages — only `note` is new traffic, and only because it
+now carries a `from`.
+
+Both machines have to be on the same server, because a room lives in that server's
+memory. So the second player opens **this laptop's address**, exactly as the phone
+does — the Jam panel prints the one to type — and presses **Jam with another player**
+on their own Learn page. Both panels then say who is in the room. Being a player is
+*said*, never guessed: a laptop can be hosting a phone, jamming, both or neither, and
+each of those is something the pianist turned on.
+
+```
+Put it on the phone      the phone is a screen for this laptop's lesson
+Jam with another player  another machine's pianist plays into this room
+```
+
+What crosses the wire is every note you play — note on and note off, as they come in
+from the piano, stamped with the moment the key went down in **relay time**. The other
+machine converts that stamp to its own clock and plays the note through its own
+`Out: Piano | Computer`, at that moment **plus a 30 ms hold**. The hold is the whole
+trick: packets do not arrive evenly, and a note played the instant it lands has the
+network's rhythm rather than the pianist's, so waiting a fixed 30 ms puts every note
+that got there inside the window back in the order and the spacing it was played in.
+A note that took longer than the hold plays at once. 30 ms is also about ten metres of
+air, which is two musicians on one stage. Your own piano is untouched: it sounds under
+your hands with no delay, and the room never echoes it back to you (`from` is checked
+on both ends, and the relay already skips the sender).
+
+Two things follow from *whose* note it is, and both are the point of `from`:
+
+* the phone on the music stand ignores the room's playing. It is a screen and a
+  speaker for one laptop's lesson, and it plays what that laptop's app plays — never
+  what the other pianist plays. A jam note is marked `live`; the mirror drops those.
+* a phone asking for the sound now has to **say so** rather than be counted. It used
+  to be enough that something was connected; a jam partner joining would then have
+  muted the laptop's speakers on the theory that a phone wanted them.
+
+Because the other player's notes go out through the same `send()` the app's own notes
+use, they take this machine's Out and this machine's volume — so if the laptop's sound
+is on the phone, your jam partner comes out of the phone's speaker too, on the music
+stand, which is where you are listening anyway.
+
+**A note on MIDI thru.** The other player's notes reach your piano over MIDI Out. A
+piano set to echo its MIDI In back to its MIDI Out will send them straight back to the
+app as if you had played them, and around the room again. Turn local MIDI thru off, or
+use `Out: Computer`.
+
+**What it does not do yet.** The laptop that opened the room is still the only brain:
+the transport is not shared, so each player starts their own lesson and there is no
+common click or loop, and nothing is recorded. The pedal does not travel. Those are
+steps 3 and 4 in `design/jam/PLAN.md`, and they wait on how a real evening of step 2
+feels. It is same-room, same-Wi-Fi only — over the internet the hold would have to be
+tens of times longer, and that is not music.
+
+The scheduling decision is one pure function, `playWhen` in `src/learn/jam.js`, with
+`test/jam.test.mjs` on it; `npm run smoke` drives two Learn tabs in one room through
+headless Chrome and checks a note each way, signed and not echoed.
+
 ### Adding a song
 
 A song is a JSON file in `songs/`, listed in `songs/index.json`. It is written
@@ -662,6 +723,8 @@ src/
     sync.js         the clock sync: the NTP filter and the anchor, both pure
     host.js         the laptop's half: the QR, the state snapshots, the commands in
     remote.js       the phone's half: a mirror with the engine's interface
+    jam.js          two players in one room: every note signed with the device that
+                    played it, and held 30 ms on the way in so they land in order
     roll.js         the piano roll view
     staff.js        the staff view: abcjs engraves the glyphs, then a grid of equal
                     beats says where each of them goes, and the beams are redrawn
@@ -687,7 +750,11 @@ test/
   synth.test.mjs    the software piano against a fake AudioContext
   midi.test.mjs     output routing: which of the piano and the synth a message reaches
   sync.test.mjs     remote mode's clock: the NTP filter and the anchor conversion
+  jam.test.mjs      the jam: when a received note sounds, and whose notes are whose
   qr.test.mjs       the QR encoder, against the standard's tables and a whole symbol
+scripts/
+  smoke.mjs         the end-to-end check `npm run smoke` runs: one server, headless
+                    Chrome over CDP, a laptop, a mirroring phone and a second player
 vendor/
   abcjs-basic-min.js   abcjs 6.4.4, vendored so the app works offline
 ```

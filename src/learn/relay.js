@@ -43,8 +43,15 @@ const MAX_QUEUED = 64;
  * milliseconds and it replaces this one entirely. Everything else -- a snapshot, a
  * hit, a miss, a command -- happens once, and losing one is a phone left on the
  * wrong bar or a notehead that never goes green.
+ *
+ * A `note` is perishable only while it is the *app's* output on its way to a speaker
+ * (the phone mirror): the next one is a few milliseconds behind it and the app sends
+ * an all-notes-off of its own at every stop. A `live` note is a pianist's hands in a
+ * jam (see jam.js) and is not perishable at all -- there is no next one, and the one
+ * that gets dropped is as likely to be the note-off, which is a key on somebody
+ * else's piano that never comes back up.
  */
-const PERISHABLE = new Set(['held', 'note']);
+const perishable = e => e.type === 'held' || (e.type === 'note' && !e.live);
 
 /** A short, unambiguous id: no vowels, so a room never spells anything. */
 export const shortId = (n = 6) => {
@@ -223,7 +230,7 @@ export function makeRelay({ room, client = shortId(8), base = '', net = globalTh
       // happens once, so it keeps going up to a ceiling only a dead server reaches.
       // Spending one budget on both is how a pianist's key strip starves the very
       // events -- state, hit, miss -- that the phone cannot recover on its own.
-      if (inflight >= (PERISHABLE.has(event.type) ? MAX_INFLIGHT : MAX_QUEUED)) return null;
+      if (inflight >= (perishable(event) ? MAX_INFLIGHT : MAX_QUEUED)) return null;
       inflight++;
       return net.fetch(`${base}/relay/send?room=${encodeURIComponent(room)}&client=${client}`,
         { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(event) })

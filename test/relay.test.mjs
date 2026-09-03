@@ -274,6 +274,21 @@ test('and it cannot crowd out the events the phone can never get back', async ()
   r.close();
 });
 
+test('a jam note is not perishable: the dropped one is as likely to be the note-off', async () => {
+  // The mirror's notes are the app's output and the next one is milliseconds behind;
+  // a player's are a pair of hands, and a note-off that never left is a key on the
+  // other pianist's piano that never comes back up.
+  const net = stalledSends();
+  const r = makeRelay({ room: 'r', net });
+  r.open();
+  await settle();
+  for (let i = 0; i < 50; i++) r.send({ type: 'note', data: [0x90, 60, 90], t: i });
+  assert.ok(net.sent.length <= 8, `the mirror's notes still perish (${net.sent.length})`);
+  for (let i = 0; i < 20; i++) assert.ok(r.send({ type: 'note', live: 1, data: [0x90, 60, 90], t: i }),
+    'a live note still goes out');
+  r.close();
+});
+
 test('one-shot events still have a ceiling, so a dead server cannot queue for ever', async () => {
   const net = stalledSends();
   const r = makeRelay({ room: 'r', net });

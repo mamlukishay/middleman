@@ -224,9 +224,68 @@ async function main() {
   const sched = await poll(() => phone.ev('return window.__synth?.scheduled ?? 0;'), v => v > before, 6000, 300);
   ok('Hear on the laptop schedules notes on the phone\'s synth', sched.ok, `${before} → ${sched.v}`);
 
+  // ---------------------------------------------------------------- the jam
+  // A second player is a second *machine*, and the closest one browser gets to that is
+  // a second origin: `localhost` and `127.0.0.1` are the same server, the same room
+  // (the server names it, see /relay/info) and two separate localStorages. So the
+  // player tab never picks up the remembered "Put it on the phone", and there is only
+  // ever one brain in the room -- which is the arrangement the jam is designed around.
+  await laptop.ev('__mm.engine.stop(); return 1;');       // no lesson notes under the check
+  await fetch(`http://127.0.0.1:${CDP_PORT}/json/new?${encodeURIComponent(`http://localhost:${PORT}/learn.html`)}`, { method: 'PUT' });
+  await sleep(800);
+  const playerTarget = (await targets()).find(t => t.url.includes('localhost'));
+  if (!playerTarget) throw new Error('the second player tab never showed up');
+  const player = await attach(playerTarget, { width: 1280, height: 800, deviceScaleFactor: 1, mobile: false });
+  if (!(await poll(() => player.ev('return !!window.__mm;'), v => v, 5000)).ok)
+    throw new Error('the second player never exposed window.__mm');
+
+  // a real click, because it is also the gesture the AudioContext wants before the
+  // other player's notes can come out of this machine's speakers
+  await laptop.click('#jamBtn');
+  await player.click('#jamBtn');
+  const met = await poll(async () => ({
+    a: await laptop.ev('return { room: __mm.jam.room, client: __mm.jam.client, players: __mm.jam.players };'),
+    b: await player.ev('return { room: __mm.jam.room, client: __mm.jam.client, players: __mm.jam.players };'),
+  }), v => v?.a?.players > 0 && v?.b?.players > 0, 8000, 300);
+  ok('jam: both players land in the same room and see each other', met.ok
+    && met.v.a.room === met.v.b.room, `room ${met.v?.a?.room}/${met.v?.b?.room}`);
+  const A = met.v?.a?.client, B = met.v?.b?.client;
+
+  const injectC = 'window.__mm.receive([0x90, 60, 90]); setTimeout(() => window.__mm.receive([0x80, 60, 0]), 120); return 1;';
+  const heardOn = tab => tab.ev('return { heard: __mm.jam.heard, from: __mm.jam.last?.from ?? null, n: __mm.jam.last?.data?.[1] ?? null, synth: window.__synth?.scheduled ?? 0 };');
+
+  const bBefore = await heardOn(player);
+  const phoneSynth = () => phone.ev('return window.__synth?.scheduled ?? 0;');
+  const pBefore = await phoneSynth();
+  await laptop.ev(injectC);
+  const toB = await poll(() => heardOn(player), v => v && v.heard > bBefore.heard, 5000, 200);
+  ok('jam: a note played on the laptop reaches the second player, signed', toB.ok
+    && toB.v?.from === A && toB.v?.n === 60, `from=${toB.v?.from} want=${A} n=${toB.v?.n}`);
+  ok('jam: the second player actually sounds it', (toB.v?.synth ?? 0) > bBefore.synth,
+    `${bBefore.synth} → ${toB.v?.synth}`);
+
+  const aAfterOwn = await heardOn(laptop);
+  ok('jam: your own notes are never echoed back to you', aAfterOwn.heard === 0,
+    `the laptop heard ${aAfterOwn.heard}`);
+
+  // the phone on the music stand is a screen, not a player: the room's playing goes
+  // straight past it. What it does play is the *laptop's* sound, which is why the
+  // second player's note reaches it a moment later -- through the laptop's own Out,
+  // exactly as a note from the lesson would.
+  ok('jam: the phone ignores the room\'s playing', (await phoneSynth()) === pBefore,
+    `${pBefore} → ${await phoneSynth()}`);
+
+  await player.ev(injectC);
+  const toA = await poll(() => heardOn(laptop), v => v && v.heard > 0, 5000, 200);
+  ok('jam: a note played on the second player reaches the laptop, signed', toA.ok
+    && toA.v?.from === B && toA.v?.n === 60, `from=${toA.v?.from} want=${B} n=${toA.v?.n}`);
+  const onStand = await poll(phoneSynth, v => v > pBefore, 5000, 200);
+  ok('jam: and comes out of the phone, because that is where the laptop\'s Out is',
+    onStand.ok, `${pBefore} → ${onStand.v}`);
+
   // over the whole run, not just this instant -- so it has to come last
-  const errs = [...laptop.errors, ...phone.errors];
-  ok('no console errors on either tab', errs.length === 0, errs.slice(0, 2).join(' | '));
+  const errs = [...laptop.errors, ...phone.errors, ...player.errors];
+  ok('no console errors on any tab', errs.length === 0, errs.slice(0, 2).join(' | '));
 
   if (SHOTS) {
     mkdirSync(SHOTS, { recursive: true });

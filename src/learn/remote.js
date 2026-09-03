@@ -167,6 +167,20 @@ export function makeMirror({ clock = makeClock(60), room, songOf, onState }) {
 
   relay.on('state', s => { apply(s); });
 
+  // Say what this device *is*, rather than leaving the laptop to guess from how many
+  // connections the room has. It stopped being able to guess the moment a room could
+  // hold a second player with a piano of their own (jam.js), and the thing the laptop
+  // does with the answer is hand over its speakers -- so it has to be right.
+  //
+  // Said three times over, all of them cheap: when this stream goes live, on every
+  // join (so a newcomer hears it), and again on every resync, which is one POST every
+  // half minute and is what heals a laptop that started sharing after this phone
+  // connected. `onStatus` fires on the resync as well as on the change, so the first
+  // and the third are the same line.
+  const iAmAMirror = () => relay.send({ type: 'mirror', from: relay.client });
+  relay.onStatus(s => { if (s === 'live') iAmAMirror(); });
+  relay.on('join', iAmAMirror);
+
   relay.on('hit', m => {
     const e = find(m);
     if (!e) return;
@@ -197,7 +211,15 @@ export function makeMirror({ clock = makeClock(60), room, songOf, onState }) {
   // the laptop's sound, when it is set to play through here. The stamp is turned back
   // into this page's performance.now() on the way past, because relay time is the
   // mirror's business and nothing above it should have to know the offset exists.
-  relay.on('note', ev => emit('note', { data: ev.data, t: toLocal(ev.t, relay.offset) }));
+  //
+  // `live` notes are somebody's hands in a jam (see jam.js), and they are not this
+  // phone's business: the phone on the music stand is a screen showing one laptop's
+  // lesson, and the speaker for that laptop's sound. Playing the room's playing out of
+  // it would be a second, quieter piano beside the first.
+  relay.on('note', ev => {
+    if (ev.live) return;
+    emit('note', { data: ev.data, from: ev.from ?? null, t: toLocal(ev.t, relay.offset) });
+  });
 
   // ---------------------------------------------------------------- commands out
   const cmd = (name, args = {}) => relay.send({ type: 'cmd', name, ...args });

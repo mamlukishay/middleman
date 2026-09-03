@@ -2,7 +2,7 @@
 // MIDI in, the roll and the keys.
 
 import { loadSong, swungBeat, notesIn } from '../song.js';
-import { held, initMidi, onMidi, receive, setOutputMode } from '../midi.js';
+import { held, initMidi, onMidi, receive, send as midiSend, setOutputMode } from '../midi.js';
 import { audio } from '../metronome.js';
 import { mountOutToggle } from '../outtoggle.js';
 import { renderKeys, paintKeys } from '../keyboard.js';
@@ -22,6 +22,7 @@ import { makeScroll } from './scroll.js';
 import { loadProgress, saveProgress, readSetting, writeSetting, safeStep } from './store.js';
 import { makeStreak, ignoreOtherHand } from './pass.js';
 import { mountHost } from './host.js';
+import { mountJam } from './jam.js';
 
 const $ = id => document.getElementById(id);
 const el = {
@@ -708,6 +709,19 @@ const share = mountHost(
     },
   });
 
+/**
+ * The jam: another person, another machine, the same room. It is deliberately its own
+ * connection and its own switch rather than something the share panel implies -- this
+ * laptop can be hosting a phone, jamming, both or neither, and each of those is a
+ * thing the pianist said rather than a thing the app guessed. midi.js's two doors are
+ * handed in: what the pianist plays goes out, what the others play comes back in
+ * through the same send() the app's own notes use, so the Out toggle and the volume
+ * apply to a jam partner exactly as they do to the tutor's companion hand.
+ */
+const jam = mountJam(
+  { btn: $('jamBtn'), box: $('jambox'), hint: $('jamhint'), state: $('jamstate') },
+  { onMidi, play: midiSend });
+
 initMidi({
   onStatus: s => { midiStatus = s; el.status.textContent = s; },
   onNote: () => {
@@ -729,7 +743,7 @@ if (SONGS.length) pick(0);
  * without a piano attached.
  */
 window.__mm = {
-  engine, clock, views, setView, share, get view() { return view; }, receive, onMidi, swungBeat, get song() { return song; }, get plan() { return plan; }, get si() { return si; },
+  engine, clock, views, setView, share, jam, get view() { return view; }, receive, onMidi, swungBeat, get song() { return song; }, get plan() { return plan; }, get si() { return si; },
   get mode() { return mode; }, get done() { return done; }, get tempos() { return tempos; }, applyStep, setMode, setRange,
   /** Freeze the step-done countdown, so a screenshot can catch the overlay. */
   holdCountdown() { if (pending) clearInterval(pending.timer); },
