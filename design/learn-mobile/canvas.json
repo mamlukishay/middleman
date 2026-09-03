@@ -1,0 +1,28 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 844, "h": 390, "title": "Step, playing · Roll (landscape)" },
+    { "file": "WaitMode.dc.html", "x": 0, "y": 520, "w": 844, "h": 390, "title": "Step, wait mode · Roll (landscape)" },
+    { "file": "StepDone.dc.html", "x": 0, "y": 1040, "w": 844, "h": 390, "title": "Step done, next up (landscape)" },
+    { "file": "Staff.dc.html", "x": 0, "y": 1560, "w": 844, "h": 390, "title": "Step, playing · Staff (landscape)" },
+    { "file": "StaffWait.dc.html", "x": 0, "y": 2080, "w": 844, "h": 390, "title": "Step, wait mode · Staff (landscape)" },
+    { "file": "Falling.dc.html", "x": 0, "y": 2600, "w": 844, "h": 390, "title": "Step, playing · Falling (landscape)" },
+    { "file": "Home.dc.html", "x": 1000, "y": 0, "w": 390, "h": 844, "title": "Home (portrait)" },
+    { "file": "Path.dc.html", "x": 1480, "y": 0, "w": 390, "h": 844, "title": "Lesson path (portrait)" },
+    { "file": "FreeSheet.dc.html", "x": 1960, "y": 0, "w": 390, "h": 844, "title": "Free practice sheet (portrait)" }
+  ],
+  "annotations": [
+    { "id": "why-two-orientations", "x": -330, "y": 40, "w": 270,
+      "text": "The phone lives on the music stand. Sideways is for playing: the roll and the keys need the width, and both hands are on the piano, so nothing on this screen needs precision. Upright is for choosing: the path, the song list, the free-practice sheet. Rotating the phone is the mode switch; there is no separate 'play' button to find." },
+    { "id": "why-one-action", "x": -330, "y": 560, "w": 270,
+      "text": "One primary action per screen, always in the same place: bottom-right when playing (Start/Stop), full-width at the bottom when browsing (Continue). Everything else is a 40px toggle or a chip. Tempo is a stepper, not a slider: a slider on a music stand is a guess." },
+    { "id": "why-auto-advance", "x": -330, "y": 1080, "w": 270,
+      "text": "Teaching apps that flow well never make you reach for the screen between steps. The done card names what was achieved and what is next, counts down, and starts the next step by itself; a tap skips the wait, and 'Play this again' or the path are one tap away for the times you do want to stop." },
+    { "id": "three-views", "x": -330, "y": 1600, "w": 270,
+      "text": "Three views of the same loop, one switch — and on an 844×390 phone they are not equal.\n\nStaff wants the most horizontal room. The brace, clefs and key signature eat the first 100px, and a bar has to stay wide enough to read, so two bars fit per system where the desktop fits the whole four-bar loop. The phone therefore draws ONE system and scrolls the current one into view: the page jumps once every two bars while you play. That is the price of reading real notation on a phone.\n\nFalling needs the keys at the full width of the screen, with the lane sitting directly on them — a bar's bottom edge has to land on its own key at the onset or the whole idea breaks. That pushes the meter and Stop up under the header: it is the one screen where the primary action is not bottom-right. 178px of lane is about three beats of look-ahead.\n\nRoll is the most compact. All four bars fit at once, so it is the only view that shows where you are IN the loop rather than only what is coming next — and the loop is what every tutor step is built on.\n\nAll three keep the same chrome: header, stage, meter + Stop, keys. Only the middle band changes, so the switch never moves anything else." },
+    { "id": "mobile-default", "x": -330, "y": 2640, "w": 270,
+      "text": "Recommended default on the phone: Roll — deliberately not the desktop default.\n\nOn a laptop the staff has the width to hold the whole loop, and it is the view that teaches reading, so it earns the default there. On a phone it holds two bars and has to scroll, and a stage that jumps while your hands are on the keys is the one thing a music stand cannot afford.\n\nStaff is one tap away and is the right view for a reading step, for wait mode (no clock, so nothing scrolls under you), and whenever the phone is propped further back. Falling is the one to reach for in a hands-together step, where which finger goes where matters more than the bar structure.\n\nThe choice is remembered per device, so the phone can sit on Roll while the laptop sits on Staff." },
+    { "id": "deviations", "x": 1000, "y": 900, "w": 420,
+      "text": "Where this deviates from the desktop Learn page, and why:\n\n- The step text and the hint paragraph are gone from the playing screen; they live on the path node and in the done card. There is no room, and you cannot read a paragraph while playing.\n- The 59-bar strip is gone; the bar range shows as text plus a stepper and section chips in the sheet.\n- The score line (hit / missed / extra / early-late) is folded into the meter and the done card.\n- Click / Wait / Loop keep their icons but drop the keyboard shortcuts: there is no keyboard.\n- The Staff / Roll / Falling switch is a segmented control in the header, in the same spot on every playing screen. It is recessed rather than a lit amber chip: it picks a view, it does not change what the app is doing, and the amber chips beside it are reserved for state that does.\n- Sections after the current one show as locked. The desktop page lets you skip anywhere; on the phone the path is the guide and skipping is a long-press on a node (not drawn)." }
+  ],
+  "launch": { "view": "canvas" }
+}

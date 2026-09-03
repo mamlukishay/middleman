@@ -1,0 +1,739 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Jam — how the room works</title>
+<style>
+  :root{
+    --bg:#0f1115; --panel:#161a22; --line:#242b38; --ink:#e6e8ee; --mut:#8f97a8; --dim:#6d7484;
+    --amber:#e8b44a; --gold:#ffd98a; --green:#5fd6a0; --red:#ef5c5c; --coral:#ef7a5c; --violet:#9b98f5;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
+    font:14px/1.45 -apple-system,"Avenir Next",system-ui,Segoe UI,sans-serif;-webkit-text-size-adjust:100%}
+  body{display:flex;flex-direction:column;overflow-x:hidden}
+  .top{display:flex;align-items:baseline;gap:14px;padding:10px 18px 6px;flex:0 0 auto;flex-wrap:wrap}
+  .brand{font-weight:800;font-size:19px;letter-spacing:.01em;
+    background:linear-gradient(90deg,#ffd98a,#e8b44a 55%,#ef8f5c);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .tag{color:var(--mut);font-size:12.5px}
+  .legend{margin-left:auto;display:flex;gap:14px;align-items:center;font-size:11px;color:var(--mut)}
+  .legend b{color:var(--ink);font-weight:600}
+  .legend i{display:inline-block;vertical-align:-2px;margin-right:5px;font-style:normal}
+  .scene{flex:1 1 auto;min-height:330px;position:relative}
+  .scene svg{width:100%;height:100%;display:block;touch-action:manipulation}
+  .bar{flex:0 0 auto;border-top:1px solid var(--line);background:#12151c;padding:9px 18px 12px}
+  .row1{display:flex;gap:14px;align-items:center}
+  .chip{flex:0 0 auto;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;
+    color:#0f1115;background:var(--amber);border-radius:999px;padding:4px 10px}
+  .cap{flex:1 1 auto;min-width:0}
+  .cap .h{font-weight:700;font-size:15px;color:var(--ink)}
+  .cap .p{color:var(--mut);font-size:13px}
+  .cap .p em{color:var(--gold);font-style:normal}
+  .nav{flex:0 0 auto;display:flex;gap:8px}
+  button{font:inherit;font-size:13px;color:var(--ink);background:#1b202a;border:1px solid #2c3444;
+    border-radius:9px;padding:7px 13px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  button:hover{border-color:#3d4759;background:#212836}
+  button.pri{background:var(--amber);border-color:var(--amber);color:#141821;font-weight:700}
+  button.on{border-color:var(--amber);color:var(--gold)}
+  button:disabled{opacity:.35;cursor:default}
+  .row2{display:flex;gap:8px 16px;align-items:center;flex-wrap:wrap;margin-top:9px;
+    font-size:11.5px;color:var(--mut)}
+  .ctl{display:flex;gap:7px;align-items:center;white-space:nowrap}
+  .ctl b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+  input[type=range]{width:104px;accent-color:var(--amber);vertical-align:middle}
+  .seg{display:flex;border:1px solid #2c3444;border-radius:9px;overflow:hidden}
+  .seg button{border:0;border-radius:0;padding:6px 11px;background:transparent;font-size:12px;color:var(--mut)}
+  .seg button.on{background:#2a2113;color:var(--gold)}
+  .slow{margin-left:auto;color:var(--dim);font-size:11px}
+  text{font-family:-apple-system,"Avenir Next",system-ui,sans-serif}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  @media (max-height:560px){
+    html,body{overflow:hidden}
+    .top{padding:4px 10px 0;gap:10px} .brand{font-size:15px} .tag{display:none}
+    .legend{font-size:10px;gap:11px;width:auto;margin-left:auto;order:0}
+    .bar{padding:5px 10px 7px} .row1{gap:9px}
+    .chip{font-size:9.5px;padding:3px 8px}
+    .cap .h{font-size:12.5px} .cap .p{font-size:11px;line-height:1.3;
+      display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+    .row2{margin-top:5px;flex-wrap:nowrap;overflow-x:auto;gap:12px;font-size:11px}
+    button{padding:5px 9px;font-size:11.5px} input[type=range]{width:70px}
+    .slow{display:none} .scene{min-height:0}
+  }
+  @media (max-width:700px){ .legend{width:100%;margin-left:0;order:3} }
+</style>
+
+<div class="top">
+  <span class="brand">Jam</span>
+  <span class="tag">many players, one room · a live model of the machine</span>
+  <div class="legend">
+    <span><i>&#9679;</i><b>event</b> — a note, one per key press</span>
+    <span><i>&#9678;</i><b>snapshot</b> — the whole state</span>
+    <span><i>&#9670;</i><b>command</b> — a request to the conductor</span>
+  </div>
+</div>
+
+<div class="scene"><svg id="svg" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid meet" aria-label="Jam room simulation"></svg></div>
+
+<div class="bar">
+  <div class="row1">
+    <span class="chip" id="chip">1 / 6</span>
+    <div class="cap"><div class="h" id="capH">…</div><div class="p" id="capP">…</div></div>
+    <div class="nav">
+      <button id="back">&#8592; Back</button>
+      <button id="next" class="pri">Next &#8594;</button>
+      <button id="free">Free play</button>
+    </div>
+  </div>
+  <div class="row2">
+    <span class="ctl">Conductor
+      <button id="run">Start</button>
+      <button id="tdn">&#8722;</button><b id="bpm">96</b>bpm<button id="tup">+</button>
+    </span>
+    <span class="ctl">Network
+      <span class="seg"><button id="mLan" class="on">LAN</button><button id="mNet">Cloud</button></span>
+    </span>
+    <span class="ctl">latency <input type="range" id="lat" min="2" max="90" value="10"><b id="latV">10</b>ms</span>
+    <span class="ctl">jitter <input type="range" id="jit" min="0" max="40" value="6"><b id="jitV">6</b>ms</span>
+    <span class="ctl">hold <button id="hold" class="on">on · 30 ms</button></span>
+    <span class="ctl"><button id="dropE">Lose a note</button><button id="dropS">Lose a snapshot</button></span>
+    <span class="slow" id="slow">motion slowed &times;25 · tap any key</span>
+  </div>
+</div>
+
+<script>
+"use strict";
+const SVGNS = "http://www.w3.org/2000/svg";
+const $ = s => document.querySelector(s);
+const svg = $("#svg");
+
+/* ─────────────────────────── model ─────────────────────────── */
+const T0 = performance.now();
+const roomNow = () => performance.now() - T0;      // the room's clock, in ms
+
+const S = {
+  step: 0, free: false, mode: "lan",
+  latency: 10, jitter: 6, hold: 30, holdOn: true, speed: 25,
+  tempo: 96, running: false, anchor: 0,
+  lastTouch: 0, tape: [], seq: 0, kept: 0
+};
+
+const DEV = [
+  {id:0, name:"Laptop & grand",   role:"Player · Conductor", short:"laptop",  col:"#e8b44a", x:155, y:128, keys:true,  cond:true},
+  {id:1, name:"Android & keys",   role:"Player",             short:"android", col:"#5fd6a0", x:155, y:418, keys:true,  cond:false},
+  {id:2, name:"Laptop & guitar",  role:"Player",             short:"laptop 2",col:"#ef7a5c", x:845, y:128, keys:true,  cond:false},
+  {id:3, name:"iPhone on a stand",role:"Screen · speaker",   short:"iPhone",  col:"#9b98f5", x:845, y:418, keys:false, cond:false}
+];
+DEV.forEach((d,i) => {
+  d.skew = [ -1840, 2630, 940, -3410 ][i];   // its own clock is this far from the room's
+  d.est  = null;                              // what it has measured, once it has
+  d.state = null;                             // the last snapshot it holds
+  d.stale = false; d.lastBeat = -1; d.heard = [];
+});
+const devRoomNow = d => roomNow() + d.skew - (d.est === null ? 0 : d.est);
+const fmt = ms => { const s = Math.max(0,ms)/1000; const m = Math.floor(s/60);
+  return String(m).padStart(2,"0")+":"+String(Math.floor(s%60)).padStart(2,"0")+"."+String(Math.floor(ms%1000)).padStart(3,"0"); };
+const rnd = (a,b) => a + Math.random()*(b-a);
+const hop = () => S.latency + rnd(0, S.jitter);            // one-way trip, in sim ms
+const anim = ms => Math.max(90, ms * S.speed);             // sim ms → screen ms
+
+/* ─────────────────────────── scene ─────────────────────────── */
+const ROOM = {x:500, y:220, r:70};
+const el = (n,a={},kids="") => {
+  const e = document.createElementNS(SVGNS,n);
+  for (const k in a) e.setAttribute(k, a[k]);
+  if (kids) e.innerHTML = kids;
+  return e;
+};
+
+const ICON = {
+  0:`<path d="M-30,24 L-30,-16 C-30,-24 -25,-28 -17,-28 C8,-28 38,-12 48,10 C53,21 47,24 37,24 Z" fill="#1b202a" stroke="#e8b44a" stroke-width="2" stroke-linejoin="round"/>
+     <path d="M-30,24 L-30,12 L14,12 L14,24 Z" fill="#e9e6de"/>
+     <g stroke="#0f1115" stroke-width=".9"><path d="M-24,12v12"/><path d="M-18,12v12"/><path d="M-12,12v12"/><path d="M-6,12v12"/><path d="M0,12v12"/><path d="M6,12v12"/></g>
+     <g transform="translate(6,-14) rotate(-8)"><path d="M-13,10 L13,10 L18,17 L-18,17 Z" fill="#252c39" stroke="#8f97a8" stroke-width="1.3" stroke-linejoin="round"/>
+     <path d="M-12,10 L-9,-9 L11,-9 L13,10 Z" fill="#11151c" stroke="#8f97a8" stroke-width="1.3" stroke-linejoin="round"/>
+     <path d="M-8,4h14 M-8.5,-1h11 M-9,-6h13" stroke="#e8b44a" stroke-opacity=".6" stroke-width="1.2"/></g>`,
+  1:`<path d="M-34,16 L30,16 L24,28 L-28,28 Z" fill="#1b202a" stroke="#5fd6a0" stroke-width="1.8" stroke-linejoin="round"/>
+     <path d="M-30,18 L26,18 L22,26 L-25,26 Z" fill="#e9e6de"/>
+     <g stroke="#0f1115" stroke-width=".8"><path d="M-22,18l-1,8"/><path d="M-14,18l-1,8"/><path d="M-6,18v8"/><path d="M2,18v8"/><path d="M10,18l1,8"/><path d="M18,18l1,8"/></g>
+     <rect x="-14" y="-28" width="30" height="44" rx="5" fill="#161b23" stroke="#5fd6a0" stroke-width="1.8"/>
+     <rect x="-10" y="-24" width="22" height="34" rx="2" fill="#0f1115"/>
+     <path d="M-5,4v-7 M0,4v-13 M5,4v-9" stroke="#5fd6a0" stroke-width="1.8" stroke-linecap="round"/>`,
+  2:`<g transform="translate(-10,0)"><path d="M-22,14 L18,14 L26,26 L-30,26 Z" fill="#252c39" stroke="#ef7a5c" stroke-width="1.8" stroke-linejoin="round"/>
+     <path d="M-20,14 L-16,-22 L14,-22 L18,14 Z" fill="#11151c" stroke="#ef7a5c" stroke-width="1.8" stroke-linejoin="round"/>
+     <path d="M-13,8h22 M-14,1h18 M-15,-6h22" stroke="#ef7a5c" stroke-opacity=".6" stroke-width="1.3"/></g>
+     <g transform="translate(30,-4) rotate(13)"><path d="M0,-26 L0,4" stroke="#ef7a5c" stroke-width="3" stroke-linecap="round"/>
+     <path d="M-9,20 C-17,12 -16,2 -8,1 C-3,.6 -1,4 0,6 C1,4 3,.6 8,1 C16,2 17,12 9,20 C17,28 17,40 8,43 C3,44.6 1,39 0,36 C-1,39 -3,44.6 -8,43 C-17,40 -17,28 -9,20 Z"
+       fill="#1b202a" stroke="#ef7a5c" stroke-width="1.7" stroke-linejoin="round"/>
+     <circle cx="0" cy="20" r="5.5" fill="#0f1115" stroke="#ef7a5c" stroke-width="1" stroke-opacity=".7"/></g>`,
+  3:`<path d="M0,6 V30" stroke="#9b98f5" stroke-width="2.6" stroke-linecap="round"/>
+     <path d="M0,30 L-16,38 M0,30 L16,38 M0,30 V39" stroke="#9b98f5" stroke-width="2.4" stroke-linecap="round"/>
+     <g transform="rotate(-9)"><path d="M-22,10 L22,10 L18,15 L-18,15 Z" fill="#9b98f5" opacity=".55"/>
+     <rect x="-15" y="-26" width="30" height="38" rx="5" fill="#161b23" stroke="#9b98f5" stroke-width="1.9"/>
+     <rect x="-11" y="-22" width="22" height="30" rx="2" fill="#0f1115"/>
+     <circle cx="-5" cy="-13" r="2.2" fill="#5fd6a0"/><circle cx="1" cy="-8" r="2.2" fill="#e8b44a"/><circle cx="7" cy="-3" r="2.2" fill="#ef7a5c"/></g>
+     <g fill="none" stroke="#9b98f5" stroke-linecap="round" opacity=".85"><path d="M26,-14 q6,8 0,16" stroke-width="1.9"/><path d="M33,-20 q10,14 0,28" stroke-width="1.6" opacity=".55"/></g>`
+};
+
+function keysMarkup(d){
+  if (!d.keys) return `<text x="0" y="66" text-anchor="middle" font-size="11.5" fill="#6d7484">no Web MIDI &mdash; it only listens</text>`;
+  let s = `<g transform="translate(-73,42)">`;
+  const W = 21, H = 34, N = 7;
+  for (let i=0;i<N;i++)
+    s += `<rect class="key" data-d="${d.id}" data-k="${i}" x="${i*W}" y="0" width="${W-1.5}" height="${H}" rx="3" fill="#e2e0d8"/>`;
+  [0,1,3,4,5].forEach(i => s += `<rect class="key" data-d="${d.id}" data-k="${i+7}" x="${i*W+13}" y="0" width="12" height="21" rx="2" fill="#12151b"/>`);
+  s += `<rect class="kglow" x="-3" y="-3" width="${N*W+4}" height="${H+6}" rx="6" fill="none" stroke="${d.col}" stroke-opacity=".35"/></g>`;
+  return s;
+}
+
+function deviceMarkup(d){
+  return `<g class="dev" id="dev${d.id}" transform="translate(${d.x},${d.y})">
+    <rect x="-125" y="-88" width="250" height="176" rx="17" fill="#161a22" stroke="#242b38"/>
+    <rect class="hl" x="-125" y="-88" width="250" height="176" rx="17" fill="none" stroke="${d.col}" stroke-width="2" opacity="0"/>
+    <rect class="flash" x="-125" y="-88" width="250" height="176" rx="17" fill="${d.col}" opacity="0"/>
+    <g transform="translate(-82,-38) scale(.82)">${ICON[d.id]}</g>
+    <text x="-38" y="-62" font-size="15" font-weight="700" fill="${d.col}">${d.name}</text>
+    <text x="-38" y="-45" font-size="9.5" font-weight="700" letter-spacing="1.6" fill="#8f97a8">${d.role.toUpperCase()}</text>
+    <g class="mono" font-size="11.5" text-anchor="end">
+      <text x="-38" y="-24" text-anchor="start" fill="#6d7484">its clock</text><text class="v-loc" x="116" y="-24" fill="#8f97a8">00:00.000</text>
+      <text x="-38" y="-8"  text-anchor="start" fill="#6d7484">room time</text><text class="v-room" x="116" y="-8" fill="#6d7484">&mdash;</text>
+      <text x="-38" y="8"   text-anchor="start" fill="#6d7484">offset</text><text class="v-off" x="116" y="8" fill="#6d7484">not measured</text>
+    </g>
+    <text class="v-state" x="-108" y="30" font-size="12" fill="#6d7484">no state yet</text>
+    <circle class="beat" cx="106" cy="-62" r="9" fill="none" stroke="${d.col}" stroke-width="2" opacity=".18"/>
+    <circle class="beatf" cx="106" cy="-62" r="5" fill="${d.col}" opacity="0"/>
+    ${keysMarkup(d)}
+  </g>`;
+}
+
+function wire(id, a, b, c){
+  return `<path id="w${id}" class="wire" d="M${a[0]},${a[1]} Q${c[0]},${c[1]} ${b[0]},${b[1]}" fill="none" stroke="#2b3341" stroke-width="2"/>`;
+}
+
+svg.innerHTML = `
+<defs>
+  <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+    <stop offset="0%" stop-color="#e8b44a" stop-opacity=".34"/>
+    <stop offset="45%" stop-color="#e8934a" stop-opacity=".12"/>
+    <stop offset="100%" stop-color="#0f1115" stop-opacity="0"/></radialGradient>
+  <radialGradient id="dial" cx="50%" cy="32%" r="72%">
+    <stop offset="0%" stop-color="#232936"/><stop offset="100%" stop-color="#12151c"/></radialGradient>
+  <linearGradient id="tape" gradientUnits="userSpaceOnUse" x1="340" y1="0" x2="660" y2="0">
+    <stop offset="0%" stop-color="#e8b44a" stop-opacity=".65"/>
+    <stop offset="100%" stop-color="#9b98f5" stop-opacity=".55"/></linearGradient>
+  <filter id="blur" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="7"/></filter>
+</defs>
+
+<circle id="roomGlow" cx="500" cy="220" r="200" fill="url(#glow)"/>
+${wire(0,[280,150],[446,186],[366,150])}
+${wire(1,[280,400],[446,254],[372,392])}
+${wire(2,[720,150],[554,186],[634,150])}
+${wire(3,[720,400],[554,254],[628,392])}
+<path id="wt" class="wire" d="M500,292 C500,360 500,410 500,468" fill="none" stroke="#2b3341" stroke-width="2"/>
+
+<g id="roomWrap"><g id="room">
+  <text x="500" y="112" text-anchor="middle" font-size="11" font-weight="700" letter-spacing="4.5" fill="#e8b44a">THE ROOM</text>
+  <text id="roomSub" x="500" y="132" text-anchor="middle" font-size="11.5" fill="#6d7484">one clock &middot; one mailbox &middot; serve.py on the LAN</text>
+  <circle cx="500" cy="220" r="76" fill="#e8b44a" opacity=".18" filter="url(#blur)"/>
+  <circle id="roomRing" cx="500" cy="220" r="70" fill="url(#dial)" stroke="#e8b44a" stroke-width="2.4"/>
+  <circle cx="500" cy="220" r="60" fill="none" stroke="#e8b44a" stroke-opacity=".2"/>
+  <g stroke="#e8b44a" stroke-linecap="round">
+    <path d="M500,158v10" stroke-width="2.6"/><path d="M500,272v10" stroke-width="2.6"/>
+    <path d="M438,220h10" stroke-width="2.6"/><path d="M552,220h10" stroke-width="2.6"/>
+    <g stroke-opacity=".45" stroke-width="1.8">
+      <path d="M531,166l-5,9"/><path d="M554,189l-9,5"/><path d="M554,251l-9,-5"/><path d="M531,274l-5,-9"/>
+      <path d="M469,274l5,-9"/><path d="M446,251l9,-5"/><path d="M446,189l9,5"/><path d="M469,166l5,9"/></g>
+  </g>
+  <circle id="roomPulse" cx="500" cy="220" r="70" fill="none" stroke="#ffd98a" stroke-width="3" opacity="0"/>
+  <path id="hand" d="M500,220 L500,172" stroke="#ffe3ac" stroke-width="3.6" stroke-linecap="round"/>
+  <circle cx="500" cy="220" r="4" fill="#ef7a5c"/>
+  <text id="roomBeat" x="500" y="274" text-anchor="middle" font-size="11.5" fill="#8f97a8">stopped</text>
+  <text id="roomClock" class="mono" x="500" y="250" text-anchor="middle" font-size="13" fill="#ffd98a">00:00.000</text>
+  <text id="roomState" x="500" y="348" text-anchor="middle" font-size="12.5" fill="#8f97a8"
+        stroke="#0f1115" stroke-width="5" style="paint-order:stroke">the room decides nothing &mdash; it repeats what it is given, to everyone</text>
+</g></g>
+
+<g id="logWrap"><g id="log">
+  <text x="500" y="464" text-anchor="middle" font-size="11" font-weight="700" letter-spacing="3" fill="#e8b44a" stroke="#0f1115" stroke-width="4" style="paint-order:stroke">THE LOG &middot; RECORD &middot; LOOP</text>
+  <text id="logCount" x="500" y="484" text-anchor="middle" font-size="11" fill="#8f97a8" stroke="#0f1115" stroke-width="4" style="paint-order:stroke">0 notes kept &middot; a recording is a slice of it</text>
+  <path d="M340,505 H660" stroke="url(#tape)" stroke-width="26"/>
+  <g id="ticks"></g>
+  <g transform="translate(340,505)"><circle r="27" fill="#12161d" stroke="#e8b44a" stroke-width="2.2"/>
+    <g id="reelA" stroke="#e8b44a" stroke-opacity=".5" stroke-width="2.4" stroke-linecap="round">
+      <path d="M0,-9V-19"/><path d="M0,9V19"/><path d="M-9,0H-19"/><path d="M9,0H19"/></g>
+    <circle r="7" fill="#171b22" stroke="#e8b44a" stroke-width="1.6"/></g>
+  <g transform="translate(660,505)"><circle r="27" fill="#12161d" stroke="#e8b44a" stroke-width="2.2"/>
+    <g id="reelB" stroke="#e8b44a" stroke-opacity=".5" stroke-width="2.4" stroke-linecap="round">
+      <path d="M0,-9V-19"/><path d="M0,9V19"/><path d="M-9,0H-19"/><path d="M9,0H19"/></g>
+    <circle r="7" fill="#171b22" stroke="#e8b44a" stroke-width="1.6"/></g>
+  <text id="logWords" x="500" y="556" text-anchor="middle" font-size="11.5" fill="#6d7484">every note anyone played, stamped in room time &mdash; a loop is a slice played again</text>
+</g></g>
+
+${DEV.map(deviceMarkup).join("")}
+<g id="dots"></g>
+<g id="notes"></g>`;
+
+const DOTS = $("#dots"), TICKS = $("#ticks"), NOTES = $("#notes");
+const node = DEV.map(d => {
+  const g = document.getElementById("dev"+d.id);
+  return {g, flash:g.querySelector(".flash"), hl:g.querySelector(".hl"),
+    loc:g.querySelector(".v-loc"), room:g.querySelector(".v-room"), off:g.querySelector(".v-off"),
+    st:g.querySelector(".v-state"), beat:g.querySelector(".beatf")};
+});
+const wires = [0,1,2,3].map(i => document.getElementById("w"+i));
+const wireTape = $("#wt");
+const anchorPt = [[280,150],[280,400],[720,150],[720,400]];
+
+/* ───────────────────────── flying dots ───────────────────────── */
+const flights = [];
+function pathFor(from, to){
+  if (from === "tape" || to === "tape") return {p: wireTape, rev: to !== "tape"};
+  const id = from === "room" ? to : from;
+  return {p: wires[id], rev: from === "room"};
+}
+function makeDot(kind, col){
+  const g = el("g", {class:"dot"});
+  if (kind === "snapshot"){
+    g.appendChild(el("circle",{r:9,fill:"#0f1115",opacity:".55"}));
+    g.appendChild(el("circle",{r:9,fill:"none",stroke:"#ffd98a","stroke-width":"2.2"}));
+    g.appendChild(el("circle",{r:4,fill:"none",stroke:"#ffd98a","stroke-width":"1.8"}));
+  } else if (kind === "command"){
+    g.appendChild(el("rect",{x:-5,y:-5,width:10,height:10,transform:"rotate(45)",fill:"#12151c",stroke:col,"stroke-width":"2.4"}));
+  } else if (kind === "ping"){
+    g.appendChild(el("circle",{r:6,fill:"none",stroke:col,"stroke-width":"2","stroke-opacity":".9"}));
+    g.appendChild(el("circle",{r:1.8,fill:col}));
+  } else {
+    g.appendChild(el("circle",{r:10,fill:col,opacity:".16"}));
+    g.appendChild(el("circle",{r:6,fill:col}));
+  }
+  return g;
+}
+function send(o){
+  const {p, rev} = pathFor(o.from, o.to);
+  const ms = o.ms == null ? hop() : o.ms;
+  const g = makeDot(o.kind, o.col || "#e8b44a");
+  let lbl = null;
+  if (o.label !== false){
+    lbl = el("text",{class:"mono",x:0,y:-14,"text-anchor":"middle","font-size":"10.5",fill:"#8f97a8"});
+    g.appendChild(lbl);
+  }
+  DOTS.appendChild(g);
+  const f = {g, lbl, p, rev, ms, len:p.getTotalLength(), t0:performance.now()+(o.delay||0),
+             dur:anim(ms), kind:o.kind, drop:o.drop||false, onArrive:o.onArrive, wire:p, done:false};
+  g.setAttribute("opacity","0");
+  flights.push(f);
+  return f;
+}
+function tickFlights(now){
+  for (let i=flights.length-1;i>=0;i--){
+    const f = flights[i];
+    if (now < f.t0) continue;
+    let u = (now - f.t0)/f.dur;
+    f.g.setAttribute("opacity","1");
+    if (f.drop && u >= .55){
+      flights.splice(i,1);
+      const pt = f.p.getPointAtLength((f.rev ? 1-.55 : .55) * f.len);
+      f.g.remove();
+      lostMark(pt.x, pt.y);
+      continue;
+    }
+    if (u >= 1){
+      flights.splice(i,1); f.g.remove();
+      if (f.onArrive) f.onArrive();
+      continue;
+    }
+    const pt = f.p.getPointAtLength((f.rev ? 1-u : u) * f.len);
+    f.g.setAttribute("transform", `translate(${pt.x.toFixed(1)},${pt.y.toFixed(1)})`);
+    if (f.lbl) f.lbl.textContent = (f.ms * u).toFixed(0) + " ms";
+    f.wire.__glow = 1;
+  }
+}
+function lostMark(x,y){
+  const g = el("g",{transform:`translate(${x},${y})`});
+  g.appendChild(el("path",{d:"M-7,-7 L7,7 M7,-7 L-7,7",stroke:"#ef5c5c","stroke-width":"3","stroke-linecap":"round"}));
+  const t = el("text",{class:"mono",x:0,y:-14,"text-anchor":"middle","font-size":"10.5",fill:"#ef5c5c"});
+  t.textContent = "lost"; g.appendChild(t);
+  DOTS.appendChild(g);
+  g.animate([{opacity:1},{opacity:0}],{duration:1400,easing:"ease-in"}).onfinish = () => g.remove();
+}
+
+/* ───────────────────────── behaviour ───────────────────────── */
+function flash(id, strength = .30){
+  node[id].flash.animate([{opacity:strength},{opacity:0}], {duration:520, easing:"ease-out"});
+  node[id].hl.animate([{opacity:1},{opacity:0}], {duration:520, easing:"ease-out"});
+}
+function say(id, text, col, dy = 0){
+  const d = DEV[id];
+  const t = el("text",{class:"mono",x:d.x,y:d.y-100+dy,"text-anchor":"middle","font-size":"12.5","font-weight":"700",
+    fill: col, stroke:"#0f1115","stroke-width":"4",style:"paint-order:stroke"});
+  t.textContent = text; NOTES.appendChild(t);
+  t.animate([{opacity:0},{opacity:1},{opacity:1},{opacity:0}],{duration:1900,easing:"ease-out"}).onfinish = () => t.remove();
+}
+function heardPush(id, letter){
+  const d = DEV[id];
+  d.heard.push(letter);
+  const seq = d.heard.join(" \u2192 ");
+  const ok = ("A \u2192 B").startsWith(seq);
+  say(id, seq + (d.heard.length < 2 ? "" : ok ? "  \u2713 in order" : "  \u2717 swapped"),
+      ok ? "#5fd6a0" : "#ef5c5c");
+}
+function resetHeard(){ DEV.forEach(d => d.heard = []); }
+function keyFlash(id, k){
+  const r = node[id].g.querySelector(`.key[data-k="${k}"]`);
+  if (!r) return;
+  const on = DEV[id].col, off = r.getAttribute("data-k") >= 7 ? "#12151b" : "#e2e0d8";
+  r.animate([{fill:on},{fill:off}],{duration:480,easing:"ease-out"});
+}
+function tapeAdd(col){
+  S.kept++;
+  S.tape.push({col});
+  if (S.tape.length > 26) S.tape.shift();
+  $("#logCount").textContent = S.kept + (S.kept === 1 ? " note kept" : " notes kept") + " · a recording is a slice of it";
+  TICKS.innerHTML = S.tape.map((t,i) => {
+    const x = 380 + i*9.8;
+    return `<rect x="${x}" y="493" width="4.6" height="24" rx="2" fill="${t.col}" opacity=".95"/>`;
+  }).join("");
+  const last = TICKS.lastElementChild;
+  if (last) last.animate([{opacity:0,transform:"scaleY(.2)"},{opacity:1,transform:"scaleY(1)"}],{duration:320});
+}
+
+/* a note: sounds at home at once, then travels */
+function playNote(id, k = Math.floor(rnd(0,7)), tag = null){
+  const d = DEV[id];
+  if (!d.keys) return;
+  S.lastTouch = performance.now();
+  keyFlash(id, k); flash(id, .34);
+  if (tag && tag.letter) say(id, "plays " + tag.letter, d.col);
+  else say(id, "sounds here · 0 ms", "#5fd6a0");
+  const up = tag && tag.upMs != null ? tag.upMs : hop();
+  send({from:id, to:"room", kind:"event", col:d.col, ms:up, drop: takeDrop("event"), onArrive(){
+    roomPulse();
+    send({from:"room", to:"tape", kind:"event", col:d.col, label:false, ms:1, onArrive(){ tapeAdd(d.col); }});
+    DEV.forEach(o => {
+      if (o.id === id) return;
+      const down = tag && tag.downMs != null ? tag.downMs : hop();
+      const lost = (tag && tag.dropTo === o.id) || takeDrop("event");
+      if (lost) later(() => say(o.id, "never heard it", "#ef5c5c"), anim(down) + 260);
+      send({from:"room", to:o.id, kind:"event", col:d.col, ms:down, drop: lost, onArrive(){
+        const arrived = up + down;
+        const wait = S.holdOn ? Math.max(0, S.hold - arrived) : 0;
+        setTimeout(() => {
+          flash(o.id, .28); keyFlash(o.id, k);
+          if (tag && tag.letter){
+            if (tag.aud.includes(o.id)) heardPush(o.id, tag.letter);
+            else say(o.id, "hears " + tag.letter, d.col);
+          } else say(o.id, "+" + Math.round(arrived + wait) + " ms", d.col);
+        }, anim(wait));
+      }});
+    });
+  }});
+}
+function roomPulse(){
+  $("#roomPulse").animate([{r:"66px",opacity:.9},{r:"92px",opacity:0}],{duration:620, easing:"ease-out"});
+}
+
+/* snapshots and commands */
+function publishSnapshot(dropTo = null){
+  const snap = {tempo:S.tempo, running:S.running, anchor:S.anchor, v:++S.seq};
+  flash(0,.2);
+  send({from:0, to:"room", kind:"snapshot", ms:hop(), onArrive(){
+    roomPulse();
+    DEV.forEach(o => {
+      if (o.id === 0){ apply(0, snap); return; }
+      send({from:"room", to:o.id, kind:"snapshot", ms:hop(), drop: dropTo === o.id || takeDrop("snapshot"),
+            onArrive(){ apply(o.id, snap); }});
+    });
+    if (dropTo != null) setTimeout(() => { DEV[dropTo].stale = true; }, anim(S.latency));
+  }});
+}
+function apply(id, snap){
+  DEV[id].state = snap; DEV[id].stale = false;
+  flash(id,.18);
+  node[id].st.animate([{opacity:0},{opacity:1}],{duration:400});
+}
+function command(fromId, what){
+  const d = DEV[fromId];
+  S.lastTouch = performance.now();
+  if (fromId === 0){ applyCommand(what); publishSnapshot(); return; }
+  send({from:fromId, to:"room", kind:"command", col:d.col, ms:hop(), onArrive(){
+    roomPulse();
+    send({from:"room", to:0, kind:"command", col:d.col, ms:hop(), onArrive(){
+      flash(0,.24); applyCommand(what); publishSnapshot();
+    }});
+  }});
+}
+function applyCommand(what){
+  if (what.run !== undefined){ S.running = what.run; if (what.run) S.anchor = roomNow(); }
+  if (what.tempo !== undefined){ S.tempo = Math.max(50, Math.min(200, S.tempo + what.tempo)); }
+  $("#bpm").textContent = S.tempo;
+  $("#run").textContent = S.running ? "Stop" : "Start";
+  $("#run").classList.toggle("on", S.running);
+}
+
+/* dropping */
+let dropArm = null;
+function takeDrop(kind){
+  if (dropArm === kind){ dropArm = null; syncDropButtons(); return true; }
+  return false;
+}
+function syncDropButtons(){
+  $("#dropE").classList.toggle("on", dropArm === "event");
+  $("#dropS").classList.toggle("on", dropArm === "snapshot");
+}
+
+function ensureReady(){
+  DEV.forEach(d => { if (d.est === null) d.est = d.skew + rnd(-1.4,1.4); });
+  if (!S.running){ S.running = true; S.anchor = roomNow();
+    $("#run").textContent = "Stop"; $("#run").classList.add("on"); }
+  const snap = {tempo:S.tempo, running:S.running, anchor:S.anchor, v:++S.seq};
+  DEV.forEach(d => { if (!d.state){ d.state = snap; d.stale = false; } });
+}
+
+/* clock agreement */
+function syncDevice(id, trips = 4, done){
+  const d = DEV[id];
+  let n = 0, best = Infinity, meas = 0;
+  const round = () => {
+    const t = hop(), back = hop();
+    send({from:id, to:"room", kind:"ping", col:d.col, label:false, ms:t, onArrive(){
+      roomPulse();
+      send({from:"room", to:id, kind:"ping", col:d.col, label:false, ms:back, onArrive(){
+        const rt = t + back;
+        if (rt < best){ best = rt; meas = d.skew + rnd(-1.4,1.4); }
+        n++;
+        node[id].off.setAttribute("fill","#8f97a8");
+        node[id].off.textContent = "round trip " + rt.toFixed(0) + " ms";
+        if (n < trips) round();
+        else {
+          d.est = meas;
+          node[id].off.setAttribute("fill", d.col);
+          node[id].room.setAttribute("fill","#e6e8ee");
+          flash(id,.2); say(id, "clock agreed", "#5fd6a0");
+          if (done) done();
+        }
+      }});
+    }});
+  };
+  round();
+}
+
+/* ───────────────────────── the loop ───────────────────────── */
+function frame(){
+  const now = performance.now();
+  tickFlights(now);
+  const rn = roomNow();
+  $("#roomClock").textContent = fmt(rn);
+  $("#hand").setAttribute("transform", `rotate(${(rn/2000*360)%360} 500 220)`);
+  const spin = S.running ? (rn/26)%360 : (rn/90)%360;
+  $("#reelA").setAttribute("transform",`rotate(${spin})`);
+  $("#reelB").setAttribute("transform",`rotate(${spin})`);
+
+  DEV.forEach((d,i) => {
+    const n = node[i];
+    n.loc.textContent = fmt(rn + d.skew);
+    n.room.textContent = d.est === null ? "—" : fmt(devRoomNow(d));
+    if (d.est !== null) n.off.textContent = (d.est>0?"+":"") + d.est.toFixed(0) + " ms measured";
+    if (d.state){
+      const st = d.state;
+      n.st.textContent = `${st.tempo} bpm · ${st.running ? "running" : "stopped"} · anchor ${(st.anchor/1000).toFixed(1)}s`;
+      n.st.setAttribute("fill", d.stale ? "#ef5c5c" : "#c8cee0");
+    } else { n.st.textContent = "no state yet"; n.st.setAttribute("fill","#6d7484"); }
+    if (d.state && d.state.running){
+      const beat = Math.floor((devRoomNow(d) - d.state.anchor) / (60000/d.state.tempo));
+      n.st.textContent = `${d.state.tempo} bpm · running · beat ${Math.max(0,beat)}` + (d.stale ? "  · stale" : "");
+      if (beat !== d.lastBeat && beat >= 0){
+        d.lastBeat = beat;
+        n.beat.animate([{opacity:.95,r:"5px"},{opacity:0,r:"14px"}],{duration:420,easing:"ease-out"});
+      }
+    }
+  });
+  [...wires, wireTape].forEach(w => {
+    const g = w.__glow || 0;
+    if (g > 0){ w.setAttribute("stroke", "#4a5468"); w.__glow = g - .05; }
+    else w.setAttribute("stroke", "#2b3341");
+  });
+  if (S.running){
+    const per = 60000/S.tempo, ph = ((rn - S.anchor) % per) / per;
+    $("#roomGlow").setAttribute("opacity", (0.72 + 0.5*Math.exp(-ph*7)).toFixed(3));
+    $("#roomBeat").textContent = "beat " + Math.max(0, Math.floor((rn - S.anchor)/per)) + " · " + S.tempo + " bpm";
+  } else { $("#roomGlow").setAttribute("opacity","1"); $("#roomBeat").textContent = "stopped"; }
+  if (flights.length) S.lastFlight = now;
+  const quiet = S.running && now - (S.lastFlight || 0) > 900;
+  const rs = $("#roomState");
+  const msg = quiet ? "the wire is quiet — every device is computing the beat from its own clock"
+                    : "the room decides nothing — it repeats what it is given, to everyone";
+  if (rs.textContent !== msg){ rs.textContent = msg; rs.setAttribute("fill", quiet ? "#5fd6a0" : "#8f97a8"); }
+
+  if (S.free && now - S.lastTouch > 2600) idlePlay();
+  layout();
+requestAnimationFrame(frame);
+}
+function idlePlay(){
+  S.lastTouch = performance.now();
+  const pick = [0,1,2][Math.floor(Math.random()*3)];
+  playNote(pick);
+  if (Math.random() < .18) command(1, {tempo: Math.random()<.5 ? 4 : -4});
+}
+
+/* ───────────────────────── the tour ───────────────────────── */
+let timer = null, timers = [];
+const later = (f,ms) => { const t = setTimeout(f,ms); timers.push(t); return t; };
+function clearAll(){ clearInterval(timer); timer = null; timers.forEach(clearTimeout); timers = []; }
+
+const STEPS = [
+{ h:"1 · Agree on the clock",
+  p:"Nobody streams the clock. Each device measures its offset to the room a few times, keeps the best round trip, and from then on <em>computes</em> room time on its own — no traffic at all.",
+  enter(){
+    const run = () => {
+      DEV.forEach(d => { d.est = null; node[d.id].room.setAttribute("fill","#6d7484");
+        node[d.id].off.setAttribute("fill","#6d7484"); node[d.id].off.textContent = "not measured"; });
+      DEV.forEach((d,i) => later(() => syncDevice(d.id), i*700));
+    };
+    run(); timer = setInterval(run, 11000);
+  }},
+{ h:"2 · State once, then silence",
+  p:"The conductor owns the state; the room only repeats it. One <em>snapshot</em> reaches everyone, and after that the beat runs on every device from its own clock — look at the wires: nothing is travelling.",
+  enter(){
+    DEV.forEach(d => { if (d.est === null) d.est = d.skew + rnd(-1.4,1.4); });
+    const run = () => {
+      DEV.forEach(d => { d.state = null; });
+      S.running = false; applyCommand({run:true});
+      publishSnapshot();
+      later(() => command(1, {tempo:+6}), 6000);
+    };
+    later(run, 500); timer = setInterval(run, 13000);
+  }},
+{ h:"3 · One note, to everyone",
+  p:"A key press sounds at home <em>immediately</em> — nothing waits for the network. The same note goes to the room as one <em>event</em>, the room hands it to everyone else, and it lands on the tape. Tap any key yourself.",
+  enter(){
+    ensureReady();
+    const run = () => { later(() => playNote(1), 600); later(() => playNote(0), 3400);
+                        later(() => playNote(2), 6200); };
+    run(); timer = setInterval(run, 9000);
+  }},
+{ h:"4 · The small hold",
+  p:"The wire is not fair: two notes can overtake each other. Every receiver waits until <em>stamp + 30 ms</em> before playing, so order is restored. Turn the hold off and watch note 2 arrive first.",
+  enter(){
+    ensureReady();
+    const run = () => {
+      resetHeard();
+      playNote(1, 2, {letter:"A", aud:[0,3], upMs: 4, downMs: 24});
+      later(() => playNote(2, 5, {letter:"B", aud:[0,3], upMs: 2, downMs: 4}), 12*S.speed);
+    };
+    later(run, 400); timer = setInterval(run, 7000);
+  }},
+{ h:"5 · Losing a message",
+  p:"A mailbox gives no guarantees, and it does not need to. A lost <em>event</em> is one note nobody hears — gone, harmless. A lost <em>snapshot</em> leaves a device stale until the next snapshot heals it. Never diff state.",
+  enter(){
+    ensureReady();
+    const run = () => {
+      playNote(1, 3, {dropTo: 2});
+      later(() => { applyCommand({tempo:+8}); publishSnapshot(3); }, 4000);
+      later(() => { applyCommand({tempo:-8}); publishSnapshot(); }, 9500);
+    };
+    later(run, 400); timer = setInterval(run, 14000);
+  }},
+{ h:"6 · The same machine, a bigger room",
+  p:"Swap the LAN for a pub-sub server over WebSockets and nothing in the picture changes: same clock agreement, same mailbox, same three kinds of message. Only the numbers grow — so the hold grows with them.",
+  enter(){
+    ensureReady(); setMode("net");
+    const run = () => { playNote(0); later(() => playNote(2), 3400); };
+    later(run, 400); timer = setInterval(run, 7500);
+  },
+  exit(){ setMode("lan"); }}
+];
+
+function setMode(m){
+  S.mode = m;
+  const net = m === "net";
+  S.latency = net ? 38 : 10; S.jitter = net ? 22 : 6; S.hold = net ? 90 : 30;
+  $("#lat").value = S.latency; $("#jit").value = S.jitter;
+  $("#latV").textContent = S.latency; $("#jitV").textContent = S.jitter;
+  $("#hold").textContent = (S.holdOn ? "on" : "off") + " · " + S.hold + " ms";
+  $("#mLan").classList.toggle("on", !net); $("#mNet").classList.toggle("on", net);
+  $("#roomSub").textContent = net
+    ? "one clock · one mailbox · a pub-sub server, somewhere on the internet"
+    : "one clock · one mailbox · serve.py on the LAN";
+  $("#roomRing").setAttribute("stroke", net ? "#9b98f5" : "#e8b44a");
+}
+
+function goto(i){
+  const prev = STEPS[S.step];
+  clearAll();
+  if (prev && prev.exit && !S.free) prev.exit();
+  S.free = false;
+  S.step = Math.max(0, Math.min(STEPS.length-1, i));
+  const s = STEPS[S.step];
+  $("#chip").textContent = (S.step+1) + " / " + STEPS.length;
+  $("#capH").textContent = s.h; $("#capP").innerHTML = s.p;
+  $("#back").disabled = S.step === 0;
+  $("#next").disabled = S.step === STEPS.length-1;
+  $("#free").classList.remove("on");
+  s.enter();
+}
+function freePlay(){
+  clearAll(); S.free = true;
+  $("#chip").textContent = "free";
+  $("#capH").textContent = "Free play";
+  $("#capP").innerHTML = "Tap the keys on any device, drag the sliders, lose a message, switch the room to the cloud. It keeps playing by itself when you stop.";
+  $("#free").classList.add("on"); $("#back").disabled = false; $("#next").disabled = false;
+  ensureReady();
+}
+
+/* ───────────────────── responsive layout ───────────────────── */
+function layout(){
+  const wide = innerHeight < 560 && innerWidth > 700;
+  if (wide === S.wide) return;
+  S.wide = wide;
+  const P = wide
+    ? {vb:"0 0 1560 470", pos:[[175,112],[175,346],[1385,112],[1385,346]], room:[780,192], log:[780,404]}
+    : {vb:"0 0 1000 600", pos:[[155,128],[155,418],[845,128],[845,418]], room:[500,220], log:[500,505]};
+  svg.setAttribute("viewBox", P.vb);
+  $("#roomWrap").setAttribute("transform", `translate(${P.room[0]-500},${P.room[1]-220})`);
+  $("#logWrap").setAttribute("transform", `translate(${P.log[0]-500},${P.log[1]-505})`);
+  $("#logWords").style.display = wide ? "none" : "";
+  DEV.forEach((d,i) => {
+    d.x = P.pos[i][0]; d.y = P.pos[i][1];
+    node[i].g.setAttribute("transform", `translate(${d.x},${d.y})`);
+    const side = d.x < P.room[0] ? 1 : -1, up = d.y < P.room[1];
+    const ax = d.x + side*127, ay = d.y + (up ? 22 : -18);
+    const rx = P.room[0] - side*54, ry = P.room[1] + (up ? -34 : 34);
+    wires[i].setAttribute("d", `M${ax},${ay} Q${(ax+rx)/2 + side*20},${ay} ${rx},${ry}`);
+  });
+  wireTape.setAttribute("d", `M${P.room[0]},${P.room[1]+72} C${P.room[0]},${P.room[1]+130} ${P.log[0]},${P.log[1]-90} ${P.log[0]},${P.log[1]-14}`);
+}
+addEventListener("resize", layout);
+
+/* ───────────────────────── wiring up ───────────────────────── */
+svg.addEventListener("pointerdown", e => {
+  const k = e.target.closest(".key");
+  if (k) playNote(+k.dataset.d, +k.dataset.k);
+});
+$("#next").onclick = () => goto(S.free ? 0 : S.step+1);
+$("#back").onclick = () => goto(S.free ? STEPS.length-1 : S.step-1);
+$("#free").onclick = freePlay;
+addEventListener("keydown", e => {
+  if (e.key === "ArrowRight"){ e.preventDefault(); if (!$("#next").disabled || S.free) goto(S.free ? 0 : S.step+1); }
+  if (e.key === "ArrowLeft"){ e.preventDefault(); if (!$("#back").disabled || S.free) goto(S.free ? STEPS.length-1 : S.step-1); }
+  if (e.key === " "){ e.preventDefault(); playNote(Math.floor(rnd(0,3))); }
+});
+$("#run").onclick = () => command(0, {run: !S.running});
+$("#tup").onclick = () => command(1, {tempo:+4});
+$("#tdn").onclick = () => command(1, {tempo:-4});
+$("#lat").oninput = e => { S.latency = +e.target.value; $("#latV").textContent = S.latency; };
+$("#jit").oninput = e => { S.jitter = +e.target.value; $("#jitV").textContent = S.jitter; };
+$("#hold").onclick = () => { S.holdOn = !S.holdOn;
+  $("#hold").classList.toggle("on", S.holdOn);
+  $("#hold").textContent = (S.holdOn ? "on" : "off") + " · " + S.hold + " ms"; };
+$("#dropE").onclick = () => { dropArm = dropArm === "event" ? null : "event"; syncDropButtons(); };
+$("#dropS").onclick = () => { dropArm = dropArm === "snapshot" ? null : "snapshot"; syncDropButtons(); };
+$("#mLan").onclick = () => setMode("lan");
+$("#mNet").onclick = () => setMode("net");
+
+addEventListener("error", e => { document.title = "ERR " + e.message; });
+
+requestAnimationFrame(frame);
+const q = new URLSearchParams(location.search);
+if (q.get("step") === "free") freePlay();
+else goto(Math.max(0, (+q.get("step") || 1) - 1));
+</script>
+</html>

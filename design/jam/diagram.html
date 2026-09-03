@@ -1,0 +1,396 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Jam — many players, one room</title>
+<style>
+  html,body { margin:0; background:#0f1115; }
+  svg { display:block; }
+  .hl   { font-family:"Avenir Next","Futura",system-ui,sans-serif; font-weight:700; }
+  .ui   { font-family:-apple-system,"Avenir Next",system-ui,sans-serif; }
+  .cap  { font-size:11px; letter-spacing:.16em; text-transform:uppercase; font-weight:700; }
+  .name { font-size:16.5px; font-weight:700; }
+  .body { font-size:13px; fill:#8f97a8; }
+  .tiny { font-size:11px; fill:#6d7484; }
+</style>
+<svg width="1000" height="1330" viewBox="0 0 1000 1330" xmlns="http://www.w3.org/2000/svg" class="ui">
+<defs>
+  <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+    <stop offset="0%"   stop-color="#e8b44a" stop-opacity=".38"/>
+    <stop offset="38%"  stop-color="#e8934a" stop-opacity=".16"/>
+    <stop offset="70%"  stop-color="#c8632a" stop-opacity=".05"/>
+    <stop offset="100%" stop-color="#0f1115" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="floor" cx="50%" cy="50%" r="50%">
+    <stop offset="0%"   stop-color="#e8b44a" stop-opacity=".30"/>
+    <stop offset="100%" stop-color="#e8b44a" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="dial" cx="50%" cy="34%" r="72%">
+    <stop offset="0%" stop-color="#242a35"/>
+    <stop offset="100%" stop-color="#12151c"/>
+  </radialGradient>
+  <linearGradient id="title" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0%" stop-color="#ffd98a"/>
+    <stop offset="55%" stop-color="#e8b44a"/>
+    <stop offset="100%" stop-color="#ef8f5c"/>
+  </linearGradient>
+  <linearGradient id="tape" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0%"   stop-color="#e8b44a" stop-opacity=".85"/>
+    <stop offset="55%"  stop-color="#c8763c" stop-opacity=".65"/>
+    <stop offset="100%" stop-color="#8f8cf0" stop-opacity=".55"/>
+  </linearGradient>
+  <linearGradient id="shine" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#ffffff" stop-opacity=".18"/>
+    <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+  </linearGradient>
+  <filter id="soft" x="-60%" y="-60%" width="220%" height="220%">
+    <feGaussianBlur stdDeviation="6"/>
+  </filter>
+  <filter id="soft2" x="-60%" y="-60%" width="220%" height="220%">
+    <feGaussianBlur stdDeviation="2.2"/>
+  </filter>
+
+  <marker id="mA" markerWidth="9" markerHeight="9" refX="6.4" refY="4.5" orient="auto"><path d="M0.5,0.8 L8,4.5 L0.5,8.2 Z" fill="#e8b44a"/></marker>
+  <marker id="mM" markerWidth="9" markerHeight="9" refX="6.4" refY="4.5" orient="auto"><path d="M0.5,0.8 L8,4.5 L0.5,8.2 Z" fill="#5fd6a0"/></marker>
+  <marker id="mC" markerWidth="9" markerHeight="9" refX="6.4" refY="4.5" orient="auto"><path d="M0.5,0.8 L8,4.5 L0.5,8.2 Z" fill="#ef7a5c"/></marker>
+  <marker id="mV" markerWidth="9" markerHeight="9" refX="6.4" refY="4.5" orient="auto"><path d="M0.5,0.8 L8,4.5 L0.5,8.2 Z" fill="#9b98f5"/></marker>
+
+  <g id="nh" fill="currentColor" stroke="currentColor">
+    <ellipse cx="0" cy="0" rx="5.6" ry="4.2" transform="rotate(-22)" stroke="none"/>
+    <path d="M5.2,-1.6 L5.2,-16" stroke-width="1.9" fill="none" stroke-linecap="round"/>
+  </g>
+  <g id="nh2" fill="currentColor" stroke="currentColor">
+    <ellipse cx="0" cy="0" rx="5.6" ry="4.2" transform="rotate(-22)" stroke="none"/>
+    <ellipse cx="13" cy="0" rx="5.6" ry="4.2" transform="rotate(-22 13 0)" stroke="none"/>
+    <path d="M5.2,-1.6 L5.2,-15 M18.2,-1.6 L18.2,-15" stroke-width="1.9" fill="none" stroke-linecap="round"/>
+    <path d="M5.2,-15 L18.2,-15" stroke-width="3.4" fill="none" stroke-linecap="round"/>
+  </g>
+
+  <path id="ribbonPath" d="M 510,566 C 566,652 648,684 706,698 C 786,716 796,762 712,786 C 588,820 336,824 226,806" fill="none"/>
+  <path id="ribbonPathT" d="M 510,566 C 566,652 648,684 706,698 C 786,716 796,762 712,786 C 588,820 336,824 226,806" fill="none"/>
+</defs>
+
+<!-- ═══════════ header ═══════════ -->
+<text x="52" y="84" class="hl" font-size="52" fill="url(#title)">Jam</text>
+<text x="150" y="84" class="hl" font-size="26" fill="#9aa3b2">many players, one room</text>
+<text x="52" y="116" class="body" font-size="14.5">The mirror, generalised. Same clock, same mailbox, same three messages — now everybody's notes go through the room, and the room keeps them.</text>
+<path d="M52,142 H948" stroke="#242935" stroke-width="1"/>
+
+<!-- ═══════════ scene 1 ═══════════ -->
+
+<!-- stage glow + floor -->
+<circle cx="500" cy="398" r="262" fill="url(#glow)"/>
+<ellipse cx="500" cy="470" rx="252" ry="66" fill="url(#floor)"/>
+<ellipse cx="500" cy="470" rx="214" ry="55" fill="none" stroke="#e8b44a" stroke-opacity=".22"/>
+<ellipse cx="500" cy="470" rx="152" ry="38" fill="none" stroke="#e8b44a" stroke-opacity=".14"/>
+
+<!-- sparks rising off the stage -->
+<g opacity=".5">
+  <use href="#nh" x="404" y="248" transform="scale(.72) translate(158,96)" style="color:#e8b44a" opacity=".55"/>
+  <use href="#nh" x="596" y="232" transform="scale(.6) translate(398,152)" style="color:#ef7a5c" opacity=".45"/>
+  <use href="#nh" x="470" y="206" transform="scale(.5) translate(470,206)" style="color:#5fd6a0" opacity=".4"/>
+  <circle cx="560" cy="262" r="2.2" fill="#ffd98a" opacity=".6"/>
+  <circle cx="438" cy="286" r="1.8" fill="#ffd98a" opacity=".5"/>
+  <circle cx="618" cy="318" r="2" fill="#ffb46a" opacity=".45"/>
+  <circle cx="382" cy="336" r="1.6" fill="#ffb46a" opacity=".4"/>
+</g>
+
+<text x="500" y="252" text-anchor="middle" class="cap" fill="#e8b44a" letter-spacing="4">The room</text>
+
+<!-- clock -->
+<g>
+  <circle cx="500" cy="390" r="86" fill="#e8b44a" opacity=".22" filter="url(#soft)"/>
+  <circle cx="500" cy="390" r="80" fill="url(#dial)" stroke="#e8b44a" stroke-width="2.5"/>
+  <circle cx="500" cy="390" r="70" fill="none" stroke="#e8b44a" stroke-opacity=".22"/>
+  <g stroke="#e8b44a" stroke-linecap="round">
+    <path d="M500,318 V330" stroke-width="3"/><path d="M500,450 V462" stroke-width="3"/>
+    <path d="M428,390 H440" stroke-width="3"/><path d="M560,390 H572" stroke-width="3"/>
+    <g stroke-opacity=".5" stroke-width="2">
+      <path d="M536,328 L530,338"/><path d="M562,354 L552,360"/><path d="M562,426 L552,420"/>
+      <path d="M536,452 L530,442"/><path d="M464,452 L470,442"/><path d="M438,426 L448,420"/>
+      <path d="M438,354 L448,360"/><path d="M464,328 L470,338"/>
+    </g>
+  </g>
+  <path d="M500,390 L500,344" stroke="#ffe3ac" stroke-width="4.5" stroke-linecap="round"/>
+  <path d="M500,390 L536,410" stroke="#ffe3ac" stroke-width="4.5" stroke-linecap="round"/>
+  <path d="M500,390 L462,352" stroke="#ef7a5c" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="500" cy="390" r="5" fill="#ef7a5c"/>
+</g>
+
+<text x="500" y="512" text-anchor="middle" font-size="14.5" fill="#e6e8ee">one clock everybody agrees on</text>
+<text x="500" y="534" text-anchor="middle" font-size="14.5" fill="#e6e8ee">one mailbox — every message to all</text>
+<text x="500" y="556" text-anchor="middle" class="tiny">serve.py, still tiny</text>
+
+<!-- ── flows ── -->
+<g fill="none" stroke-linecap="round">
+  <!-- piano ↔ room -->
+  <path d="M 300,268 C 356,296 396,318 424,348" stroke="#e8b44a" stroke-width="3.6" stroke-dasharray="1 13" marker-end="url(#mA)" opacity=".95"/>
+  <path d="M 412,368 C 380,340 342,320 288,300" stroke="#e8b44a" stroke-width="2.4" stroke-dasharray="1 12" marker-end="url(#mA)" opacity=".45"/>
+  <!-- android ↔ room -->
+  <path d="M 300,540 C 356,516 396,494 424,452" stroke="#5fd6a0" stroke-width="3.6" stroke-dasharray="1 13" marker-end="url(#mM)" opacity=".95"/>
+  <path d="M 410,432 C 378,464 342,486 288,506" stroke="#5fd6a0" stroke-width="2.4" stroke-dasharray="1 12" marker-end="url(#mM)" opacity=".45"/>
+  <!-- guitar laptop ↔ room -->
+  <path d="M 700,268 C 644,296 604,318 576,348" stroke="#ef7a5c" stroke-width="3.6" stroke-dasharray="1 13" marker-end="url(#mC)" opacity=".95"/>
+  <path d="M 588,368 C 620,340 658,320 712,300" stroke="#ef7a5c" stroke-width="2.4" stroke-dasharray="1 12" marker-end="url(#mC)" opacity=".45"/>
+  <!-- room → iphone (one way) -->
+  <path d="M 578,448 C 618,494 654,520 706,540" stroke="#9b98f5" stroke-width="3.2" stroke-dasharray="1 12" marker-end="url(#mV)"/>
+</g>
+<g>
+  <use href="#nh" transform="translate(360,300) scale(.95)" style="color:#e8b44a"/>
+  <use href="#nh2" transform="translate(330,520) scale(.9)" style="color:#5fd6a0"/>
+  <use href="#nh" transform="translate(640,300) scale(.95)" style="color:#ef7a5c"/>
+  <use href="#nh" transform="translate(652,512) scale(.9)" style="color:#9b98f5"/>
+</g>
+<text x="356" y="252" class="tiny" fill="#e8b44a" opacity=".85">your notes out</text>
+<text x="300" y="392" class="tiny">everyone else's, back</text>
+<text x="664" y="586" class="tiny" fill="#9b98f5">listens only</text>
+
+<!-- ── player 1: grand piano + laptop, the conductor ── -->
+<g>
+  <ellipse cx="176" cy="316" rx="106" ry="16" fill="#000" opacity=".45" filter="url(#soft)"/>
+  <g transform="translate(84,196)">
+    <path d="M8,112 L8,26 C8,12 18,4 34,4 C84,4 146,32 168,74 C178,94 168,112 146,112 Z"
+          fill="#171b22" stroke="#e8b44a" stroke-width="2.4" stroke-linejoin="round"/>
+    <path d="M20,96 L20,32 C20,22 27,17 38,17 C80,17 133,42 152,78 C158,90 152,99 138,99 Z"
+          fill="none" stroke="#e8b44a" stroke-opacity=".28" stroke-width="1.5"/>
+    <!-- keys along the straight edge -->
+    <g stroke="#e8b44a" stroke-opacity=".55">
+      <path d="M8,112 L8,26" stroke-width="0"/>
+    </g>
+    <path d="M8,112 L8,90 L128,90 L128,112 Z" fill="#e9e6de" opacity=".9"/>
+    <g stroke="#0f1115" stroke-width="1.2">
+      <path d="M18,90 V112"/><path d="M28,90 V112"/><path d="M38,90 V112"/><path d="M48,90 V112"/>
+      <path d="M58,90 V112"/><path d="M68,90 V112"/><path d="M78,90 V112"/><path d="M88,90 V112"/>
+      <path d="M98,90 V112"/><path d="M108,90 V112"/><path d="M118,90 V112"/>
+    </g>
+    <g fill="#0f1115">
+      <rect x="14.5" y="90" width="5" height="13"/><rect x="24.5" y="90" width="5" height="13"/>
+      <rect x="44.5" y="90" width="5" height="13"/><rect x="54.5" y="90" width="5" height="13"/>
+      <rect x="64.5" y="90" width="5" height="13"/>
+      <rect x="84.5" y="90" width="5" height="13"/><rect x="94.5" y="90" width="5" height="13"/>
+      <rect x="114.5" y="90" width="5" height="13"/>
+    </g>
+    <!-- laptop resting on the lid -->
+    <g transform="translate(84,26) rotate(-8)">
+      <path d="M-22,20 L22,20 L30,30 L-30,30 Z" fill="#232936" stroke="#8f97a8" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M-20,20 L-16,-14 L18,-14 L22,20 Z" fill="#12161d" stroke="#8f97a8" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M-15,15 L-12,-9 L14,-9 L17,15 Z" fill="#e8b44a" opacity=".18"/>
+      <path d="M-11,8 h18 M-12,2 h14 M-13,-4 h20" stroke="#e8b44a" stroke-opacity=".55" stroke-width="1.4"/>
+    </g>
+  </g>
+  <!-- conductor badge -->
+  <g transform="translate(56,206)">
+    <path d="M2,26 C10,20 20,10 28,2" stroke="#ffe3ac" stroke-width="3" stroke-linecap="round" fill="none"/>
+    <circle cx="1" cy="27.5" r="4" fill="#ffe3ac"/>
+    <g opacity=".9"><circle cx="28" cy="2" r="2" fill="#ffd98a"/></g>
+  </g>
+  <text x="176" y="352" text-anchor="middle" class="name" fill="#e8b44a">Laptop &amp; grand</text>
+  <text x="176" y="372" text-anchor="middle" class="cap" fill="#ffd98a" letter-spacing="2.4">Player · Conductor</text>
+  <text x="176" y="396" text-anchor="middle" class="body">plays in, hears the others out,</text>
+  <text x="176" y="414" text-anchor="middle" class="body">owns start · stop · tempo · loop</text>
+  <text x="176" y="436" text-anchor="middle" class="tiny">today's host, unchanged</text>
+</g>
+
+<!-- ── player 2: android + small keyboard ── -->
+<g>
+  <ellipse cx="176" cy="620" rx="98" ry="14" fill="#000" opacity=".45" filter="url(#soft)"/>
+  <g transform="translate(88,528)">
+    <!-- keyboard in slight perspective -->
+    <path d="M4,74 L172,74 L162,96 L14,96 Z" fill="#1a1f28" stroke="#5fd6a0" stroke-width="2.2" stroke-linejoin="round"/>
+    <path d="M10,78 L166,78 L158,92 L18,92 Z" fill="#e9e6de" opacity=".88"/>
+    <g stroke="#0f1115" stroke-width="1">
+      <path d="M23,78 L20,92"/><path d="M36,78 L33,92"/><path d="M49,78 L47,92"/><path d="M62,78 L60,92"/>
+      <path d="M75,78 L74,92"/><path d="M88,78 L87,92"/><path d="M101,78 L101,92"/><path d="M114,78 L114,92"/>
+      <path d="M127,78 L128,92"/><path d="M140,78 L141,92"/><path d="M153,78 L155,92"/>
+    </g>
+    <g fill="#0f1115">
+      <path d="M27,78 h5 l-4,9 h-5 z"/><path d="M40,78 h5 l-4,9 h-5 z"/>
+      <path d="M66,78 h5 l-4,9 h-5 z"/><path d="M79,78 h5 l-4,9 h-5 z"/><path d="M92,78 h5 l-4,9 h-5 z"/>
+      <path d="M118,78 h5 l-4,9 h-5 z"/><path d="M131,78 h5 l-4,9 h-5 z"/>
+    </g>
+    <!-- android phone standing behind -->
+    <g transform="translate(66,4)">
+      <rect x="0" y="0" width="44" height="74" rx="7" fill="#171b22" stroke="#5fd6a0" stroke-width="2.2"/>
+      <rect x="5" y="7" width="34" height="58" rx="3" fill="#0f1115"/>
+      <path d="M11,52 v-10 M18,52 v-20 M25,52 v-14 M32,52 v-24" stroke="#5fd6a0" stroke-width="2.4" stroke-linecap="round" opacity=".85"/>
+      <circle cx="22" cy="70" r="1.8" fill="#5fd6a0" opacity=".7"/>
+    </g>
+    <path d="M60,52 q10,-8 20,0" fill="none" stroke="#5fd6a0" stroke-width="0"/>
+  </g>
+  <text x="176" y="656" text-anchor="middle" class="name" fill="#5fd6a0">Android &amp; keys</text>
+  <text x="176" y="676" text-anchor="middle" class="cap" fill="#8fe6c0" letter-spacing="2.4">Player</text>
+  <text x="176" y="700" text-anchor="middle" class="body">plays in, hears the others out,</text>
+  <text x="176" y="718" text-anchor="middle" class="body">sends commands, never decides</text>
+</g>
+
+<!-- ── player 3: laptop + guitar ── -->
+<g>
+  <ellipse cx="824" cy="318" rx="100" ry="15" fill="#000" opacity=".45" filter="url(#soft)"/>
+  <g transform="translate(742,206)">
+    <!-- laptop -->
+    <g transform="translate(28,26)">
+      <path d="M-34,66 L34,66 L48,84 L-48,84 Z" fill="#232936" stroke="#ef7a5c" stroke-width="2.2" stroke-linejoin="round"/>
+      <path d="M-31,66 L-25,4 L25,4 L31,66 Z" fill="#12161d" stroke="#ef7a5c" stroke-width="2.2" stroke-linejoin="round"/>
+      <path d="M-24,58 L-19,12 L19,12 L24,58 Z" fill="#ef7a5c" opacity=".14"/>
+      <path d="M-17,46 h30 M-18,36 h24 M-19,26 h32" stroke="#ef7a5c" stroke-opacity=".6" stroke-width="1.5"/>
+    </g>
+    <!-- guitar leaning -->
+    <g transform="translate(112,10) rotate(14)">
+      <path d="M0,0 L0,58" stroke="#ef7a5c" stroke-width="4.5" stroke-linecap="round"/>
+      <path d="M-5,-4 q5,-8 10,0 q-5,6 -10,0" fill="#ef7a5c" opacity=".9"/>
+      <path d="M-14,86 C-26,74 -26,58 -14,56 C-6,55 -2,60 0,64 C2,60 6,55 14,56 C26,58 26,74 14,86
+               C26,98 26,116 12,120 C4,122 2,114 0,110 C-2,114 -4,122 -12,120 C-26,116 -26,98 -14,86 Z"
+            fill="#1a1f28" stroke="#ef7a5c" stroke-width="2.2" stroke-linejoin="round"/>
+      <circle cx="0" cy="86" r="9" fill="#0f1115" stroke="#ef7a5c" stroke-width="1.4" stroke-opacity=".7"/>
+      <path d="M-6,108 h12" stroke="#ef7a5c" stroke-width="2.4" stroke-linecap="round"/>
+      <g stroke="#ef7a5c" stroke-opacity=".45" stroke-width=".8">
+        <path d="M-2,58 V108"/><path d="M2,58 V108"/>
+      </g>
+    </g>
+  </g>
+  <text x="824" y="352" text-anchor="middle" class="name" fill="#ef7a5c">Laptop &amp; guitar</text>
+  <text x="824" y="372" text-anchor="middle" class="cap" fill="#f7a48c" letter-spacing="2.4">Player</text>
+  <text x="824" y="396" text-anchor="middle" class="body">guitar-to-MIDI, or anything else:</text>
+  <text x="824" y="414" text-anchor="middle" class="body">any device with an instrument</text>
+</g>
+
+<!-- ── player 4: iPhone on a music stand ── -->
+<g>
+  <ellipse cx="824" cy="626" rx="72" ry="12" fill="#000" opacity=".45" filter="url(#soft)"/>
+  <g transform="translate(824,524)">
+    <path d="M0,20 V92" stroke="#9b98f5" stroke-width="3.4" stroke-linecap="round"/>
+    <path d="M0,92 L-30,106 M0,92 L30,106 M0,92 L0,108" stroke="#9b98f5" stroke-width="3" stroke-linecap="round"/>
+    <g transform="rotate(-10)">
+      <path d="M-40,26 L40,26 L34,34 L-34,34 Z" fill="#9b98f5" opacity=".55"/>
+      <rect x="-24" y="-42" width="48" height="70" rx="8" fill="#171b22" stroke="#9b98f5" stroke-width="2.4"/>
+      <rect x="-19" y="-36" width="38" height="58" rx="4" fill="#0f1115"/>
+      <path d="M-8,-38 h16" stroke="#9b98f5" stroke-width="2.4" stroke-linecap="round"/>
+      <g opacity=".9">
+        <circle cx="-10" cy="-18" r="3.4" fill="#5fd6a0"/>
+        <circle cx="0" cy="-10" r="3.4" fill="#e8b44a"/>
+        <circle cx="10" cy="-2" r="3.4" fill="#ef7a5c"/>
+        <path d="M-14,10 h28" stroke="#9b98f5" stroke-width="2" stroke-opacity=".6"/>
+        <path d="M-14,16 h18" stroke="#9b98f5" stroke-width="2" stroke-opacity=".4"/>
+      </g>
+    </g>
+    <!-- sound coming out -->
+    <g fill="none" stroke="#9b98f5" stroke-linecap="round" opacity=".8">
+      <path d="M44,-24 q8,10 0,20" stroke-width="2.2"/>
+      <path d="M54,-32 q13,18 0,36" stroke-width="2" opacity=".6"/>
+    </g>
+  </g>
+  <text x="824" y="662" text-anchor="middle" class="name" fill="#9b98f5">iPhone on a stand</text>
+  <text x="824" y="682" text-anchor="middle" class="cap" fill="#b9b7fa" letter-spacing="2.4">Screen · speaker</text>
+  <text x="824" y="706" text-anchor="middle" class="body">no Web MIDI, so no instrument in:</text>
+  <text x="824" y="724" text-anchor="middle" class="body">shows the room, plays the sound</text>
+</g>
+
+<!-- ── the log: a tape curling out of the stage ── -->
+<g>
+  <use href="#ribbonPath" stroke="url(#tape)" stroke-width="30" fill="none" opacity=".9"/>
+  <use href="#ribbonPath" stroke="url(#shine)" stroke-width="30" fill="none"/>
+  <use href="#ribbonPath" stroke="#0f1115" stroke-width="30" fill="none" opacity="0"/>
+  <text font-size="14" class="cap" fill="#141821" letter-spacing="3">
+    <textPath href="#ribbonPathT" startOffset="10%">record  ·  every note anyone played, stamped in room time</textPath>
+  </text>
+  <text font-size="14" class="cap" fill="#141821" letter-spacing="3">
+    <textPath href="#ribbonPathT" startOffset="62%">loop  ·  a slice, played again on the room's clock</textPath>
+  </text>
+  <!-- reel -->
+  <g transform="translate(180,792)">
+    <circle r="52" fill="#12161d" stroke="#e8b44a" stroke-width="2.6"/>
+    <circle r="40" fill="none" stroke="#e8b44a" stroke-opacity=".3"/>
+    <circle r="14" fill="#171b22" stroke="#e8b44a" stroke-width="2"/>
+    <g stroke="#e8b44a" stroke-opacity=".55" stroke-width="3" stroke-linecap="round">
+      <path d="M0,-18 V-36"/><path d="M0,18 V36"/><path d="M-18,0 H-36"/><path d="M18,0 H36"/>
+      <path d="M13,-13 L26,-26"/><path d="M-13,13 L-26,26"/><path d="M13,13 L26,26"/><path d="M-13,-13 L-26,-26"/>
+    </g>
+    <circle r="4" fill="#e8b44a"/>
+  </g>
+  <text x="180" y="874" text-anchor="middle" class="name" fill="#e8b44a">The log</text>
+  <text x="180" y="894" text-anchor="middle" class="body">a recording is a slice of it</text>
+  <use href="#nh" transform="translate(600,676) scale(.85)" style="color:#ffd98a" opacity=".9"/>
+  <use href="#nh2" transform="translate(452,812) scale(.8)" style="color:#c7b3f7" opacity=".9"/>
+</g>
+
+<path d="M52,940 H948" stroke="#242935"/>
+
+<!-- ═══════════ scene 2 ═══════════ -->
+<text x="52" y="998" class="hl" font-size="26" fill="#e6e8ee">What happens to one note</text>
+<text x="322" y="998" class="body" font-size="14.5">— from your finger to everyone's ears, in about thirty milliseconds.</text>
+
+<g fill="none" stroke="#3c4354" stroke-width="3" stroke-dasharray="1 12" stroke-linecap="round">
+  <path d="M118,1104 C176,1052 232,1052 288,1096"/>
+  <path d="M352,1096 C408,1052 462,1052 492,1090"/>
+  <path d="M566,1090 C620,1050 668,1050 706,1094"/>
+  <path d="M772,1094 C822,1052 862,1052 900,1090"/>
+</g>
+<g>
+  <use href="#nh" transform="translate(200,1052) scale(.85)" style="color:#e8b44a"/>
+  <use href="#nh" transform="translate(420,1050) scale(.85)" style="color:#e8b44a" opacity=".8"/>
+  <use href="#nh" transform="translate(636,1048) scale(.85)" style="color:#5fd6a0" opacity=".8"/>
+  <use href="#nh" transform="translate(844,1050) scale(.85)" style="color:#9b98f5" opacity=".8"/>
+</g>
+
+<!-- 1 key pressed -->
+<g transform="translate(78,1082)">
+  <rect x="0" y="0" width="62" height="34" rx="3" fill="#e9e6de"/>
+  <g stroke="#0f1115" stroke-width="1"><path d="M15,0 V34"/><path d="M31,0 V34"/><path d="M47,0 V34"/></g>
+  <rect x="31" y="0" width="16" height="34" fill="#e8b44a"/>
+  <g fill="#0f1115"><rect x="11" y="0" width="6" height="20"/><rect x="43" y="0" width="6" height="20"/></g>
+  <path d="M39,-16 q0,-8 4,-12" stroke="#e8b44a" stroke-width="2.4" fill="none" stroke-linecap="round" opacity=".7"/>
+  <circle cx="39" cy="-8" r="3" fill="#e8b44a"/>
+</g>
+<text x="109" y="1152" text-anchor="middle" class="cap" fill="#e8b44a" letter-spacing="2">Key pressed</text>
+<text x="109" y="1174" text-anchor="middle" class="body">your finger</text>
+
+<!-- 2 sounds at home -->
+<g transform="translate(320,1099)">
+  <path d="M-22,-10 h10 l14,-12 v44 l-14,-12 h-10 z" fill="#171b22" stroke="#e8b44a" stroke-width="2.2" stroke-linejoin="round"/>
+  <g fill="none" stroke="#e8b44a" stroke-linecap="round">
+    <path d="M10,-4 q7,10 0,20" stroke-width="2.4"/>
+    <path d="M20,-12 q12,18 0,36" stroke-width="2.2" opacity=".65"/>
+    <path d="M30,-20 q17,26 0,52" stroke-width="2" opacity=".38"/>
+  </g>
+</g>
+<text x="320" y="1152" text-anchor="middle" class="cap" fill="#e8b44a" letter-spacing="2">Sounds at home</text>
+<text x="320" y="1174" text-anchor="middle" class="body">at once — 0 ms, no wire</text>
+
+<!-- 3 into the room -->
+<g transform="translate(528,1100)">
+  <circle r="30" fill="#e8b44a" opacity=".16" filter="url(#soft2)"/>
+  <circle r="24" fill="url(#dial)" stroke="#e8b44a" stroke-width="2.2"/>
+  <path d="M0,0 V-14 M0,0 L11,6" stroke="#ffe3ac" stroke-width="2.4" stroke-linecap="round"/>
+  <circle r="2.4" fill="#ef7a5c"/>
+</g>
+<text x="528" y="1152" text-anchor="middle" class="cap" fill="#e8b44a" letter-spacing="2">Into the room</text>
+<text x="528" y="1174" text-anchor="middle" class="body">pitch, velocity, who, when</text>
+
+<!-- 4 everyone else -->
+<g transform="translate(740,1100)">
+  <g transform="translate(-26,0)">
+    <rect x="-14" y="-22" width="28" height="44" rx="5" fill="#171b22" stroke="#5fd6a0" stroke-width="2.2"/>
+    <path d="M-7,10 v-8 M0,10 v-16 M7,10 v-11" stroke="#5fd6a0" stroke-width="2.2" stroke-linecap="round"/>
+  </g>
+  <g transform="translate(24,4)">
+    <rect x="-14" y="-22" width="28" height="44" rx="5" fill="#171b22" stroke="#9b98f5" stroke-width="2.2"/>
+    <path d="M-7,10 v-12 M0,10 v-6 M7,10 v-16" stroke="#9b98f5" stroke-width="2.2" stroke-linecap="round"/>
+  </g>
+  <path d="M44,-16 q9,12 0,24" stroke="#9b98f5" stroke-width="2.2" fill="none" stroke-linecap="round" opacity=".8"/>
+</g>
+<text x="740" y="1152" text-anchor="middle" class="cap" fill="#5fd6a0" letter-spacing="2">Everyone else plays it</text>
+<text x="740" y="1174" text-anchor="middle" class="body">room time + a ~30 ms hold</text>
+
+<!-- 5 onto the tape -->
+<g transform="translate(930,1100)">
+  <circle r="28" fill="#12161d" stroke="#e8b44a" stroke-width="2.4"/>
+  <circle r="9" fill="#171b22" stroke="#e8b44a" stroke-width="1.8"/>
+  <g stroke="#e8b44a" stroke-opacity=".55" stroke-width="2.4" stroke-linecap="round">
+    <path d="M0,-12 V-20"/><path d="M0,12 V20"/><path d="M-12,0 H-20"/><path d="M12,0 H20"/>
+  </g>
+  <circle r="2.6" fill="#e8b44a"/>
+</g>
+<text x="920" y="1152" text-anchor="middle" class="cap" fill="#e8b44a" letter-spacing="2">Onto the tape</text>
+<text x="920" y="1174" text-anchor="middle" class="body">record · loop</text>
+
+<text x="500" y="1232" text-anchor="middle" class="body" font-size="13.5">The hold is what keeps notes in order when the Wi-Fi jitters — a late one plays at once. You hear the other player as if they sat ten metres away.</text>
+<text x="500" y="1256" text-anchor="middle" class="tiny">Same room, same Wi-Fi. Over the internet this does not hold.</text>
+</svg>

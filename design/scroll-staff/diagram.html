@@ -1,0 +1,89 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Scrolling staff — how it is built</title>
+<style>
+  body { margin: 0; background: #0f1115; color: #e6e8ee; font: 15px/1.45 -apple-system, system-ui, sans-serif; }
+  .page { width: 1000px; padding: 28px 32px; box-sizing: border-box; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #9aa3b2; margin: 0 0 18px; }
+  h2 { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: #e8b44a; margin: 22px 0 8px; }
+  .cap { color: #9aa3b2; font-size: 13px; margin: 6px 0 0; }
+  text { font-family: -apple-system, system-ui, sans-serif; }
+</style>
+<div class="page">
+<h1>Scrolling staff</h1>
+<p class="sub">One grand staff, the whole loop on a single line. The playhead never moves; the music slides under it.</p>
+
+<h2>1 · What you see</h2>
+<svg width="936" height="230" viewBox="0 0 936 230">
+  <!-- the long strip, mostly outside the phone -->
+  <g opacity=".35">
+    <rect x="-200" y="60" width="1400" height="110" fill="none" stroke="#3a4152" stroke-dasharray="6 5"/>
+    <text x="700" y="52" fill="#9aa3b2" font-size="12">the strip: all bars of the loop, engraved once, on one line</text>
+  </g>
+  <!-- staff lines across the strip -->
+  <g stroke="#6b7280" stroke-width="1">
+    <line x1="-200" x2="1200" y1="80" y2="80"/><line x1="-200" x2="1200" y1="88" y2="88"/><line x1="-200" x2="1200" y1="96" y2="96"/><line x1="-200" x2="1200" y1="104" y2="104"/><line x1="-200" x2="1200" y1="112" y2="112"/>
+    <line x1="-200" x2="1200" y1="130" y2="130"/><line x1="-200" x2="1200" y1="138" y2="138"/><line x1="-200" x2="1200" y1="146" y2="146"/><line x1="-200" x2="1200" y1="154" y2="154"/><line x1="-200" x2="1200" y1="162" y2="162"/>
+  </g>
+  <!-- bar lines -->
+  <g stroke="#6b7280"><line x1="120" x2="120" y1="80" y2="162"/><line x1="330" x2="330" y1="80" y2="162"/><line x1="540" x2="540" y1="80" y2="162"/><line x1="750" x2="750" y1="80" y2="162"/></g>
+  <!-- notes: played (green), current, upcoming (dim) -->
+  <g>
+    <ellipse cx="150" cy="96" rx="5" ry="3.6" fill="#4ade80"/><ellipse cx="200" cy="88" rx="5" ry="3.6" fill="#4ade80"/><ellipse cx="250" cy="100" rx="5" ry="3.6" fill="#f87171"/>
+    <ellipse cx="160" cy="146" rx="5" ry="3.6" fill="#4ade80"/><ellipse cx="260" cy="154" rx="5" ry="3.6" fill="#4ade80"/>
+    <ellipse cx="350" cy="92" rx="5" ry="3.6" fill="#e8b44a"/><ellipse cx="360" cy="150" rx="5" ry="3.6" fill="#e8b44a"/>
+    <ellipse cx="400" cy="96" rx="5" ry="3.6" fill="#8b93a3"/><ellipse cx="450" cy="84" rx="5" ry="3.6" fill="#8b93a3"/><ellipse cx="500" cy="100" rx="5" ry="3.6" fill="#8b93a3"/>
+    <ellipse cx="410" cy="154" rx="5" ry="3.6" fill="#8b93a3"/><ellipse cx="560" cy="92" rx="5" ry="3.6" fill="#8b93a3"/><ellipse cx="610" cy="88" rx="5" ry="3.6" fill="#8b93a3"/><ellipse cx="660" cy="96" rx="5" ry="3.6" fill="#8b93a3"/><ellipse cx="580" cy="146" rx="5" ry="3.6" fill="#8b93a3"/><ellipse cx="680" cy="154" rx="5" ry="3.6" fill="#8b93a3"/>
+    <ellipse cx="780" cy="92" rx="5" ry="3.6" fill="#8b93a3"/><ellipse cx="830" cy="100" rx="5" ry="3.6" fill="#8b93a3"/><ellipse cx="800" cy="150" rx="5" ry="3.6" fill="#8b93a3"/>
+  </g>
+  <!-- the phone frame -->
+  <rect x="40" y="20" width="620" height="195" rx="14" fill="none" stroke="#e6e8ee" stroke-width="2.5"/>
+  <text x="52" y="40" fill="#e6e8ee" font-size="13" font-weight="600">the phone (landscape)</text>
+  <!-- fixed playhead at 30% -->
+  <line x1="226" x2="226" y1="24" y2="211" stroke="#e8b44a" stroke-width="3"/>
+  <text x="232" y="44" fill="#e8b44a" font-size="13" font-weight="600">now — fixed, 30% in</text>
+  <text x="232" y="204" fill="#9aa3b2" font-size="12">played ◀ │ ▶ coming up</text>
+  <!-- motion arrow -->
+  <g>
+    <line x1="560" x2="380" y1="184" y2="184" stroke="#e6e8ee" stroke-width="2"/>
+    <polygon points="380,184 392,178 392,190" fill="#e6e8ee"/>
+    <text x="396" y="177" fill="#e6e8ee" font-size="13">the music slides left, at a constant speed</text>
+  </g>
+</svg>
+<p class="cap">Green and red are your notes as you play them, amber is the note under the line, grey is what is coming. The click and the notes line up with the amber line exactly, because the strip moves the same number of pixels for every beat.</p>
+
+<h2>2 · How it is built — three small pieces</h2>
+<svg width="936" height="200" viewBox="0 0 936 200">
+  <defs>
+    <marker id="a" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#9aa3b2"/></marker>
+  </defs>
+  <g font-size="14">
+    <rect x="10" y="30" width="270" height="120" rx="10" fill="#171a21" stroke="#3a4152"/>
+    <text x="24" y="56" fill="#e8b44a" font-weight="700">Strip</text>
+    <text x="24" y="80" fill="#e6e8ee">The staff we already have,</text>
+    <text x="24" y="100" fill="#e6e8ee">asked for one line instead of</text>
+    <text x="24" y="120" fill="#e6e8ee">several. Same notes, marks, beams.</text>
+    <text x="24" y="142" fill="#9aa3b2" font-size="12">staff.js, one new option</text>
+
+    <line x1="282" x2="330" y1="90" y2="90" stroke="#9aa3b2" stroke-width="2" marker-end="url(#a)"/>
+
+    <rect x="333" y="30" width="270" height="120" rx="10" fill="#171a21" stroke="#3a4152"/>
+    <text x="347" y="56" fill="#e8b44a" font-weight="700">Camera</text>
+    <text x="347" y="80" fill="#e6e8ee">One sum: where to put the strip</text>
+    <text x="347" y="100" fill="#e6e8ee">so that beat <tspan font-style="italic">b</tspan> sits 30% in.</text>
+    <text x="347" y="120" fill="#e6e8ee">Pure maths, unit-tested.</text>
+    <text x="347" y="142" fill="#9aa3b2" font-size="12">camera.js, ~20 lines</text>
+
+    <line x1="605" x2="653" y1="90" y2="90" stroke="#9aa3b2" stroke-width="2" marker-end="url(#a)"/>
+
+    <rect x="656" y="30" width="270" height="120" rx="10" fill="#171a21" stroke="#3a4152"/>
+    <text x="670" y="56" fill="#e8b44a" font-weight="700">Scroll view</text>
+    <text x="670" y="80" fill="#e6e8ee">Glue: each frame, ask the camera</text>
+    <text x="670" y="100" fill="#e6e8ee">and slide the strip. Draws the</text>
+    <text x="670" y="120" fill="#e6e8ee">fixed line. Same buttons as Staff.</text>
+    <text x="670" y="142" fill="#9aa3b2" font-size="12">scroll.js, a fourth view next to Staff · Roll · Falling</text>
+  </g>
+  <text x="10" y="185" fill="#9aa3b2" font-size="13">Nothing in the engine, scorer or the phone/laptop mirror changes. The view is picked with the same Staff · Roll · Falling switch, so it is on the laptop the day it is on the phone.</text>
+</svg>
+</div>

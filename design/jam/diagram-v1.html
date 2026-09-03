@@ -1,0 +1,97 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Jam — many players, one room</title>
+<style>
+  body { margin: 0; background: #0f1115; color: #e6e8ee; font: 15px/1.45 -apple-system, system-ui, sans-serif; }
+  .page { width: 1000px; padding: 28px 32px; box-sizing: border-box; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #9aa3b2; margin: 0 0 18px; }
+  h2 { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: #e8b44a; margin: 22px 0 8px; }
+  text { font-family: -apple-system, system-ui, sans-serif; }
+  .k { fill: #e8b44a; font-weight: 700; }
+  .t { fill: #e6e8ee; font-size: 13px; }
+  .d { fill: #9aa3b2; font-size: 12px; }
+</style>
+<div class="page">
+<h1>Jam: many players, one room</h1>
+<p class="sub">The mirror generalised. Same mailbox, same clock, same three kinds of message. Two additions: everybody's notes go through the room, and the room's notes are kept.</p>
+
+<h2>1 · The picture</h2>
+<svg width="936" height="340" viewBox="0 0 936 340">
+  <defs><marker id="a" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#9aa3b2"/></marker></defs>
+  <!-- room in the middle -->
+  <rect x="343" y="40" width="250" height="250" rx="12" fill="#171a21" stroke="#e8b44a"/>
+  <text x="359" y="68" class="k" font-size="15">Room</text>
+  <text x="359" y="92" class="t">one clock everybody agrees on</text>
+  <text x="359" y="112" class="t">one mailbox: every message to all</text>
+  <text x="359" y="140" class="k" font-size="13">The log</text>
+  <text x="359" y="160" class="t">every note anyone played,</text>
+  <text x="359" y="180" class="t">stamped in room time.</text>
+  <text x="359" y="200" class="t">A recording is a slice of it.</text>
+  <text x="359" y="220" class="t">A loop is a slice played again</text>
+  <text x="359" y="240" class="t">on the room's clock.</text>
+  <text x="359" y="272" class="d">serve.py, still tiny</text>
+
+  <!-- players -->
+  <g>
+    <rect x="10" y="40" width="250" height="110" rx="12" fill="#171a21" stroke="#3a4152"/>
+    <text x="26" y="66" class="k" font-size="14">Laptop · piano · conductor</text>
+    <text x="26" y="88" class="t">plays in, hears the others out,</text>
+    <text x="26" y="108" class="t">owns start / stop / tempo / loop</text>
+    <text x="26" y="136" class="d">today's host, unchanged</text>
+
+    <rect x="10" y="180" width="250" height="110" rx="12" fill="#171a21" stroke="#3a4152"/>
+    <text x="26" y="206" class="k" font-size="14">Android · keyboard · player</text>
+    <text x="26" y="228" class="t">plays in, hears the others out,</text>
+    <text x="26" y="248" class="t">sends commands, never decides</text>
+    <text x="26" y="276" class="d">a second instrument</text>
+
+    <rect x="676" y="40" width="250" height="110" rx="12" fill="#171a21" stroke="#3a4152"/>
+    <text x="692" y="66" class="k" font-size="14">Laptop 2 · guitar-to-MIDI · player</text>
+    <text x="692" y="88" class="t">same as the Android:</text>
+    <text x="692" y="108" class="t">any device with an instrument</text>
+
+    <rect x="676" y="180" width="250" height="110" rx="12" fill="#171a21" stroke="#3a4152"/>
+    <text x="692" y="206" class="k" font-size="14">iPhone · screen / speaker</text>
+    <text x="692" y="228" class="t">no instrument (no Web MIDI):</text>
+    <text x="692" y="248" class="t">shows the room, can play the sound</text>
+    <text x="692" y="276" class="d">today's mirror, unchanged</text>
+  </g>
+  <!-- arrows -->
+  <line x1="262" x2="341" y1="95" y2="95" stroke="#9aa3b2" stroke-width="2" marker-end="url(#a)"/>
+  <line x1="341" x2="262" y1="115" y2="115" stroke="#9aa3b2" stroke-width="2" marker-end="url(#a)"/>
+  <line x1="262" x2="341" y1="235" y2="235" stroke="#9aa3b2" stroke-width="2" marker-end="url(#a)"/>
+  <line x1="341" x2="262" y1="255" y2="255" stroke="#9aa3b2" stroke-width="2" marker-end="url(#a)"/>
+  <line x1="674" x2="595" y1="95" y2="95" stroke="#9aa3b2" stroke-width="2" marker-end="url(#a)"/>
+  <line x1="595" x2="674" y1="115" y2="115" stroke="#9aa3b2" stroke-width="2" marker-end="url(#a)"/>
+  <line x1="595" x2="674" y1="245" y2="245" stroke="#9aa3b2" stroke-width="2" marker-end="url(#a)"/>
+  <text x="10" y="312" class="d">Arrows both ways for players: notes out, everyone else's notes in. The iPhone only listens.</text>
+  <text x="10" y="328" class="d">Whoever opened the room conducts; the rest send commands, as the phone does today.</text>
+</svg>
+
+<h2>2 · What a device does with a note</h2>
+<svg width="936" height="150" viewBox="0 0 936 150">
+  <g>
+    <rect x="10" y="20" width="200" height="90" rx="10" fill="#171a21" stroke="#3a4152"/>
+    <text x="24" y="46" class="k" font-size="14">Key pressed</text>
+    <text x="24" y="70" class="t">sounds locally at once</text>
+    <text x="24" y="90" class="t">(the piano's own sound)</text>
+    <line x1="212" x2="260" y1="65" y2="65" stroke="#9aa3b2" stroke-width="2" marker-end="url(#a)"/>
+    <rect x="263" y="20" width="200" height="90" rx="10" fill="#171a21" stroke="#3a4152"/>
+    <text x="277" y="46" class="k" font-size="14">note → room</text>
+    <text x="277" y="70" class="t">pitch, velocity, who,</text>
+    <text x="277" y="90" class="t">when in room time</text>
+    <line x1="465" x2="513" y1="65" y2="65" stroke="#9aa3b2" stroke-width="2" marker-end="url(#a)"/>
+    <rect x="516" y="20" width="200" height="90" rx="10" fill="#171a21" stroke="#3a4152"/>
+    <text x="530" y="46" class="k" font-size="14">Everyone else</text>
+    <text x="530" y="70" class="t">plays it through their Out</text>
+    <text x="530" y="90" class="t">at room time + a small hold</text>
+    <line x1="718" x2="766" y1="65" y2="65" stroke="#9aa3b2" stroke-width="2" marker-end="url(#a)"/>
+    <rect x="769" y="20" width="157" height="90" rx="10" fill="#171a21" stroke="#3a4152"/>
+    <text x="783" y="46" class="k" font-size="14">The log</text>
+    <text x="783" y="70" class="t">keeps it, for</text>
+    <text x="783" y="90" class="t">record and loop</text>
+  </g>
+  <text x="10" y="138" class="d">The small hold (about 30 ms) is what keeps notes in order when the Wi‑Fi jitters. You hear the other player as if they sat ten metres away.</text>
+</svg>
+</div>
