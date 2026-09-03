@@ -5,6 +5,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
+import { onSend } from '../src/midi.js';
+import { setVolume } from '../src/volume.js';
 import { makeBuffer } from '../src/looper/buffer.js';
 import { makeEngine } from '../src/looper/engine.js';
 import { loadTracks } from '../src/tracks.js';
@@ -242,6 +244,59 @@ test('capture with nothing in the buffer reports failure rather than an empty la
   clock.at(24);
   assert.equal(engine.capture(0, 4, 0), false);
   assert.equal(engine.slots[0].st, 'empty');
+});
+
+// ------------------------------------------------------------------ the volume
+// Played twice over the same bars, at full and at half, and compared note for note.
+// Both halve: a loop coming back out of the app is the app playing, not you -- what
+// the level never touches is the keys under your hands, which never come through here.
+test('the volume scales the backing track and the recorded lane alike', () => {
+  function run(level) {
+    const { clock, buffer, engine } = rig();
+    buffer.feed({ on: 1, n: 67, v: 90, t: 0.1 });   // one bar of your own playing,
+    buffer.feed({ on: 0, n: 67, v: 0, t: 0.6 });    // captured into a lane that tiles
+    clock.at(4);
+    assert.equal(engine.capture(0, 1, 0), true);
+    engine.patch(0, x => { x.follow = false; });    // keep the pitch, so it stays spottable
+    const ons = [];
+    const off = onSend(d => { if ((d[0] & 0xf0) === 0x90 && d[2] > 0) ons.push([d[1], d[2]]); });
+    setVolume(level);
+    try { for (let b = 4; b < 8; b += 0.2) { clock.at(b); engine.pump(); } }
+    finally { off(); setVolume(1); }
+    return ons;
+  }
+
+  const full = run(1), half = run(0.5);
+  assert.ok(full.some(([p]) => p === 67), 'the lane sounded');
+  assert.ok(full.some(([p]) => p !== 67), 'so did the backing track');
+  assert.deepEqual(half.map(([p]) => p), full.map(([p]) => p), 'the same notes either way');
+  // onSend sees the note as the engine wrote it -- send() scales what this machine
+  // plays and leaves the tap unscaled, so the engine must be emitting the same
+  // velocities at both levels and letting midi.js do the turning down
+  assert.deepEqual(half, full, 'the engine emits as played; the level lands in send()');
+});
+
+// The same run seen from the other end: what actually reaches the speakers is the
+// emitted velocity put through the level, note for note.
+test('what the synth is struck with is the emitted velocity at the level', async () => {
+  const midi = await import('../src/midi.js');
+  const { scaleVelocity } = await import('../src/volume.js');
+  const struck = [];
+  midi.setSynth({
+    noteOn: (n, v) => struck.push(v), noteOff() {}, setPedal() {}, allOff() {},
+  });
+  midi.setOutputMode('audio');
+  const emitted = [];
+  const off = midi.onSend(d => {
+    if ((d[0] & 0xf0) === 0x90 && d[2] > 0) emitted.push(d[2]);
+  });
+  const { clock, engine } = rig();
+  setVolume(0.5);
+  try { for (let b = 0; b < 2; b += 0.2) { clock.at(b); engine.pump(); } }
+  finally { off(); setVolume(1); }
+  assert.ok(emitted.length, 'the backing reached the speakers');
+  assert.deepEqual(struck, emitted.map(v => scaleVelocity(v, 0.5)));
+  assert.ok(struck.every((v, i) => v < emitted[i]), 'and every one of them came out quieter');
 });
 
 test('clearing a lane is undoable, so it needs no confirmation', () => {
