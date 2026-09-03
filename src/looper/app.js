@@ -3,6 +3,7 @@
 import { loadTracks } from '../tracks.js';
 import { held, initMidi, onMidi } from '../midi.js';
 import { audio } from '../metronome.js';
+import { mountOutToggle } from '../outtoggle.js';
 import { renderKeys } from '../keyboard.js';
 import { NAMES, noteName } from '../theory.js';
 import { makeClock, mod } from '../clock.js';
@@ -10,6 +11,7 @@ import { makeBuffer } from './buffer.js';
 import { makeEngine } from './engine.js';
 import { makeUi } from './ui.js';
 import { initTips } from './tips.js';
+import { bindVolumeSlider } from '../volume.js';
 import {
   GRIDS, SNAPS, LANE_COLOURS, LEVELS, canFill, toMelody,
 } from './loops.js';
@@ -17,7 +19,7 @@ import {
 const $ = id => document.getElementById(id);
 const el = {
   tracks: $('tracks'), setline: $('setline'), restore: $('restoreBtn'), melody: $('melodyBtn'),
-  play: $('play'), stop: $('stop'), metro: $('metroBtn'), back: $('backBtn'),
+  play: $('play'), stop: $('stop'), metro: $('metroBtn'), back: $('backBtn'), outsel: $('outsel'),
   pos: $('pos'), tempo: $('tempo'), bpmv: $('bpmv'), played: $('played'),
   inled: $('inled'), status: $('statusEl'),
   snap: $('snapBtn'), grid: $('gridBtn'), insp: $('inspBtn'),
@@ -30,6 +32,7 @@ const el = {
   iNum: $('iNum'), iName: $('iName'), iState: $('iState'), iSpan: $('iSpan'),
   iLens: $('iLens'), iModes: $('iModes'), iFollow: $('iFollow'), iFollowHint: $('iFollowHint'),
   iGrids: $('iGrids'), iStrength: $('iStrength'), iLayers: $('iLayers'),
+  vol: $('volume'), volv: $('volumev'),
 };
 
 const CAP_BARS = [1, 2, 4, 0];              // 0 = the whole chorus
@@ -357,6 +360,7 @@ el.melody.onclick = async () => {
   }
 };
 
+mountOutToggle(el.outsel, { tip: 'data-tip' });
 el.play.onclick = () => (engine.running ? halt() : start());
 el.stop.onclick = halt;
 el.metro.onclick = () => {
@@ -375,6 +379,7 @@ el.back.onclick = () => {
 const BPM_MIN = +el.tempo.min, BPM_MAX = +el.tempo.max;
 function setBpm(v) { el.bpmv.textContent = v; engine.setBpm(v); }
 el.tempo.oninput = e => setBpm(+e.target.value);
+bindVolumeSlider(el.vol, el.volv);
 el.bpmv.onfocus = () => getSelection().selectAllChildren(el.bpmv);
 el.bpmv.onkeydown = e => {
   if (e.key === 'Enter') { e.preventDefault(); el.bpmv.blur(); }

@@ -8,21 +8,33 @@
 </head>
 <body>
 
-<div id="side"><h2>Backing tracks</h2><div id="tracks"></div>
-  <a id="looperlink" href="looper.html">Looper →</a></div>
+<div id="side">
+  <nav id="nav" class="seg nav">
+    <a href="index.html" class="on" aria-current="page">Practice</a>
+    <a href="looper.html">Looper</a>
+    <a href="learn.html">Learn</a>
+  </nav>
+  <h2>Backing tracks</h2>
+  <div id="tracks"></div>
+</div>
 
 <main>
   <div id="bar">
     <button id="play">▶ Play</button>
     <button id="stop">■ Stop</button>
     <button id="metroBtn" class="tgl">● Click</button>
+    <span id="outsel"></span>
     <label id="melLabel" class="chk"><input type="checkbox" id="melody"> Melody</label>
-    <button id="melSoundBtn" class="tgl" hidden title="play the melody out to the piano">♪ Sound</button>
+    <button id="melSoundBtn" class="tgl icon" hidden title="melody sound: play the written melody out loud (only while Melody is shown)">♪</button>
     <span id="pos">–</span>
     <span id="speed">Speed
       <input type="range" id="tempo" min="50" max="200" step="1" value="100">
       <b id="bpmv" contenteditable="plaintext-only" inputmode="numeric"
          title="click to type a tempo">100</b> bpm</span>
+    <span id="vol">Volume
+      <input type="range" id="volume" min="0" max="100" step="1" value="100"
+             title="how loud the app plays, against your own playing">
+      <b id="volumev">100%</b></span>
     <span id="played">–</span><span id="inled" title="MIDI in"></span>
     <span id="statusEl">connecting…</span>
   </div>

@@ -18,14 +18,11 @@ body.looper{grid-template-columns:200px minmax(0,1fr);grid-template-rows:minmax(
 body.looper.insp{grid-template-columns:200px minmax(0,1fr) 296px}
 body.looper > *{min-height:0;min-width:0}
 
-#side{display:flex;flex-direction:column;gap:16px}
 #setbox{margin-top:auto;border-top:1px solid var(--line);padding-top:12px;
         display:flex;flex-direction:column;gap:7px}
 #setline{font-size:12px;color:var(--dim)}
 .setbtns{display:flex;flex-direction:column;gap:5px}
 .setbtns button{text-align:left;font-size:12px;padding:5px 9px}
-#backlink{font-size:11px;color:var(--dim)}
-#backlink:hover{color:var(--fg)}
 
 /* main is a grid, so its implicit column is content-sized: a row that cannot shrink
    (the transport) makes main wider than its track and paints over the inspector.

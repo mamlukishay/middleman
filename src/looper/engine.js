@@ -7,7 +7,7 @@
 // arming late costs nothing.
 
 import { send, panic } from '../midi.js';
-import { schedClick } from '../metronome.js';
+import { makeMetronome } from '../metronome.js';
 import { build } from '../tracks.js';
 import { mod } from '../clock.js';
 import {
@@ -38,9 +38,14 @@ export function makeEngine({ clock, buffer }) {
   let track = null, backing = [], bars = [], nbars = 0, formBeats = 0;
   const slots = [0, 1, 2, 3].map(newSlot);
   let grid = 0, strength = 1, snap = 0;
-  let metroOn = false, backOn = true;
+  let backOn = true;
   let timer = null, rev = 0;
-  let backSched = 0, clickBeat = 0;
+  let backSched = 0;
+  // the click lives on the same clock; accent on beat 1 of the form, from beat 0
+  const metro = makeMetronome(clock);
+  metro.setEnabled(false);
+  metro.setAccent(4, 0);
+  metro.setRange(-COUNT_IN, Infinity);
   const cache = new Map();
 
   const q = () => ({ div: GRIDS[grid].div, strength });
@@ -72,6 +77,9 @@ export function makeEngine({ clock, buffer }) {
     s.st !== 'empty' && !s.mute && s.layers.length
     && (!slots.some(x => x.solo && x.st !== 'empty') || s.solo);
 
+  // The velocities go out as they were written or played: send() scales every note
+  // the app plays by the volume level, the backing track and a recorded loop alike --
+  // a loop coming back out of the app is the app, not you playing it again.
   function emitNotes(notes, from, to) {
     if (to <= from || !notes.length) return;
     const c0 = Math.floor(from / formBeats), c1 = Math.floor((to - 1e-9) / formBeats);
@@ -105,12 +113,7 @@ export function makeEngine({ clock, buffer }) {
       s.sched = Math.max(s.sched, until);
     }
 
-    if (metroOn) {
-      while (clickBeat < until) {
-        if (clickBeat >= -COUNT_IN) schedClick(clock.time(clickBeat), mod(clickBeat, 4) === 0);
-        clickBeat++;
-      }
-    } else clickBeat = Math.ceil(Math.max(now, -COUNT_IN));
+    metro.pump(LOOKAHEAD_MS);
   }
 
   /** Anything queued lands on its line. Recording lines are resolved against `now`. */
@@ -157,7 +160,7 @@ export function makeEngine({ clock, buffer }) {
     get grid() { return grid; },
     get strength() { return strength; },
     get snap() { return snap; },
-    get metroOn() { return metroOn; },
+    get metroOn() { return metro.enabled; },
     get backOn() { return backOn; },
     notesOf, liveNotes, audible, snapBeats,
     /** One scheduling pass. play() runs this on a timer; tests drive it by hand. */
@@ -185,7 +188,7 @@ export function makeEngine({ clock, buffer }) {
       if (!track || timer) return;
       clock.start(-COUNT_IN);
       backSched = -COUNT_IN;
-      clickBeat = -COUNT_IN;
+      metro.start(-COUNT_IN);
       slots.forEach(s => { s.sched = -COUNT_IN; });
       buffer.clear();
       timer = setInterval(tick, TICK_MS);
@@ -204,6 +207,7 @@ export function makeEngine({ clock, buffer }) {
         s.pendAt = end;
       }
       resolve(Infinity);
+      metro.stop();
       clock.stop();
       panic();
       setTimeout(panic, LOOKAHEAD_MS + 20);   // catch anything already queued out
@@ -213,7 +217,7 @@ export function makeEngine({ clock, buffer }) {
     get running() { return !!timer; },
 
     setBpm(v) { clock.setBpm(v); },
-    setMetro(v) { metroOn = v; clickBeat = Math.ceil(Math.max(clock.beat(), -COUNT_IN)); },
+    setMetro(v) { metro.setEnabled(v); },
     setBacking(v) { backOn = v; if (!v) panic(); },
     setGrid(i) { grid = mod(i, GRIDS.length); bump(); },
     setStrength(v) { strength = Math.max(0, Math.min(1, v)); bump(); },

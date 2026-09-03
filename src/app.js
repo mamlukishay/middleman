@@ -2,18 +2,22 @@
 
 import { loadTracks, build } from './tracks.js';
 import { NAMES, noteName } from './theory.js';
-import { held, initMidi, getOutput, send, panic } from './midi.js';
-import { audio, schedClick } from './metronome.js';
+import { held, initMidi, send, panic } from './midi.js';
+import { audio, makeMetronome } from './metronome.js';
+import { mountOutToggle } from './outtoggle.js';
+import { makeClock } from './clock.js';
 import { renderKeys, paintKeys } from './keyboard.js';
 import { renderNotation, updateBarHl, paintPlayed } from './notation.js';
+import { bindVolumeSlider } from './volume.js';
 
 const $ = id => document.getElementById(id);
 const el = {
   tracks: $('tracks'), grid: $('grid'), notation: $('notation'), notewrap: $('notewrap'),
   barhl: $('barhl'), info: $('info'), kb: $('kb'), pos: $('pos'), played: $('played'),
   inled: $('inled'), status: $('statusEl'), tempo: $('tempo'), bpmv: $('bpmv'),
-  play: $('play'), stop: $('stop'), metro: $('metroBtn'),
+  play: $('play'), stop: $('stop'), metro: $('metroBtn'), outsel: $('outsel'),
   melody: $('melody'), melLabel: $('melLabel'), melSound: $('melSoundBtn'),
+  vol: $('volume'), volv: $('volumev'),
 };
 
 const LOOKAHEAD_MS = 200;   // schedule this far ahead; keeps Stop immediate
@@ -22,8 +26,13 @@ const TICK_MS = 50;
 let cur = null;             // active track + its expanded event list
 let view = { bars: [], chordEls: [], hasMel: false };
 let melOn = false, melSound = true;   // show the melody staff / send it to the piano
-let timer = null, t0 = 0, idx = 0, gen = 0;
-let metroOn = false, clickBeat = 0;
+let timer = null, idx = 0, cycle = 0, gen = 0;
+// one clock for the notes, the click and the playhead; the built stretch (count-in
+// plus a few choruses) repeats as cycle after cycle of absolute beats, so the seam
+// between cycles is a beat like any other rather than a restart of the clock
+const clock = makeClock(100);
+const metro = makeMetronome(clock);
+metro.setEnabled(false);
 let lastBi = -1, ledTimer = null;
 const sounding = new Set(); // notes the backing track is holding right now
 
@@ -43,27 +52,34 @@ function play(ti) {
   el.barhl.style.display = 'none';
   renderInfo();
 
-  if (!getOutput()) { el.status.textContent = 'no MIDI output'; return; }
+  audio();      // the gesture the browser wants before the click or the synth can sound
 
-  idx = 0; clickBeat = 0; t0 = performance.now();
+  idx = 0; cycle = 0;
+  clock.setBpm(t.bpm);
+  clock.start(0);
+  metro.setAccent(4, cur.start);           // beat 1 of the form, not of the count-in
+  metro.start(0);
   const my = ++gen;
   timer = setInterval(() => {
     if (my !== gen) return;
-    const spb = 60000 / cur.bpm, now = performance.now();
+    const now = performance.now(), horizon = now + LOOKAHEAD_MS;
 
-    while (idx < cur.ev.length && t0 + cur.ev[idx].b * spb < now + LOOKAHEAD_MS) {
-      const e = cur.ev[idx++];
-      if (e.mel && e.on && !melSound) continue;
-      send(e.on ? [0x90, e.n, e.v] : [0x80, e.n, 0], t0 + e.b * spb);
+    while (cur.ev.length) {
+      if (idx >= cur.ev.length) { idx = 0; cycle++; }
+      const e = cur.ev[idx], at = clock.time(cycle * cur.total + e.b);
+      if (at >= horizon) break;
+      idx++;
+      // the written melody sounds only when it is shown AND its speaker is on:
+      // note-offs still go out, so unticking it mid-note cannot leave a key hanging
+      if (e.mel && e.on && !(melOn && melSound)) continue;
+      // send() puts everything the app plays out at the volume level; the pianist's
+      // own notes arrive on the other side of midi.js and never come past here
+      if (at >= now - 30) send(e.on ? [0x90, e.n, e.v] : [0x80, e.n, 0], at);
     }
-    if (metroOn) while (t0 + clickBeat * spb < now + LOOKAHEAD_MS && clickBeat <= cur.total) {
-      schedClick(t0 + clickBeat * spb, (clickBeat - cur.start) % 4 === 0);
-      clickBeat++;
-    }
+    metro.pump(LOOKAHEAD_MS);
 
-    const beat = (now - t0) / spb;
-    tick(beat);
-    if (idx >= cur.ev.length && beat > cur.total) { t0 = performance.now(); idx = 0; clickBeat = 0; }
+    const beat = clock.beat(now);
+    tick(beat - Math.floor(beat / cur.total) * cur.total);
   }, TICK_MS);
 }
 
@@ -71,6 +87,8 @@ function stop() {
   gen++;
   clearInterval(timer);
   timer = null;
+  metro.stop();
+  clock.stop();
   panic();
   el.grid.querySelectorAll('.bar').forEach(b => b.classList.remove('cur'));
   clearCur();
@@ -156,12 +174,8 @@ function renderInfo() {
 function setBpm(v) {
   el.bpmv.textContent = v;
   if (!cur) return;
-  if (timer) {                       // keep the playhead where it is across the change
-    const now = performance.now(), beat = (now - t0) / (60000 / cur.bpm);
-    cur.bpm = v;
-    t0 = now - beat * (60000 / v);
-    clickBeat = Math.ceil(beat);
-  } else cur.bpm = v;
+  cur.bpm = v;
+  clock.setBpm(v);                   // re-anchors: the playhead and the next click stay put
 }
 
 // ---------------------------------------------------------------- wiring
@@ -185,10 +199,9 @@ el.tracks.onclick = e => {
 el.play.onclick = () => play(cur ? cur.ti : 0);
 el.stop.onclick = stop;
 el.metro.onclick = () => {
-  metroOn = !metroOn;
-  el.metro.classList.toggle('on', metroOn);
+  metro.setEnabled(!metro.enabled);
+  el.metro.classList.toggle('on', metro.enabled);
   audio();
-  if (metroOn && timer) clickBeat = Math.ceil((performance.now() - t0) / (60000 / cur.bpm));
 };
 
 el.melody.onchange = () => {
@@ -207,6 +220,7 @@ el.melSound.onclick = () => {
 el.melSound.classList.toggle('on', melSound);
 
 el.tempo.oninput = e => setBpm(+e.target.value);
+bindVolumeSlider(el.vol, el.volv);
 const BPM_MIN = +el.tempo.min, BPM_MAX = +el.tempo.max;
 el.bpmv.onfocus = () => getSelection().selectAllChildren(el.bpmv);
 el.bpmv.onkeydown = e => {
@@ -236,6 +250,7 @@ addEventListener('keydown', e => {
 });
 
 syncMelUi();
+mountOutToggle(el.outsel);
 renderKeys(el.kb);
 initMidi({
   onStatus: s => el.status.textContent = s,
@@ -249,5 +264,5 @@ initMidi({
 });
 
 // exposed for debugging and for the headless render checks
-window.__mm = { play, stop, tick, updateBarHl,
+window.__mm = { play, stop, tick, updateBarHl, clock, metro,
                 get cur() { return cur; }, get view() { return view; }, el };

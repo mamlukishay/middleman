@@ -10,6 +10,11 @@
 <body class="looper">
 
 <div id="side">
+  <nav id="nav" class="seg nav">
+    <a href="index.html">Practice</a>
+    <a href="looper.html" class="on" aria-current="page">Looper</a>
+    <a href="learn.html">Learn</a>
+  </nav>
   <h2>Backing tracks</h2>
   <div id="tracks"></div>
   <div id="setbox">
@@ -21,7 +26,6 @@
       <button id="melodyBtn"
         data-tip="Copy the selected lane as a tracks.json melody, so it comes back engraved on the staff in the practice view">Copy lane as melody</button>
     </div>
-    <a id="backlink" href="index.html">← practice view</a>
   </div>
 </div>
 
@@ -33,6 +37,7 @@
             data-tip="Stop, and close any take that is still running rather than losing it">■ Stop</button>
     <button id="metroBtn" class="tgl"
             data-tip="A click on every beat. It is browser audio, so it never reaches the piano.">● Click</button>
+    <span id="outsel"></span>
     <button id="backBtn" class="tgl on"
             data-tip="Silence the backing track and loop against nothing">♩ Backing</button>
     <span class="sep"></span>
@@ -42,6 +47,10 @@
              data-tip="Tempo. The playhead stays where it is across the change.">
       <b id="bpmv" contenteditable="plaintext-only" inputmode="numeric"
          data-tip="Click to type a tempo">100</b> bpm</span>
+    <span id="vol">Volume
+      <input type="range" id="volume" min="0" max="100" step="1" value="100"
+             data-tip="How loud the app plays, against your own playing">
+      <b id="volumev">100%</b></span>
     <span id="played" data-tip="What you are holding down right now">–</span><span id="inled" data-tip="Flashes when a note arrives from the piano"></span>
     <span id="statusEl">connecting…</span>
   </div>
