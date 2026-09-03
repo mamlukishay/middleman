@@ -246,6 +246,13 @@ export function mountJam(el, { onMidi, play, now, wake = audio } = {}) {
   return {
     get on() { return on; }, get room() { return room; }, get client() { return relay.client; },
     get players() { return jam.players; }, get status() { return relay.status; },
+    // The jam's own connection, as mountHost exposes the mirror's. Not for the page:
+    // it is how `scripts/measure-jam.mjs` reads the clock this room agreed on. A
+    // latency between two machines is a number in *relay* time, and a tab that only
+    // knows its own performance.now() cannot say one -- the offset has to come from
+    // the same sync.js estimate the scheduling above is already using, or the answer
+    // is a measurement of two unrelated page-load moments.
+    get relay() { return relay; },
     get sent() { return jam.sent; }, get heard() { return jam.heard; }, get last() { return jam.last; },
     start, stop,
   };

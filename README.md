@@ -627,6 +627,17 @@ The scheduling decision is one pure function, `playWhen` in `src/learn/jam.js`, 
 `test/jam.test.mjs` on it; `npm run smoke` drives two Learn tabs in one room through
 headless Chrome and checks a note each way, signed and not echoed.
 
+**Measured, with a real piano.** `node scripts/measure-jam.mjs --seconds 120` opens two
+Learn tabs in one room with Web MIDI granted, one reading the piano and the other
+playing back into it, and joins every note end to end. On 2026-09-03, 1402 notes over
+two minutes of single notes, chords and runs, both tabs on this laptop: the relay hop
+took 2.5 ms (median), 5 ms at the 90th percentile and 27 ms at worst; a note reached
+the partner's MIDI Out 3.3 ms after the key went down; the 30 ms hold had 27 ms left on
+arrival, and one note in the two minutes landed after the hold and played 16 ms late.
+Nothing was dropped. These are the machine's numbers, not the ear's: the USB
+interface, the piano's engine and the finger-to-packet delay on the way in are all
+outside what a browser can see, and a second machine over Wi-Fi is still to be measured.
+
 ### Adding a song
 
 A song is a JSON file in `songs/`, listed in `songs/index.json`. It is written
