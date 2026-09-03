@@ -3,27 +3,61 @@
 A MIDI practice app for a digital piano. It plays backing tracks out to the piano
 and shows what you're playing back, in the browser.
 
-There are two pages: the **practice view** (`index.html`), and the **looper**
+There are three pages: the **practice view** (`index.html`), the **looper**
 (`looper.html`), where you record your own playing into loops that keep going
-underneath you.
+underneath you, and **learn** (`learn.html`), where the app teaches you a song.
+Learn also has a phone layout, `learn-m.html`, for the music stand.
 
 ## Running
 
 ```bash
-./serve.sh          # then open http://localhost:8765 in Chrome
+./serve.sh          # the one command: this laptop, and the phone on the same Wi-Fi
+./phone.sh          # only for a phone with the piano plugged into it — see below
 npm test            # or: node --test 'test/*.test.mjs'
+npm run smoke       # headless end-to-end check of the laptop + phone-mirror flow
 ```
 
-Chrome is required — this uses the **Web MIDI API**, which needs a secure context.
-`localhost` qualifies; opening `index.html` as a `file://` URL will not work.
-Chrome asks for MIDI permission on first load.
+Never `python3 -m http.server`. It serves the files, but the two browsers cannot
+talk to each other through it — the relay behind the phone on the music stand is a
+hundred lines living inside `serve.py`, so on Python's own server the phone joins
+nothing and the QR has no room to point at. It also serves `.webmanifest` as
+`application/octet-stream`, which Chrome refuses, so the phone page is not
+installable either.
+
+Three recipes, and which one you want depends only on where the piano is plugged in.
+
+**Just the laptop.** `./serve.sh`, then <http://localhost:8765>. Chrome is required —
+this uses the **Web MIDI API**, which needs a secure context; `localhost` qualifies,
+opening `index.html` as a `file://` URL does not. Chrome asks for MIDI permission on
+first load. Add `--local` if you would rather it not listen on the Wi-Fi at all.
+
+**The iPhone on the music stand — no certificate, nothing to install.** The piano
+stays on the laptop and the phone is a live mirror of it, so the phone needs no Web
+MIDI and therefore no HTTPS. `./serve.sh` binds every interface and prints both
+addresses; on the laptop open `http://localhost:8765/learn.html`, press **Put it on
+the phone**, and scan the QR with the phone's camera. It opens already paired and
+says *showing the laptop*. Plain `http://<laptop-ip>:8765` is all it needs: the
+mirror uses `fetch`, `EventSource`, an `AudioContext` and the Fullscreen API, and
+none of those is gated on a secure context.
+
+**Android, with the piano plugged into the phone.** This is the only case that
+needs HTTPS, because it is the only case where the *phone* opens the MIDI port and
+Web MIDI will not run on an insecure origin. `./phone.sh` serves HTTPS with a
+[mkcert](https://github.com/FiloSottile/mkcert) certificate (`brew install mkcert`)
+and walks you through trusting it on the phone, once. Details under
+[On the phone](#on-the-phone).
+
+Both servers bind every interface while they run: a network you trust, and Ctrl-C
+when you are done.
 
 ## What it does
 
-- **Left pane** — backing tracks. Click one to start it; it loops.
+- **Left pane** — a **Practice · Looper · Learn** row at the top, the same on all
+  three pages with the one you are on lit, and under it the backing tracks. Click
+  one to start it; it loops.
 - **Top bar** — play/stop (or the space bar), a metronome toggle, a **Melody**
-  checkbox, and tempo. Melody is greyed out on tracks that don't have one.
-  Tempo can be dragged or typed by clicking the bpm number. Changing tempo
+  checkbox, tempo, and **Backing**. Melody is greyed out on tracks that don't have
+  one. Tempo can be dragged or typed by clicking the bpm number. Changing tempo
   mid-playback re-anchors the clock, so the playhead stays continuous.
 - **Middle** — the form as a chord strip, plus engraved notation. The current
   bar's chord symbol is boxed, and the sounding note is blue.
@@ -39,11 +73,44 @@ Your played notes also light up on the staff by **pitch class** — you'll be
 soloing an octave or two above the written bass line, so exact-pitch matching
 would essentially never fire.
 
+### Output
+
+**Out: Piano | Computer** in the transport of every page says where the notes go.
+*Piano* is the normal one — MIDI out to the instrument. *Computer* plays them
+through a small software piano in the browser instead, so the app can be checked on
+a laptop with nothing plugged in; with no MIDI output at all that is the default, and
+*Piano* is greyed out. It is a **check tool, not a piano sound**: a triangle and two
+partials with a struck envelope, good enough to hear that the right notes are in the
+right places, and nothing like the instrument. The choice is remembered, and it is one
+choice for all three pages — the routing lives in `midi.js`, so the transports do not
+know which one they are playing to.
+
+### Volume
+
+**Volume** in the transport of every page is how loud *the app* plays, against your
+own playing — the backing track, the written melody, the count-in, the tutor's
+companion hand, "Hear the app play it", and the looper's backing and its recorded
+loops, which are the app playing them back to you rather than you playing them again.
+It works by scaling the *velocity* of every note-on the app sends, in `send()` in
+`midi.js` — a piano's loudness for a note is the velocity it was struck with, and CC7
+is honoured by some instruments and quietly ignored by others — so it covers both
+routes, the piano and the software one, and there is exactly one place it can be
+missed from. Your own hands never come near it: they reach the piano by wire and
+reach the page through `receive()`, which never calls `send()`. Neither does the
+metronome, which is browser audio on a different route. At 0 the app goes silent. The
+level is one setting for all four pages, remembered in `volume.js`; on a phone
+mirroring the laptop each machine applies its own, since each is making its own sound
+in its own room.
+
 ## The looper
 
 `looper.html` records what you play into four lanes that loop underneath the
 backing track. They are MIDI loops, not audio -- the piano is the only sound
 source either way, so a loop is just a list of notes going back out to it.
+
+**Volume** in the transport turns the app down — the backing track and the loops
+alike, since a loop coming back out of the app is the app; **♩ Backing** next to it
+is the separate switch that silences the track and leaves you looping over nothing.
 
 The lanes sit **under the chord strip, one chorus wide**. That is the whole idea:
 a loop remembers not only how long it is, but *where in the form* it was played
@@ -115,6 +182,422 @@ The damper pedal sends `CC64` and you need it for sustain, so it is deliberately
 *not* bound to anything. `midi.js` passes controller messages through on its
 event stream, so a second pedal on its own CC could be learned later.
 
+## Learning a song
+
+`learn.html` teaches a written-out piano piece, both hands, from a score in
+`songs/`. The first one is *City of Stars*, transcribed from the arrangement in
+your Drive. There are two ways in, and you can switch between them any time:
+
+### The tutor
+
+A course through the song, built from the song's sections. Every section is
+learned the same way, and the steps are listed down the left so you always know
+where you are:
+
+1. **Listen** -- the app plays the bars to the piano, slowly, both hands.
+2. **Left hand: find the notes** -- *wait mode*. No clock: the notes to play next
+   light up on the keys and on the roll, and the song only moves on once you have
+   played them. Take all the time you want.
+3. **Left hand in time** -- the click comes in at the practice tempo and the bars
+   loop. Two passes in a row with 85% of the notes in time and you are through.
+4. The same two steps for the **right hand**.
+5. **Hands together, slowly**, then **hands together, faster**.
+
+Every second section adds a **join** step that plays everything learned so far
+as one piece, so the song grows in phrases instead of staying a pile of
+fragments; the last step is the whole song at tempo. `Skip` moves on whenever
+you like, `Back` goes back, and the list on the left jumps anywhere. Progress is
+kept in `localStorage` per song.
+
+A step goes live with the big **Start step** button (or `Space`): one bar of
+click counts you in, then the bars loop until you move on -- the challenge
+decides when the step is *done*, not when the music stops. When it is done, the
+loop stops and the roll says so ("✓ Left hand in time · 28/28 notes · next:
+Right hand: find the notes") with a three-second countdown, after which the next
+step loads and starts by itself. Click the overlay or press `Space` to go at
+once; `Back` or the step list keeps you where you are. Only the listening step
+plays once, and it advances the same way. The very first step after a page load
+waits for you to press Start, because the browser needs a gesture before it
+will make a sound.
+
+Under the steps: **Hear the app play it** plays the current bars once, unscored,
+then hands the step back to you and starts it (`H`); **Guide** makes
+the app play your own hand quietly along with you, so the notes are in your ear
+while your fingers look for them (`G`).
+
+### Free practice
+
+Pick any bars -- click one in the strip, shift-click another to stretch the loop,
+or hit a section chip -- and loop them. Each hand is one of **You** (you play it
+and get scored), **App** (the app plays it out to the piano) or **Off**. So
+"left hand alone", "right hand over the app's left hand" and "both hands" are one
+click each, and the tempo, the click, wait mode and loop are all on the transport.
+
+### Your tempo
+
+The plan asks for 60 bpm on the slow steps, 80% of the song on the faster ones and
+full speed at the end -- but that is a starting point, not a rule. A tempo you set
+by hand, on the slider or by typing over the number, is remembered per song and per
+*tempo tier* (`slow`, `mid`, `full`, and free practice keeps its own), so setting 84
+on one slow step means every slow step comes up at 84 while the faster ones stay
+where they belong. A small dot beside the bpm says the tempo showing is yours rather
+than the step's; hovering it names the step's default, and clicking it goes back to
+that default and forgets the tier. The tempos live with the progress in
+`localStorage` but are not progress: **Start over** keeps them.
+
+### What you see
+
+The stage shows the loop in one of four **views**, switched at the top right of
+the stage (the choice is remembered):
+
+- **Staff** -- the bars engraved on a grand staff, treble and bass, in the song's
+  key. This is the default. The layout is **proportional to time**: every bar of a
+  system is the same width and every beat inside it the same span, at the *swung*
+  positions, so a note sits where it sounds and the playhead crosses at a constant
+  speed instead of hurrying and hanging between noteheads. The current bar is boxed;
+  for a long loop the playing system scrolls into view.
+- **Roll** -- bars left to right, pitch bottom to top.
+- **Falling** -- notes as bars over their keys, streaming down onto the view's own
+  key strip the way video tutorials show it. A bar's bottom edge reaches the line
+  exactly at the note's onset and then slides on over the key while the note lasts.
+- **Scroll** -- the same engraving, but the whole loop on *one* line, sliding
+  leftwards under a playhead that never moves: the line stands 30% in and the music
+  comes to it. It is the staff for a phone on the music stand, where a wrapped staff
+  holds two bars and has to jump between them, and it is the default there. It is
+  three small pieces: `staff.js` asked for one system at a fixed number of pixels per
+  beat (the strip), `camera.js` -- one sum, where to put that strip so a beat sits
+  under the line -- and `scroll.js`, which slides it with a CSS transform on every
+  frame. Nothing is clamped at either end: the count-in slides the first bar in from
+  the right, and the last bar passes under the line rather than parking at the edge.
+  A loop is then just a jump back. A bar takes about 1/2.5 of the panel, so you read
+  a bar ahead; if the engraving is taller than the panel the strip is scaled down,
+  and the camera knows the factor.
+
+#### Beaming
+
+Notes are joined under beams the way printed music does it, because a beam is how
+the eye finds the beat. The rules live in one place, `src/notation/beams.js`: a bar
+of cells and a meter in, beam groups out, no DOM and no abcjs, so they are unit
+tested on their own in `test/beams.test.mjs`.
+
+The bar is cut into the meter's beat groups -- the quarter in 4/4 and 3/4, the
+dotted quarter in 6/8 -- and runs of beamable notes inside a group are beamed.
+Values of a quarter or longer never beam, a rest ends a beam, a lone eighth is
+flagged, and a tuplet is a group of its own. Two exceptions come from the meter:
+in 4/4 the two *halves* of the bar are single spans, so four plain eighths beam as
+one, and nothing can ever beam across the middle of the bar; in 3/4 the whole bar
+is one span, off by default. Both only apply while nothing shorter than an eighth
+is in the span, which is what LilyPond and MuseScore also do. Syncopation needs no
+rule: eighth-quarter-eighth leaves each eighth alone with its flag because the
+quarter is not beamable. The switches are `mergeHalfBar`, `mergeWholeBar` and
+`beamOverRests`, and the module header cites the sources and says where they
+disagree.
+
+The groups then do two jobs. They write the ABC -- in ABC a space breaks a beam and
+no space makes one -- and they drive the redraw: abcjs's own beams are one glyph
+per group and cannot be re-laid, so after the notes move onto the time grid they
+are hidden and each beam is drawn again through the stem tips where they landed,
+with the secondary beams and beamlets parallel to it, and every stem in the group
+re-cut to end on the new line.
+
+**Click anywhere on the stage to take your playing position there** -- across the
+staff or the roll, up and down the falling notes. The pointer is a crosshair and a
+faint line marks the beat under it, so where you will land is not a guess. While the
+loop is running, the clock, the click and the app's hands all re-anchor there and the
+music keeps going; what you jumped over leaves the pass rather than counting as a
+run of misses, and jumping back puts that stretch up for scoring again. While it is
+idle the click sets where you come in, and Play, `Space` or a note on the piano then
+starts there after the usual count-in bar. In wait mode it moves the cursor to the
+next onset.
+
+In every view blue is the left hand and amber the right, hands the app plays are
+dimmed, and as you play a note you hit turns green, one you missed turns red, and a
+wrong note leaves a red mark where you played it. A pass is scored when the loop
+wraps: hits, misses, extras, and whether you were running early or late. The
+**keys** show the notes coming up in the next beat (or, in wait mode, the notes
+being waited on) in the hand's colour, and what you are holding in fuchsia.
+
+Wait mode has no clock, so it has no click: the Click button shows as set but idle
+there, and the click comes back with the clock.
+
+Scoring is in beats, not milliseconds -- a hit is the right pitch within about a
+quarter beat of its onset -- so the same tolerance is more forgiving at slow
+tempos and tightens as the tempo comes up, which is the right way round for
+learning.
+
+The **meter** under the step shows how far you are from the goal *while you
+loop*, and the loop never stops between passes. A passes challenge ("2 passes in
+a row at 85%") has one slot per pass: the running pass fills with the hit rate of
+the notes that have come due so far, turning green once it is over the line; when
+the loop wraps the slot keeps its percentage with a ✓ and the next slot starts
+counting at once, and when the last one is in, the step is done and the next
+step starts by itself. A pass below the line goes red with its percentage for a
+moment, then the streak starts again from pass 1. A pass is judged on accuracy
+alone -- how many of the part's notes you hit in time. Wrong notes are shown but
+never fail a pass, and notes belonging to a hand you are not playing -- the one the
+app is playing beside you, or one switched off -- are not even counted as wrong:
+your part is the hands set to **You**, and only those. Free practice also offers a window
+challenge ("80% over the last 10 s"): a single slot with the hit rate over a
+sliding ten-second window, ✓ the moment it reaches the target. In wait mode
+there is no clock, so a window challenge is scored as passes.
+
+### Keys
+
+| | |
+|---|---|
+| `Space` | start / stop |
+| any note on the piano | starts the step when it is idle, or skips the countdown to the next one |
+| `M` | click |
+| `W` | wait mode |
+| `L` | loop |
+| `G` | guide |
+| `N` / `P` | next / previous step |
+| `H` | hear the step's bars |
+| `T` / `F` | tutor / free practice |
+
+### On the phone
+
+`learn-m.html` is the same lesson on a phone propped on the music stand, and
+**rotating the phone is the mode switch**: sideways is the playing screen — the
+stage, the meter, one big Start/Stop and a full-width key strip with the next notes
+lit and what you are holding in fuchsia — and upright is Home (the songs, with a
+progress ring) and the lesson **path**, sections down the page with the steps as
+nodes you can tap. It reads and writes the same `middleman.learn.<songId>` document
+as the laptop, so a step finished on one is finished on the other; only the choice
+of view is the phone's own (`middleman.learn.mview`, **Scroll** by default, because
+a wrapped staff holds two bars on a phone and jumps between them, and a stage that
+jumps while your hands are on the keys is the one thing a music stand cannot
+afford; a remembered choice always wins). Nothing
+on the playing screen needs aim: the tempo is a −/+ stepper, every toggle is a
+40px chip, and free practice is a bottom sheet you open while stopped. Turned
+upright mid-step it keeps playing, stacked.
+
+The two ways in do **not** start the same way, and the difference is only ever *where
+the piano is plugged in*.
+
+```bash
+./serve.sh              # iPhone: the phone mirrors the laptop. Plain http, no certificate.
+./phone.sh              # Android: the piano is on the phone. https, certificate once.
+```
+
+A LAN address is **not a secure context** — `localhost` is the only origin that gets
+a free pass — and three things are simply absent there: **Web MIDI**, the **wake
+lock** and **service workers**. Only the first of those is load-bearing, and only for
+Android. The mirror needs `fetch`, `EventSource`, an `AudioContext` and the
+Fullscreen API, all of which a plain-http LAN origin has, so the iPhone route runs on
+`./serve.sh` with nothing to install. What it gives up is the screen staying awake by
+itself (`navigator.wakeLock` is undefined on http, and `makeWakeLock()` reads that and
+holds nothing — so set the phone's auto-lock long, or keep it on the charger) and the
+offline app-shell cache (`navigator.serviceWorker` is undefined too, and
+`registerServiceWorker()` returns early; the laptop is serving the page anyway). Both
+are handled in `src/learn/phone.js` without a throw or a console line. *Add to Home
+Screen* still works on iOS over http and still opens with no browser bar — that comes
+from the manifest, not from the certificate.
+
+`./phone.sh` is the Android case. Web MIDI on the phone needs HTTPS, so it serves
+HTTPS with a certificate from [mkcert](https://github.com/FiloSottile/mkcert)
+(`brew install mkcert`; the script stops with that line if it is missing).
+
+#### Trusting the certificate — once per phone, over plain http
+
+The one thing that cannot be served over HTTPS is the certificate itself. The phone
+does not trust this laptop yet — that is the entire reason it is fetching the file —
+and neither iOS nor Android will take a certificate across a connection it distrusts.
+Safari's *visit this website anyway* covers pages only; a configuration profile
+arriving over a bad connection is dropped **without a word**, which looks exactly like
+a broken link. So `phone.sh` opens a second listener, plain HTTP on the next port up,
+serving nothing but the certificate and a page explaining it:
+
+```
+http://<laptop-ip>:8766/rootCA.pem      # the file
+http://<laptop-ip>:8766/                # the same steps as below, on the phone
+```
+
+Everything else on that port is a 404. Both servers live in one process and both stop
+on Ctrl-C.
+
+**Android**, in Chrome: open the http address and the file downloads. Then leave
+Chrome — the rest happens in the **system Settings app**: search *certificate* →
+**Install a certificate** → **CA certificate** → **Install anyway** → pick
+`rootCA.pem` from Downloads. It worked if it now shows under *Trusted credentials →
+User*.
+
+**iPhone**, in **Safari** — Chrome on iOS cannot hand a profile to the system, so this
+step is Safari's alone. Open the http address → **Allow** the profile download →
+Settings → General → **VPN & Device Management** → mkcert → **Install** (it asks for
+the passcode) → then Settings → General → About → **Certificate Trust Settings** →
+switch **mkcert** on. Both halves are required, and the second is the one everybody
+forgets. If the download misbehaves, AirDrop the file instead: it sits at
+`$(mkcert -CAROOT)/rootCA.pem`.
+
+#### Android: the piano plugs into the phone
+
+Install the certificate as above, then scan the QR. The first tap on the page asks for
+MIDI permission; `⛶` toggles full screen, and **Add to Home screen** loses the browser bar
+for good. If you would rather not install a certificate at all, Chrome's
+`chrome://flags/#unsafely-treat-insecure-origin-as-secure` will accept
+`http://<laptop-ip>:8765` as a secure origin — a per-device stopgap, not a fix.
+
+#### iPhone: remote mode, and the piano stays on the laptop
+
+Safari has never shipped Web MIDI on any iOS version and is not going to, and every
+iOS browser is WKWebView underneath, so there is no browser on an iPhone that can
+reach the piano. **So the iPhone does not talk to the piano at all.** The laptop stays
+plugged in and runs everything — the engine, the scorer, the MIDI port, the click —
+and the phone on the music stand is its screen and its remote.
+
+1. `./serve.sh`. No certificate: the phone only mirrors the laptop, and nothing a
+   mirror needs is gated on https. (`./phone.sh` is for the Android case; it works
+   for this too, but is not needed.)
+2. On the laptop, open `http://localhost:8765/learn.html` and press **Put it on the
+   phone** in the sidebar. A QR code, the code under it and the address appear
+   below. The panel asks the server for its Wi-Fi address, so the link the phone
+   gets is routable even though the page was opened on `localhost`. **This** is the
+   QR the iPhone scans. (If the server is loopback-only, `./serve.sh --local`, the
+   panel says so in place of the QR; if it has no relay at all, such as
+   `python3 -m http.server`, it says that instead and arms nothing.)
+3. Point the iPhone's camera at it. The page opens already paired, and Home
+   says **showing the laptop · 4 ms** under its title, with **Stop mirroring** beside it
+   as the way back out. (If the camera cannot see the screen, tap
+   *Connect to the laptop* on the phone's Home and type the code printed under the QR.)
+4. **Share → Add to Home Screen.** Opened from the Home screen it runs full screen with
+   no browser bar — which is the iPhone's version of the `⛶` button, and the reason `⛶`
+   is hidden there. From then on it pairs itself: see *The room belongs to the server*
+   below, and there is nothing to scan again.
+5. Play. Rotate to landscape for the stage, upright for the lesson path, exactly as on
+   Android.
+
+What runs where: the laptop owns the transport, the scoring and the sound, so the click
+plays there, beside the piano, and the progress document stays the laptop's. The phone
+runs its own copy of the clock, the views, the meter and the key strip. It is sent the
+clock's anchor **once** and then only events — a hit, a miss, a wrong note, a pass, a
+step change — so the playhead is drawn locally at 60 fps and the network never gets
+between it and the music. Every control on the phone drives the laptop: Start/Stop,
+tempo, hands, bars, wait, loop, the step list and the done card's *Go now*. The one
+thing that stays the phone's own is which of the four views it is showing.
+
+The sound is the exception, and only when it is asked to be. `Out: Piano | Computer`
+still decides where the app's own notes go — the companion hand, *Hear it*, the pedal
+— and when it is set to **Computer** while a phone is mirroring, the computer *is* the
+phone: every note goes over the relay with the moment it was scheduled for and comes
+out of the phone's speaker, on the music stand, while the laptop's own stay quiet. The
+laptop's toggle relabels its second half **Phone** while that is true, and the phone
+has the same toggle, driving the laptop's. Two things about the phone: iOS starts
+audio only inside a real tap, so the first tap there — Start, *Hear it*, the stage —
+is what wakes it, and the page asks for the `playback` audio session so the ring/silent
+switch does not mute a phone that is meant to be playing.
+
+The limitation is the obvious one: **the laptop has to be on, awake and near the piano**,
+with the Learn page open and sharing. Nothing about remote mode works with the lid shut.
+`design/learn-mobile/DELIVERY.md` has the survey behind that choice, and what a
+standalone iOS app would cost instead.
+
+#### How the relay works
+
+`serve.py` grew about a hundred lines of stdlib: `GET /relay/events?room=…` is a
+server-sent-event stream, `POST /relay/send?room=…` broadcasts one JSON event to a
+room, `GET /relay/time` is a monotonic clock both ends measure themselves against, and
+`GET /relay/info` says who the server is and which room to pair in.
+No WebSocket, because `http.server` has none and this needs none — the laptop
+broadcasts and the phone sends the occasional command. A room keeps its last state
+snapshot, so a phone that connects late is up to date at once; rooms live in memory
+and die with the server. `EventSource` reconnects on its own, so a sleeping laptop, a
+blinking Wi-Fi or a restarted server all come back without help.
+
+##### The room belongs to the server
+
+`GET /relay/info` answers who the server is: its port, whether it is on TLS, the
+addresses the phone can reach it at — and the **room**. One room per machine, six
+characters, kept in `certs/room` (git-ignored, made on first run), so it is the same
+on every origin and survives every restart.
+
+That last part is the whole point. The room used to be minted in the page and kept in
+`localStorage`, which is per *origin* — so one server handed a different room to
+`http://localhost:8765` and to `http://192.168.1.5:8765`, and clearing the site data
+was a third. Meanwhile a phone saved to the Home screen is a standalone web app with
+its **own** storage and a URL frozen the day it was installed, `?room=` and all. Put
+those two together and you get the bug: the laptop moves origin, or the server is
+restarted and the browser cleared, and the Home screen app goes on happily connected
+to a room nobody publishes into — detached, with nothing on screen to say so.
+
+Now both ends take the room from `/relay/info` at load. The laptop publishes into it;
+the phone switches to it if the one it remembered differs, quietly, and catches up.
+The QR and the typed code still carry it, for the first pairing.
+
+An iPhone goes one step further: it has no Web MIDI and never will, so it can never
+be the app on its own, and nothing on the device can be trusted to name the room. So
+a phone with no `navigator.requestMIDIAccess`, not already paired, asks the server at
+load and mirrors whatever room it names — no QR, no code, no remembered flag. **Stop
+mirroring** still drops it back to its own app, remembered in `sessionStorage` for
+that launch only: closing the installed app forgets it, because the next launch is a
+phone going back on the music stand. A phone that *has* Web MIDI keeps its own engine
+unless it is asked to mirror.
+
+##### A server with no relay, and one that merely blinked
+
+The repo served by `python3 -m http.server` answers every relay endpoint with a 404 or
+a 501, and everything used to retry it: the `EventSource` reopened itself, the clock
+measurement fired eight requests a resync, and the remembered *Put it on the phone*
+re-armed the whole thing on every reload, until the log filled up and the page was
+unusable. The `/relay/info` fetch above already answers that question, so it is asked
+once, by the page, before anything is opened: no relay, no stream, no sends, and both
+the share panel and the phone say *This server has no phone relay*. Nothing keeps
+asking, because nothing is going to change until the page is served properly — and a
+reload on a proper server picks sharing straight back up, since the remembered flag is
+left set.
+
+A server that could not be *reached* at all is a different answer, and is not treated
+as "no relay": a laptop that is asleep or a Wi-Fi that has not come up is exactly the
+thing worth waiting for. Once a stream is open, a drop is retried in a second,
+doubling to half a minute — the phone is blind between the drop and the reopen,
+showing a picture of the laptop that has stopped following it. A restarted server
+loses every room, so a reconnected stream is an empty one: the laptop republishes its
+snapshot the moment the stream is live again, and a phone that reconnects is handed
+the room's kept snapshot at once. Nothing is posted into a stream that is not live,
+which is what tells the laptop its snapshot never left — sends are told apart the same
+way otherwise: the held keys and the streamed notes are repeated, so a stalled server
+may drop them, while a snapshot, a hit or a command happens once and keeps its own
+budget, and a snapshot the relay refuses is not recorded as sent, so the next diff
+tick sends it again.
+
+The clock sync is `src/learn/sync.js`: eight NTP-style round trips, keep the shortest
+half, take the median offset, re-measure every thirty seconds and after every
+reconnect. The anchor travels in relay time, so neither end has to know anything about
+the other's `performance.now()`. On a home LAN the two playheads sit within a
+thousandth of a beat of each other.
+
+### Adding a song
+
+A song is a JSON file in `songs/`, listed in `songs/index.json`. It is written
+per hand, one string per bar, in a compact notation:
+
+```json
+{
+  "id": "my-song", "title": "My song", "bpm": 96, "practiceBpm": 60,
+  "swing": "2/3", "key": "F", "sharps": false,
+  "sections": [{ "name": "Intro", "from": 1, "to": 4, "hint": "Left hand alone." }],
+  "rh": ["r:8", "G4 A4 Bb4 D5:3 r:2", "~D5 A4:7", "/[F5 A5 C6]:8"],
+  "lh": ["G2 Bb2 D3 G3:2 G3 F3 D3", "C3 E3 G3 C4:3 Bb3:2", "[A2 A3]:8", "D3:8"]
+}
+```
+
+| token | meaning |
+|---|---|
+| `G4`, `Bb3`, `C#5` | a note, one eighth long |
+| `[G4 Bb4 D5]` | a chord |
+| `r` | a rest |
+| `:n` | length in eighths; fractions allowed (`:2/3` for a triplet eighth, `:1/2` for a sixteenth) |
+| `~` prefix | tied from the previous note of the same pitch: no new attack, the earlier note is extended |
+| `/` prefix | rolled chord, bottom to top |
+
+Every bar has to sum to exactly 8 eighths; the file is validated on load and the
+error names the hand and bar. The parsed song keeps both the flat note lists the
+engine plays from and the bars as written (`cells`: rests, ties, tuplets, rolled
+chords), which is what the staff view engraves. `sections` are 1-based and inclusive; they drive
+the tutor's plan and the chips in free practice. `bpm` is the song's tempo,
+`practiceBpm` the tempo the tutor starts at. `swing` pushes the offbeat eighths,
+as on the tracks.
+
 ## Tracks
 
 | Track | Form | Feel |
@@ -132,18 +615,61 @@ the vocal line; swap the notes in `tracks.json` for whatever you want to work on
 ```
 index.html          the practice view
 looper.html         the looper
+learn.html          learn a song
+learn-m.html        the same, laid out for a phone on the music stand
 style.css           shared: tokens, buttons, track list, key strip
 looper.css          the looper's own furniture, on top of style.css
+learn.css           the learn page's, on top of both
+learn-m.css         the phone layout, on top of all three
+manifest.webmanifest  makes learn-m.html installable: fullscreen, landscape, icons
+sw.js               the app shell cache, registered from learn-m.html only
+icons/              the installed app's icons, and make-icons.mjs that draws them
+serve.sh            the dev server on localhost
+phone.sh            the same over the LAN, with HTTPS, a certificate and a QR code
+serve.py            the server both of those run: stdlib only, optional TLS, and the
+                    remote-mode relay (SSE out, POST in, a monotonic clock)
 tracks.json         the backing tracks (data, not code)
+songs/              the songs the learn page teaches (data, not code)
 src/
   app.js            practice view: transport, playhead, panels, event handlers
-  clock.js          performance.now() <-> absolute beats; shared by the looper
+  clock.js          performance.now() <-> absolute beats; shared by every page
   tracks.js         loads/validates tracks.json, build() -> event list
   theory.js         note spelling, scales, bass patterns, chord labels
-  midi.js           Web MIDI in/out, the `held` set, the timestamped event stream
-  metronome.js      WebAudio click
+  midi.js           Web MIDI in/out, the `held` set, the timestamped event stream,
+                    and the routing: piano, computer, or both
+  synth.js          the software piano: a polyphonic WebAudio voice per note, on the
+                    metronome's context and its performance -> audio time mapping
+  outtoggle.js      the "Out: Piano | Computer" control, one for all three transports
+  volume.js         the app's volume: one setting for all four pages, and the
+                    velocity scale send() puts on every note the app plays
+  qr.js             a QR encoder: byte mode, level L, versions 1-10, and an SVG of it
+  metronome.js      the WebAudio click, scheduled by beat number on the clock
   keyboard.js       the piano strip
   notation.js       abcjs rendering, chord-box geometry, played-note painting
+  song.js           the song notation: parse, validate, flat note lists
+  notation/
+    beams.js        the beaming rules: a bar of cells and a meter -> beam groups
+  learn/
+    plan.js         the tutor's lesson plan, built from a song's sections
+    scorer.js       expected onsets, the per-pass tally, wait-mode groups
+    engine.js       the learn transport: flow and wait modes, loop, app hands
+    meter.js        the challenge meter: a slot per pass, filling live
+    tempo.js        your hand-set tempo, remembered per song and per tempo tier
+    store.js        the saved document both learn pages read and write
+    pass.js         what a pass means: the streak, and the other hand's notes
+    phone.js        full screen, orientation lock, wake lock, install hint, sw
+    relay.js        the channel both ends of remote mode talk over: SSE in, POST out
+    sync.js         the clock sync: the NTP filter and the anchor, both pure
+    host.js         the laptop's half: the QR, the state snapshots, the commands in
+    remote.js       the phone's half: a mirror with the engine's interface
+    roll.js         the piano roll view
+    staff.js        the staff view: abcjs engraves the glyphs, then a grid of equal
+                    beats says where each of them goes, and the beams are redrawn
+    fall.js         the falling-notes view, on its own key strip
+    camera.js       where to put the strip so a beat sits under the fixed line
+    scroll.js       the scrolling staff: one long strip, slid under that line
+    app.js          wiring: tutor, free practice, MIDI in, keys, persistence
+    mobile.js       the same wiring for the phone: home, path, play, the sheet
   looper/
     buffer.js       the rolling input buffer, and what a take slices out of it
     loops.js        the loop model: placement, follow, quantize, melody export
@@ -151,7 +677,17 @@ src/
     ui.js           lanes, rolls, playhead, key strip
     app.js          wiring: keys, MIDI in, inspector, persistence
 test/
-  looper.test.mjs   the musical logic, run with `node --test`
+  looper.test.mjs   the looper's musical logic, run with `node --test`
+  learn.test.mjs    the song notation, the plan, the scorer and the view geometry
+  beams.test.mjs    the beaming rules, meter by meter
+  engine.test.mjs   the learn transport against a fake clock and fake timers
+  metronome.test.mjs  the click's scheduling, ditto
+  mobile.test.mjs   what the two learn pages share: the document, the pass rule,
+                    the path's node states
+  synth.test.mjs    the software piano against a fake AudioContext
+  midi.test.mjs     output routing: which of the piano and the synth a message reaches
+  sync.test.mjs     remote mode's clock: the NTP filter and the anchor conversion
+  qr.test.mjs       the QR encoder, against the standard's tables and a whole symbol
 vendor/
   abcjs-basic-min.js   abcjs 6.4.4, vendored so the app works offline
 ```
@@ -232,6 +768,18 @@ failing silently.
 
 ## Notes for future work
 
+The metronome is one module for all three pages, and it is built the way it is
+because a click that "just schedules a sound N ms from now" goes wrong in three
+separate ways: a tempo change re-anchors the clock and the old counter double- or
+skips a beat; a background tab throttles the timer to once a second and the
+missed beats come out as a burst when it wakes; and `AudioContext.currentTime`
+drifts from `performance.now()` and ignores output latency, so the click lands
+late against the piano. So `makeMetronome(clock)` schedules by *beat number*,
+drops beats that are already past instead of playing them late, maps time once
+per round from `getOutputTimestamp()`, resumes a suspended context on the next
+gesture or when the tab comes back, and keeps the one audio-vs-MIDI offset in
+`CLICK_OFFSET_MS`. Each transport calls `pump(lookahead)` from its tick.
+
 Two abcjs behaviours cost real debugging time and are worth remembering:
 
 - Noteheads are `.abcjs-notehead`, and there is **no** `.abcjs-note` class —
@@ -244,6 +792,41 @@ Two abcjs behaviours cost real debugging time and are worth remembering:
   `#`/`b` as the glyphs `♯`/`♭` — so they're matched by normalised text content.
 - A blank line anywhere in an ABC header **terminates the tune** and silently
   drops the entire body.
+
+The learn page's staff does **not** use abcjs's spacing. Engravers space notes by an
+aesthetic curve of their duration, so a playhead that follows the noteheads speeds up
+and slows down and the music stops feeling like it has a tempo. abcjs has no
+proportional mode: its only justification knob is `stretchlast`, which stretches the
+last system alone and then refuses to go past its own spacing cap. So `staff.js`
+engraves with abcjs for the glyphs and then translates every note, rest, bar line and
+staff line onto a grid of equal beats. What that costs, and four things that cost
+time getting there:
+
+- A beam is one glyph over several notes and there is no re-laying it, so abcjs's
+  beams (`.abcjs-beam-elem`, direct children of the staff wrapper, one filled
+  parallelogram per group with the beamlets as extra subpaths in the same `d`) are
+  hidden and drawn again from the beam groups once the notes have moved. What makes
+  that cheap is that a stem is `.abcjs-stem` *inside* the note's own `<g>`, so it
+  travels with the note and only its free end has to be re-cut; the beam is then the
+  line through the two outer stem tips, capped in slope and pushed out far enough
+  that no stem comes out shorter than abcjs drew it. Which notes are under a beam is
+  never decided here -- `src/notation/beams.js` decides, and the same groups write
+  the ABC's spacing.
+- Ties and slurs are curves between two x's abcjs chose. They are hidden, and a tie is
+  redrawn as a plain arc between the two heads that belong to the same song note.
+- A tuplet is one group holding its bracket and its number: it moves to where its
+  first note went and the bracket is scaled to reach the last.
+- Only the **topmost** staff line carries a class (`.abcjs-top-line`); the other four
+  are bare `<path>`s straight under the `.abcjs-staff` group, so a rule that stretches
+  "the staff lines" has to find them by shape, not by class.
+- abcjs sizes the `<svg>` to whatever the engraving wanted and lets its own container
+  clip the overflow. The width to lay out across is therefore the **container's**, not
+  the svg's -- reading the svg's box lays the last bars off the edge of the panel.
+
+One SVG trap from the learn page: an SVG with `preserveAspectRatio="none"` and
+percentage sizes stalls Chrome's compositor -- headless never paints the page
+again, and a screenshot hangs forever. The roll draws in the panel's own pixel
+box instead, and re-renders on resize.
 
 Two CSS traps cost time on the looper and will again:
 
