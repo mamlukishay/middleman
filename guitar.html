@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Middleman · Guitar</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="guitar.css">
+</head>
+<body class="guitar">
+
+<main>
+  <div id="bar">
+    <nav id="nav" class="seg">
+      <a href="index.html">Practice</a>
+      <a href="looper.html">Looper</a>
+      <a href="learn.html">Learn</a>
+      <a href="guitar.html" class="on" aria-current="page">Guitar</a>
+    </nav>
+    <span class="grp">
+      <button id="startBtn">● Listen</button>
+      <select id="input" aria-label="audio input"><option value="">default input</option></select>
+    </span>
+    <span class="grp" id="levelbox">
+      <span class="lbl">In</span>
+      <span id="level"><i id="levelbarr"></i><u id="gate"></u></span>
+      <b id="db">–</b>
+    </span>
+    <span id="statusEl">press Listen and play something</span>
+  </div>
+
+  <div id="readout">
+    <div id="note" class="off">–</div>
+    <div id="tuner">
+      <div id="ticks"></div>
+      <div id="needle"></div>
+      <span class="end flat">−50</span>
+      <span class="end sharp">+50</span>
+    </div>
+    <div id="numbers">
+      <span><b id="freq">–</b> Hz</span>
+      <span><b id="cents">–</b> cents</span>
+      <span><b id="clarity">–</b> clarity</span>
+    </div>
+  </div>
+
+  <div id="bottom"><div id="kb"></div></div>
+</main>
+
+<script type="module" src="src/guitar/app.js"></script>
+</body>
+</html>

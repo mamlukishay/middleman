@@ -682,6 +682,43 @@ and feel, not a transcription of the bass line. Chorus changes aren't included.
 Its melody is likewise an original F# minor pentatonic line over the vamp, not
 the vocal line; swap the notes in `tracks.json` for whatever you want to work on.
 
+## Guitar (proof of concept)
+
+`./serve.sh`, then <http://localhost:8765/guitar.html>. Plug the Spark 40 into the
+Mac's USB, press **Listen**, and play: the page shows the note it hears in the middle
+of the screen, a needle from −50 to +50 cents against it, the frequency, the input
+level, and the same key strip the other pages use, with that note lit. Silence clears
+all of it.
+
+The first press asks for the microphone, and only a granted microphone has device
+labels — so the page takes whatever input it is given, reads the labels that unlocks
+and then switches itself to the one called "Spark 40 USB". The picker in the bar is
+there for when that guess is wrong. It asks for the input with `echoCancellation`,
+`noiseSuppression` and `autoGainControl` all off: those three defaults are tuned for a
+voice on a call, and on a guitar they pump the decay of every note, mistake a
+sustained string for noise, and filter the room.
+
+Detection is [YIN](https://doi.org/10.1121/1.1458024) in `src/guitar/pitch.js`, on
+4096 samples at a time — pure, so `test/pitch.test.mjs` can hold it against
+synthesized sines and sawtooths at every open string and a few frets up. A sawtooth is
+the honest test: a pickup's second harmonic is louder than its fundamental, so
+anything that follows the loudest partial reports the octave above. Two gates keep the
+screen quiet — a level gate at −48 dB for a room with nothing happening in it, and
+YIN's own clarity for a note that has decayed, or two strings ringing at once. A new
+note has to hold for 70 ms before it replaces the one on screen, and a note stays up
+220 ms after it stops being heard, so nothing flickers.
+
+**What it does not do.** Anything else. It is not wired into the tutor or the looper,
+it does not score, record, transpose or follow a song, it knows nothing about chords —
+strum and it will pick one of the notes and wander between them — and it does not send
+MIDI. One voice at a time is the whole of it.
+
+Verified in headless Chrome the way `npm run smoke` is, against a real 28-second
+recording off the Spark: silent until 15.9 s, then the low strings around C2–E2, then
+a chord decaying on C3 until it drops under the gate at 26.3 s. Chrome's fake capture
+device needs `--no-sandbox` to open a wav at all; without it the page correctly reads
+digital silence, which is a confusing way to find that out.
+
 ## Layout
 
 ```
@@ -689,10 +726,12 @@ index.html          the practice view
 looper.html         the looper
 learn.html          learn a song
 learn-m.html        the same, laid out for a phone on the music stand
+guitar.html         the guitar proof of concept: what note is the amp playing
 style.css           shared: tokens, buttons, track list, key strip
 looper.css          the looper's own furniture, on top of style.css
 learn.css           the learn page's, on top of both
 learn-m.css         the phone layout, on top of all three
+guitar.css          the guitar page's one screen, on top of style.css
 manifest.webmanifest  makes learn-m.html installable: fullscreen, landscape, icons
 sw.js               the app shell cache, registered from learn-m.html only
 icons/              the installed app's icons, and make-icons.mjs that draws them
@@ -744,6 +783,11 @@ src/
     scroll.js       the scrolling staff: one long strip, slid under that line
     app.js          wiring: tutor, free practice, MIDI in, keys, persistence
     mobile.js       the same wiring for the phone: home, path, play, the sheet
+  guitar/
+    pitch.js        YIN: a frame of samples -> a frequency and how sure it is, and
+                    the frequency -> note, cents helper. Pure; no microphone in it
+    app.js          the guitar page: the input picker, the analyser, the gates and
+                    the hold that keeps a detected note from flickering
   looper/
     buffer.js       the rolling input buffer, and what a take slices out of it
     loops.js        the loop model: placement, follow, quantize, melody export
@@ -763,6 +807,7 @@ test/
   sync.test.mjs     remote mode's clock: the NTP filter and the anchor conversion
   jam.test.mjs      the jam: when a received note sounds, and whose notes are whose
   qr.test.mjs       the QR encoder, against the standard's tables and a whole symbol
+  pitch.test.mjs    the guitar page's detector, against synthesized strings
 scripts/
   smoke.mjs         the end-to-end check `npm run smoke` runs: one server, headless
                     Chrome over CDP, a laptop, a mirroring phone and a second player

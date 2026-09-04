@@ -1,0 +1,61 @@
+/* The guitar proof of concept. Tokens, the bar, buttons and the key strip all come
+   from style.css; this file only adds the one screen it does not already have -- a
+   note, a needle and a level meter, big enough to read from behind a guitar. */
+
+:root{--in:#5fbf7a;--flatc:#e8b44a;--sharpc:#e8b44a}
+
+/* style.css lays every page out as sidebar + main. This one has no sidebar: the
+   whole page is the readout, so main takes the single column. */
+body.guitar{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr)}
+body.guitar > main{grid-template-rows:auto minmax(0,1fr) auto}
+
+#input{background:#2a2f3a;color:var(--fg);border:1px solid var(--line);border-radius:6px;
+       padding:6px 8px;font:13px/16px ui-sans-serif,system-ui,sans-serif;max-width:230px}
+#startBtn.on{background:var(--in);border-color:var(--in);color:#14161a;font-weight:600}
+
+/* the input meter: a 90px trough, a bar that grows with the level, and a hairline at
+   the gate -- so a quiet room *looks* quiet rather than looking broken */
+#levelbox .lbl{color:var(--dim);font-size:12px}
+#level{position:relative;display:inline-block;width:90px;height:10px;border-radius:5px;
+       background:#22262f;border:1px solid var(--line);overflow:hidden}
+#levelbarr{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--in);
+           transition:width .06s linear}
+#gate{position:absolute;top:0;bottom:0;width:1px;background:var(--fg);opacity:.55}
+#db{color:var(--fg);font-family:var(--mono);font-variant-numeric:tabular-nums;
+    font-size:12px;min-width:52px;text-align:right}
+
+#readout{display:flex;flex-direction:column;align-items:center;justify-content:center;
+         gap:22px;min-height:0;padding:16px}
+
+/* the note is the page. Tabular figures so the octave digit does not shove the
+   letter sideways every time the string changes. */
+#note{font-size:clamp(72px,17vh,190px);line-height:1;font-weight:700;color:var(--you);
+      font-variant-numeric:tabular-nums;text-shadow:0 0 40px rgba(255,47,214,.45);
+      transition:color .12s,opacity .12s}
+#note.off{color:#49515f;text-shadow:none}
+
+#tuner{position:relative;width:min(560px,84vw);height:54px;border-radius:8px;
+       background:#191d24;border:1px solid var(--line)}
+#ticks{position:absolute;inset:0}
+/* every 10 cents a faint line, and a bright one down the middle at 0 */
+#ticks i{position:absolute;top:9px;bottom:9px;width:1px;background:#333a46}
+#ticks i.mid{top:4px;bottom:4px;width:2px;background:var(--dim)}
+/* no transition on `left`: the needle is moved every animation frame and the reading
+   under it changes with it, so easing the bar only makes the two disagree on screen */
+#needle{position:absolute;top:3px;bottom:3px;width:5px;border-radius:3px;left:50%;
+        margin-left:-2.5px;background:var(--accent);opacity:0;
+        box-shadow:0 0 14px rgba(232,180,74,.6);transition:opacity .12s,background .12s}
+#needle.on{opacity:1}
+/* in tune is worth seeing without reading a number */
+#needle.good{background:var(--in);box-shadow:0 0 16px rgba(95,191,122,.7)}
+#tuner .end{position:absolute;bottom:-19px;font-size:11px;color:var(--dim);
+            font-family:var(--mono)}
+#tuner .end.flat{left:0}
+#tuner .end.sharp{right:0}
+
+#numbers{display:flex;gap:26px;color:var(--dim);font-size:13px;margin-top:6px}
+#numbers b{color:var(--fg);font-family:var(--mono);font-variant-numeric:tabular-nums;
+           min-width:52px;display:inline-block;text-align:right}
+
+#bottom{border-top:1px solid var(--line);background:var(--pane);padding:8px 14px;flex:0 0 auto}
+#kb{position:relative;height:90px;user-select:none}
