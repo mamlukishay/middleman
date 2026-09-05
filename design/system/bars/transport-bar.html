@@ -1,0 +1,377 @@
+<!-- @dsCard group="Bars &amp; panels" -->
+<!doctype html><html><head><meta charset="utf-8"><style>
+/* app: style.css */
+:root{--bg:#14161a;--pane:#1c1f26;--line:#2c313b;--fg:#e6e8ec;--dim:#8b93a3;
+      --accent:#e8b44a;--play:#2f7fd0;--you:#ff2fd6;
+      --mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+*{box-sizing:border-box}
+/* the bar is one row of groups: 14px between groups, 6px inside one. The status line is
+   the one thing that gives; below laptop width the row wraps, because clipping hid a
+   readout rather than merely looking tight. */
+#bar{display:flex;flex-wrap:wrap;gap:14px;align-items:center;padding:8px 14px;
+     border-bottom:1px solid var(--line);flex:0 0 auto;min-width:0}
+#bar .grp{display:flex;align-items:center;gap:6px;flex:0 0 auto}
+#bar button,#bar .chk{white-space:nowrap;flex:0 0 auto}
+/* the page font with a fixed line box, so every button is 30px tall: buttons used to
+   be in the UA font at line-height:normal, which measured the glyph (▶ Play 30, ● Click 29) */
+button{background:#2a2f3a;color:var(--fg);border:1px solid var(--line);border-radius:6px;
+       padding:6px 12px;cursor:pointer;font:13px/16px ui-sans-serif,system-ui,sans-serif}
+button:hover{background:#333947}
+button:disabled{opacity:.45;cursor:default}
+.tgl.on{background:var(--accent);border-color:var(--accent);color:#14161a;font-weight:600}
+/* a one-glyph toggle (the melody's speaker): a square, so it takes no more room than a note */
+.tgl.icon{padding:6px 9px;font-size:15px;line-height:16px}
+.chk{display:flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;white-space:nowrap}
+.chk input{accent-color:var(--accent);cursor:pointer;margin:0}
+.seg{display:inline-flex;align-items:stretch;border:1px solid var(--line);border-radius:6px;
+     overflow:hidden;flex:0 0 auto}
+.seg>b{display:flex;align-items:center;padding:0 7px;background:#20242c;color:var(--dim);
+       font-size:11px;font-weight:500;white-space:nowrap}
+/* 16px line + 6+6 padding + the strip's own 2px border = the 30px every button is */
+.seg>button{border:0;border-radius:0;padding:6px 9px;font-size:12px;line-height:16px;white-space:nowrap}
+.seg>button+button{border-left:1px solid var(--line)}
+.seg>button.on{background:var(--accent);color:#14161a;font-weight:600}
+.seg>button:disabled{color:var(--dim);background:#23272f;cursor:not-allowed}
+/* measured: 101.53px, the widest string */
+#pos{font-variant-numeric:tabular-nums;color:var(--dim);min-width:102px}
+/* the two sliders in the transport: tempo, and how loud the backing plays */
+#speed,#vol{display:flex;align-items:center;gap:7px;color:var(--dim);font-size:12px;
+  white-space:nowrap}
+#speed input,#vol input{width:110px;accent-color:var(--accent)}
+#vol input{width:64px}
+/* measured: the old reserves were one digit short, so the row shifted at 200 bpm and 100% */
+#speed b,#vol b{color:var(--fg);font-variant-numeric:tabular-nums;min-width:35px;text-align:right;
+  cursor:text;border-radius:4px;padding:1px 4px;border:1px solid transparent}
+#vol b{cursor:default;min-width:47px;text-align:right}
+/* the notes you hold change on every chord: mono + tabular so the readout keeps
+   its width instead of shoving the rest of the bar around */
+#played{color:var(--you);font-weight:700;min-width:90px;font-size:14px;
+  font-family:var(--mono);font-variant-numeric:tabular-nums;
+  text-shadow:0 0 10px rgba(255,47,214,.5)}
+#inled{width:9px;height:9px;border-radius:50%;background:#3a3f4a;transition:background .1s}
+#inled.hit{background:var(--you);box-shadow:0 0 8px var(--you)}
+/* the one thing in the bar that gives: a long MIDI error truncates instead of wrapping */
+#statusEl{flex:1 1 0;min-width:0;text-align:right;overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap;color:var(--dim);font-size:11px}
+/* end app */
+/* preview only: page furniture. The bars below are the pages' own markup, so each one
+   carries id="bar" -- an id selector matches every element that has it. */
+body{margin:0;padding:24px;background:var(--bg);color:var(--fg);font:14px/1.45 ui-sans-serif,system-ui,sans-serif}
+h1{font-size:15px;font-weight:700;margin:0 0 4px}
+.sub{font-size:12px;color:var(--dim);margin:0 0 20px;max-width:900px}
+.lbl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--dim);margin:26px 0 8px}
+.cap2{font-size:11px;color:var(--dim);margin-top:10px;max-width:900px;line-height:1.55}
+.cap2 b{color:var(--fg);font-weight:600}
+.rules{font-size:12px;color:var(--dim);margin:28px 0 0;max-width:900px;line-height:1.6}
+code{font-family:var(--mono);font-size:11px;color:var(--fg)}
+/* preview only: a 1240px stand-in for the window the bar really gets -- a 1440px screen
+   less the 200px sidebar. The plate is the page ground the bar sits on. */
+.barwrap{width:1240px;position:relative;background:var(--bg)}
+.tagged-wrap{padding-top:16px}
+.taglayer{position:absolute;left:0;right:0;top:0;height:13px}
+.tag{position:absolute;bottom:0;white-space:nowrap;font:700 9px/1 ui-sans-serif,system-ui,sans-serif;
+     letter-spacing:.08em;text-transform:uppercase;color:#7f889a}
+/* preview only: the gap rule, drawn to scale beside the real controls */
+.rulerwrap{padding:4px 0 26px}
+.ruler{display:flex;align-items:center;height:30px}
+.ruler .blk{height:30px;display:flex;align-items:center;padding:0 12px;font-size:13px;color:var(--fg);
+            background:#2a2f3a;border:1px solid var(--line);border-radius:6px}
+.ruler .g{position:relative;flex:0 0 auto;height:30px;background:rgba(232,180,74,.18);
+          border-left:1px dashed rgba(232,180,74,.75);border-right:1px dashed rgba(232,180,74,.75)}
+.ruler .g6{width:6px}
+.ruler .g14{width:14px}
+.ruler .g i{position:absolute;top:34px;left:50%;transform:translateX(-50%);font-style:normal;
+            font:700 10px/1 ui-sans-serif,system-ui,sans-serif;letter-spacing:.06em;color:var(--accent)}
+/* preview only: one dashed line dropped through a pair of bars, at the left edge of the
+   status line, so a readout that grew would show as the line moving off it. */
+.guided{position:relative;width:1240px}
+.vguide{position:absolute;top:-6px;bottom:-6px;width:0;z-index:3;
+        border-left:1px dashed rgba(232,180,74,.9)}
+.stack .barwrap+.barwrap{margin-top:2px}
+</style>
+<script>
+// preview only: the group names, written in the air over the first bar. They are placed
+// from the real geometry rather than guessed, so the card cannot drift from the layout.
+addEventListener('DOMContentLoaded', () => {
+  const names = ['transport', 'output', 'page', 'readout', 'levels', 'input', 'status'];
+  const bar = document.querySelector('#bar.tagged'), layer = document.querySelector('.taglayer');
+  [...bar.children].forEach((el, i) => {
+    const t = document.createElement('i');
+    t.className = 'tag'; t.textContent = names[i] || '';
+    if (i === names.length - 1) t.style.right = (bar.offsetWidth - el.offsetLeft - el.offsetWidth) + 'px';
+    else t.style.left = el.offsetLeft + 'px';
+    layer.appendChild(t);
+  });
+  // the guide falls on the left edge of the levels group -- the first thing that would
+  // move if the readout to its left did not hold a reserve.
+  for (const g of document.querySelectorAll('.guided')) {
+    const levels = g.querySelector('#speed').closest('.grp');
+    g.querySelector('.vguide').style.left = levels.offsetLeft + 'px';
+  }
+});
+</script>
+</head><body>
+<h1>Transport bar</h1>
+<p class="sub">The one row across the top of all three laptop pages, in the markup the pages
+actually carry. It is a flex row of <b>groups</b>: a group is a fixed set of whole controls that
+belong together, 6&nbsp;px apart, and groups are 14&nbsp;px apart. It is one row at laptop width and
+wraps only below it. Seven slots, left to right &mdash; transport, output, page, readout, levels,
+input, status &mdash; and the three pages differ only in what goes in <b>page</b> and whether
+<code>Stop</code> is in the transport.</p>
+
+<div class="lbl">Practice &mdash; index.html, 1240 px</div>
+<div class="barwrap tagged-wrap">
+  <div class="taglayer"></div>
+  <div id="bar" class="tagged">
+    <span class="grp">
+      <button id="play">▶ Play</button>
+      <button id="stop">■ Stop</button>
+      <button id="metroBtn" class="tgl">● Click</button>
+    </span>
+    <span id="outsel" class="seg"><b>Out:</b><button data-out="midi">Piano</button><button data-out="audio" class="on">Computer</button></span>
+    <span class="grp">
+      <label id="melLabel" class="chk"><input type="checkbox" id="melody"> Melody</label>
+      <button id="melSoundBtn" class="tgl icon" hidden title="melody sound: play the written melody out loud (only while Melody is shown)">♪</button>
+    </span>
+    <span id="pos">–</span>
+    <span class="grp">
+      <span id="speed">Speed
+        <input type="range" id="tempo" min="50" max="200" step="1" value="100">
+        <b id="bpmv" contenteditable="plaintext-only" inputmode="numeric"
+           title="click to type a tempo">100</b> bpm</span>
+      <span id="vol">Volume
+        <input type="range" id="volume" min="0" max="100" step="1" value="100"
+               title="how loud the app plays, against your own playing">
+        <b id="volumev">100%</b></span>
+    </span>
+    <span class="grp">
+      <span id="played">–</span><span id="inled" title="MIDI in"></span>
+    </span>
+    <span id="statusEl">connecting…</span>
+  </div>
+</div>
+<div class="cap2">The bar's own markup, with only <code>#outsel</code>'s inner HTML written out by hand
+&mdash; in the page that span is empty and <code>src/outtoggle.js</code> fills it. Two controls carry
+<code>hidden</code> here as they do at rest: the <b>♪</b> melody-sound toggle in <b>page</b>, which
+appears once the track has a melody, and (on learn) the <b>•</b> tempo mark. A group of one control
+needs no <code>.grp</code> span at all &mdash; <code>#outsel</code>, <code>#pos</code> and
+<code>#statusEl</code> are bare children of the bar and take the 14&nbsp;px group gap directly.</div>
+
+<div class="lbl">Looper &mdash; looper.html, 1240 px</div>
+<div class="barwrap">
+  <div id="bar">
+    <span class="grp">
+      <button id="play" data-key="Space"
+              data-tip="Start everything — the backing track, the click and every loop">▶ Play</button>
+      <button id="stop"
+              data-tip="Stop, and close any take that is still running rather than losing it">■ Stop</button>
+      <button id="metroBtn" class="tgl"
+              data-tip="A click on every beat. It is browser audio, so it never reaches the piano.">● Click</button>
+    </span>
+    <span id="outsel" class="seg"><b>Out:</b><button data-out="midi">Piano</button><button data-out="audio" class="on">Computer</button></span>
+    <span class="grp">
+      <button id="backBtn" class="tgl on"
+              data-tip="Silence the backing track and loop against nothing">♩ Backing</button>
+    </span>
+    <span id="pos" data-tip="Where the playhead is in the form">–</span>
+    <span class="grp">
+      <span id="speed">Speed
+        <input type="range" id="tempo" min="50" max="200" step="1" value="100"
+               data-tip="Tempo. The playhead stays where it is across the change.">
+        <b id="bpmv" contenteditable="plaintext-only" inputmode="numeric"
+           data-tip="Click to type a tempo">100</b> bpm</span>
+      <span id="vol">Volume
+        <input type="range" id="volume" min="0" max="100" step="1" value="100"
+               data-tip="How loud the app plays, against your own playing">
+        <b id="volumev">100%</b></span>
+    </span>
+    <span class="grp">
+      <span id="played" data-tip="What you are holding down right now">–</span><span id="inled" data-tip="Flashes when a note arrives from the piano"></span>
+    </span>
+    <span id="statusEl">connecting…</span>
+  </div>
+</div>
+<div class="cap2">Same seven slots. <b>page</b> holds one control here &mdash; <code>♩ Backing</code>,
+lit, because the backing track starts on &mdash; so the row is the practice row with one control fewer
+and everything right of <b>page</b> sitting further left, which the status line takes back.</div>
+
+<div class="lbl">Learn &mdash; learn.html, 1240 px</div>
+<div class="barwrap">
+  <div id="bar">
+    <span class="grp">
+      <button id="play" class="tgl" data-key="Space" data-tip="Start the loop. One bar of click counts you in.">▶ Play</button>
+      <button id="metroBtn" class="tgl on" data-key="M"
+              data-tip="The click, on every beat. Browser audio, so it never reaches the piano.">● Click</button>
+    </span>
+    <span id="outsel" class="seg"><b>Out:</b><button data-out="midi">Piano</button><button data-out="audio" class="on">Computer</button></span>
+    <span class="grp">
+      <button id="waitBtn" class="tgl" data-key="W"
+              data-tip="Wait mode: no clock. The song only moves on once you have played the notes it is waiting on.">⏸ Wait for me</button>
+      <button id="loopBtn" class="tgl on" data-key="L"
+              data-tip="Loop the bars endlessly, or play them once and stop">↻ Loop</button>
+    </span>
+    <span id="pos" data-tip="Where you are in the loop">–</span>
+    <span class="grp">
+      <span id="speed">Speed
+        <input type="range" id="tempo" min="30" max="200" step="1" value="60"
+               data-tip="Tempo. The playhead stays where it is across the change.">
+        <b id="bpmv" contenteditable="plaintext-only" inputmode="numeric"
+           data-tip="Click to type a tempo">60</b> bpm<button id="tempoMark" class="tmark" hidden
+           data-tip="your tempo · click to reset">•</button></span>
+      <span id="vol">Volume
+        <input type="range" id="volume" min="0" max="100" step="1" value="100"
+               data-tip="How loud the app plays, against your own playing">
+        <b id="volumev">100%</b></span>
+    </span>
+    <span class="grp">
+      <span id="played" data-tip="What you are holding down right now">–</span><span id="inled" data-tip="Flashes when a note arrives from the piano"></span>
+    </span>
+    <span id="statusEl">connecting…</span>
+  </div>
+</div>
+<div class="cap2">Learn has <b>no Stop</b> &mdash; the transport is Play and Click &mdash; and its
+<b>page</b> group is two toggles, <code>⏸ Wait for me</code> and <code>↻ Loop</code>. The group is
+wider than the practice one and the whole right-hand side moves with it; the slots stay in the same
+order, which is the only thing that has to hold across the three pages.</div>
+
+<div class="lbl">The gap rule</div>
+<div class="rulerwrap">
+  <div class="ruler">
+    <span class="blk">▶ Play</span><span class="g g6"><i>6</i></span>
+    <span class="blk">■ Stop</span><span class="g g6"><i>6</i></span>
+    <span class="blk">● Click</span><span class="g g14"><i>14</i></span>
+    <span class="blk">Out:&nbsp;Piano&nbsp;Computer</span><span class="g g14"><i>14</i></span>
+    <span class="blk">Melody</span>
+  </div>
+</div>
+<div class="cap2">Two distances and no others. <b>6&nbsp;px</b> means "these are one control between
+them": you read Play·Stop·Click as one transport, and the eye does not stop inside it.
+<b>14&nbsp;px</b> means "a different job starts here". There is no third gap and no separator hairline
+&mdash; the <code>.sep</code> spans that used to sit between the transport and the readouts are gone,
+because a gap more than twice the other one already says what they said.</div>
+
+<div class="lbl">The status line is the one thing that gives</div>
+<div class="barwrap">
+    <div id="bar">
+      <span class="grp">
+        <button id="play">▶ Play</button>
+        <button id="stop">■ Stop</button>
+        <button id="metroBtn" class="tgl">● Click</button>
+      </span>
+      <span id="outsel" class="seg"><b>Out:</b><button disabled>Piano</button><button class="on">Computer</button></span>
+      <span class="grp">
+        <label class="chk"><input type="checkbox"> Melody</label>
+      </span>
+      <span id="pos">–</span>
+      <span class="grp">
+        <span id="speed">Speed
+          <input type="range" min="50" max="200" step="1" value="100">
+          <b contenteditable="plaintext-only" inputmode="numeric">100</b> bpm</span>
+        <span id="vol">Volume
+          <input type="range" min="0" max="100" step="1" value="100">
+          <b>100%</b></span>
+      </span>
+      <span class="grp">
+        <span id="played">–</span><span id="inled"></span>
+      </span>
+      <span id="statusEl">out: computer audio · MIDI blocked: Permission to use Web MIDI API was not granted by the user.</span>
+    </div>
+</div>
+<div class="cap2">Exactly one slot gives way, and it is always the same one.
+<code>#statusEl</code> is <code>flex:1 1 0;min-width:0</code>, right-aligned, with
+<code>text-overflow:ellipsis</code>; every other slot is <code>flex:0 0 auto</code> and keeps the width
+its contents ask for. A MIDI error long enough to break the row loses its own tail instead, and no
+control moves by a pixel. When even a truncated status line is not enough &mdash; below laptop width
+&mdash; <code>#bar</code>'s <code>flex-wrap:wrap</code> takes a second row rather than clipping a
+readout. <b>The slack is thin and it is all held here on purpose.</b> Measured on a 1240&nbsp;px bar,
+the status line gets <b>66.41&nbsp;px</b> on practice, <b>36.70</b> on looper and <b>19.28</b> on
+learn &mdash; which is why even <code>connecting…</code> arrives with an ellipsis. Every other slot is
+full size in all three; the whole of the difference between the pages lands in this one span, and it
+is the right place for it, because a truncated status line still reads and a squeezed readout would
+not.</div>
+
+<div class="lbl">The readouts hold their width</div>
+<div class="guided stack">
+  <i class="vguide"></i>
+  <div class="barwrap">
+    <div id="bar">
+      <span class="grp">
+        <button id="play">▶ Play</button>
+        <button id="stop">■ Stop</button>
+        <button id="metroBtn" class="tgl">● Click</button>
+      </span>
+      <span id="outsel" class="seg"><b>Out:</b><button disabled>Piano</button><button class="on">Computer</button></span>
+      <span class="grp">
+        <label class="chk"><input type="checkbox"> Melody</label>
+      </span>
+      <span id="pos">–</span>
+      <span class="grp">
+        <span id="speed">Speed
+          <input type="range" min="50" max="200" step="1" value="100">
+          <b contenteditable="plaintext-only" inputmode="numeric">100</b> bpm</span>
+        <span id="vol">Volume
+          <input type="range" min="0" max="100" step="1" value="100">
+          <b>100%</b></span>
+      </span>
+      <span class="grp">
+        <span id="played">–</span><span id="inled"></span>
+      </span>
+      <span id="statusEl">out: computer audio</span>
+    </div>
+  </div>
+  <div class="barwrap">
+    <div id="bar">
+      <span class="grp">
+        <button id="play">▶ Play</button>
+        <button id="stop">■ Stop</button>
+        <button id="metroBtn" class="tgl">● Click</button>
+      </span>
+      <span id="outsel" class="seg"><b>Out:</b><button disabled>Piano</button><button class="on">Computer</button></span>
+      <span class="grp">
+        <label class="chk"><input type="checkbox" checked> Melody</label>
+      </span>
+      <span id="pos">bar 12/12 · Bb7</span>
+      <span class="grp">
+        <span id="speed">Speed
+          <input type="range" min="50" max="200" step="1" value="100">
+          <b contenteditable="plaintext-only" inputmode="numeric">100</b> bpm</span>
+        <span id="vol">Volume
+          <input type="range" min="0" max="100" step="1" value="100">
+          <b>100%</b></span>
+      </span>
+      <span class="grp">
+        <span id="played">C#4 E4 G#4</span><span id="inled" class="hit"></span>
+      </span>
+      <span id="statusEl">out: computer audio</span>
+    </div>
+  </div>
+</div>
+<div class="cap2">The two readouts are the only things in the bar whose text changes while you play,
+and both are given a reserve rather than left to their content: <code>#pos</code> is tabular with
+<code>min-width:102px</code>, and <code>#played</code> is mono, tabular and
+<code>min-width:90px</code>. Nothing but those two readouts differs between the two rows, and the
+dashed line is the left edge of the <b>levels</b> group &mdash; the first thing that would move.
+<code>#played</code> holds: a held <code>C#4 E4 G#4</code> measures <b>90.00&nbsp;px</b> into a
+90&nbsp;px reserve, and mono figures mean every three-note chord measures the same.
+<b><code>#pos</code> holds too:</b> its widest string, <code>bar 12/12 · Bb7</code>, measures
+<b>101.53&nbsp;px</b> inside the 102&nbsp;px reserve, so the line stays where it is and the
+status line keeps its width. A reserve has to be the widest string the readout can print, not the one
+it usually prints, which is why <code>#pos</code> reserves 102&nbsp;px. The bpm and volume readouts
+follow the same rule and reserve 35 and 47&nbsp;px (see <i>Controls &middot; Sliders</i>). Beyond the reserve the behaviour is still right:
+a four-note <code>C#4 E4 G#4 B4</code> measures 109.58 and runs past 90, and what it runs into is the
+status line, which is what the status line is for.</div>
+
+<p class="rules"><b>Rules.</b> The bar is <b>one row at laptop width</b>: 8&nbsp;px above and below,
+14&nbsp;px at each end, a 1&nbsp;px <code>--line</code> rule under it, and every control centred on the
+one line. It is built of <b>groups</b>, not of controls: 6&nbsp;px inside a group, 14&nbsp;px between
+groups, no hairlines and no third distance. The seven slots are fixed and in this order &mdash;
+transport, output, page, readout, levels, input, status &mdash; and a page may change what is in a
+slot but never the order, and never adds a slot. A group of one control needs no wrapper. <b>Every
+control in the bar is 30&nbsp;px</b>: buttons, the icon toggle and the Out strip alike; only the plain
+readings (the checkbox, the numbers, the LED) are shorter, and they are centred, not aligned.
+<b>One thing gives way</b>: the status line, truncating with an ellipsis; and when that is not enough,
+below laptop width, the row wraps. Nothing is ever clipped and nothing else moves &mdash; every other
+slot is <code>flex:0 0 auto</code>. Anything whose
+text changes while the app runs holds a reserve and is set in tabular figures, so that a bar number or
+a chord never shoves the row: what it eats instead is the slack the status line is holding.</p>
+</body></html>

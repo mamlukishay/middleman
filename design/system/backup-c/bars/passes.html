@@ -1,0 +1,128 @@
+<!-- @dsCard group="Backup C · Bars & panels" -->
+<!doctype html><html><head><meta charset="utf-8"><style>
+  /* app: style.css */
+  :root{--bg:#14161a;--pane:#1c1f26;--line:#2c313b;--fg:#e6e8ec;--dim:#8b93a3; --accent:#e8b44a;--play:#2f7fd0;--you:#ff2fd6; /* ---- the block --------------------------------------------------- A control in the bars is a machined block standing on the panel, not a painted rectangle. --h is how tall it stands; --side is the extruded body under the face and --base the 1px of shadow it puts on the panel. Every shadow here has 0 blur: the edges are cut, not lit. Pressed, the block travels the whole --h and is flush with the panel: no side under it, nothing painted where it used to be, and one faint line inside the top edge as the only thing left saying it went down. */ --h:5px; /* THE face height. Every control in a transport bar is exactly this tall and the round theme takes its diameter from it, so the bar has one line of faces and one line of base lines rather than a height per label. It has to be declared rather than left to `line-height:normal`, which measures the glyphs: a bold label, a musical sign or a pause bar each grew their own button by a pixel or five. */ --btn-h:29px; /* the transport is the one control that is not a face height: a square block two faces tall and just as wide. It is what the bar is now measured by -- everything else bottom-aligns on the base line it stands on. */ --xport-h:calc(var(--btn-h) * 2); --cap:10px; --capgap:3px; /* the strip's caption, and its gap under the base line */ --side:#232935; --base:#04060a; --face:#2c313b; --seam:#101319; /* the four edges are not one outline: the top catches the light, the bottom is where the face turns into the side, and both are exactly one pixel */ --edgeT:#5b6479; --edgeX:#3f4757; --edgeB:#191d25; --hi:.09; /* the 1px machined edge along the top; hover files it brighter */ --up:inset 0 1px 0 rgba(255,255,255,var(--hi)), 0 var(--h) 0 var(--side),0 calc(var(--h) + 1px) 0 var(--base); --down:inset 0 1px 0 rgba(0,0,0,.26); /* a dead control is pushed in, not standing out: the same flush geometry as a lit one, with a face a shade off the panel instead of the amber */ --face-off:#1a1e25; --down-off:inset 0 1px 0 rgba(0,0,0,.34); /* the opposite of --up: a hole in the panel, with a hard dark lip along the top where the panel was cut and one faint line at the bottom where light gets in. Readings live in it; nothing you can press does. */ --pkt:inset 0 2px 0 #05070b,inset 0 1px 0 #000,inset 0 -1px 0 rgba(255,255,255,.045); /* on amber the line has to be warm: pure black reads as dirt on a light face */ --down-lit:inset 0 1px 0 rgba(84,55,8,.30); /* a machined face is not polished. A 64px tile of grey noise, laid over whatever colour the button already had at 13% overlay, so the amber goes matte on the same terms as the grey. */ --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='64' height='64' filter='url(%23g)'/%3E%3C/svg%3E")}
+  *{box-sizing:border-box}
+  /* end app */
+  /* app: looper.css */
+  :root{ --lane1:#ff2fd6; --lane2:#d250ec; --lane3:#a563ee; --lane4:#7c6fe0; --rec:#e63d40; --dub:var(--accent); --ok:#5fbf7a; /* lanes give up height first on a short screen, and the key strip second */ --lh:clamp(70px,calc((100vh - 520px) / 4),150px); --kbh:clamp(64px,11vh,90px); --headw:194px; /* lane header column */ --roll:#191d24; --rollEmpty:#171a20; --mono:ui-monospace,SFMono-Regular,Menlo,monospace; }
+  /* end app */
+  /* app: learn.css */
+  :root{ --rh:#e8b44a; --lh:#2f7fd0; --hit:#5fbf7a; --miss:#e63d40; }
+  #lesson{background:var(--pane);border:1px solid var(--line);border-radius:8px;padding:12px; overflow:hidden;display:flex;flex-direction:column;gap:12px}
+  .lstate{font-size:12px;min-height:18px}
+  .lstate.ok{color:var(--hit);font-weight:600}
+  .lstate.no{color:#ffb0b0}
+  .meter{display:flex;gap:8px;min-height:40px}
+  .slot{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:3px;padding:6px 8px;border-radius:6px; border:1px solid var(--line);background:#22262f}
+  .slabel{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim)}
+  .sbar{height:5px;border-radius:3px;background:#171a20;overflow:hidden}
+  .sbar i{display:block;height:100%;width:0;background:#7a3a3d;transition:width .15s linear}
+  .sval{font:700 14px var(--mono);color:var(--dim);font-variant-numeric:tabular-nums}
+  .slot.live .sval{color:#ffb0b0}
+  .slot.ok{border-color:var(--hit)}
+  .slot.ok .sbar i{background:var(--hit)}
+  .slot.ok .sval{color:var(--hit)}
+  .slot.no{border-color:#7a3a3d}
+  .slot.no .sval{color:#ffb0b0}
+  .slot.done .sbar{opacity:.5}
+  .passes{display:flex;gap:4px;flex-wrap:wrap;min-height:22px;align-items:center}
+  .pass{font:600 11px var(--mono);height:20px;min-width:34px;padding:0 7px;border-radius:4px; border:1px solid var(--line);background:#22262f;color:var(--dim); display:inline-flex;align-items:center;justify-content:center;line-height:1}
+  .pass.ok{border-color:var(--hit);color:var(--hit)}
+  .pass.no{border-color:#7a3a3d;color:#ffb0b0}
+  .pass.pending{border-style:dashed}
+  #scoreline{display:flex;gap:16px;align-items:center;font-size:12px;color:var(--dim);min-height:18px;flex:0 0 auto}
+  #scoreline b{color:var(--fg);font-variant-numeric:tabular-nums}
+  #scoreline .hitc{color:var(--hit)}
+  #scoreline .missc{color:#ffb0b0}
+  .legend{margin-left:auto;display:flex;gap:12px}
+  .legend span{display:flex;align-items:center;gap:5px}
+  .legend i{width:10px;height:10px;border-radius:2px;display:inline-block}
+  /* end app */
+
+/* ---- preview only --------------------------------------------------------
+   The meters live in the lesson panel, so the panel is the real #lesson; the
+   bar widths and the state classes are what the js sets on it while you loop. */
+body{margin:0;padding:24px;background:var(--bg);color:var(--fg);
+     font:14px/1.45 ui-sans-serif,system-ui,sans-serif}
+.lbl{font:700 10px/1 ui-sans-serif,system-ui,sans-serif;letter-spacing:.08em;
+     text-transform:uppercase;color:var(--dim);margin:0 0 12px}
+.row{margin-bottom:28px}
+.cap,.mcap{font-size:11px;color:var(--dim);margin-top:7px;line-height:1.5}
+.rules{font-size:12px;color:var(--dim);max-width:760px;margin:32px 0 0;line-height:1.6}
+#lesson{width:300px}
+.wide{width:760px}
+</style></head><body>
+
+<div class="row">
+  <div class="lbl">Pass cards</div>
+  <div class="passes">
+    <span class="pass">–</span>
+    <span class="pass ok">✓ 89%</span>
+    <span class="pass no">71%</span>
+    <span class="pass pending"></span>
+  </div>
+  <div class="cap">One per required pass: waiting · passed · failed · still to come (dashed).
+  A failed card ends the streak, so nothing after it counts until it is cleared. Every card is the
+  same box — 20&nbsp;px tall, at least 34&nbsp;px wide, its contents centred — so the empty dashed one
+  is exactly the shape of the card that will replace it, and a two-digit pass is no wider than a
+  one-digit one.</div>
+</div>
+
+<div class="row">
+  <div class="lbl">Challenge meter · in the lesson panel</div>
+  <div id="lesson">
+    
+      <div>
+        <div class="meter"><div class="slot"><span class="slabel">Pass 1</span><div class="sbar"><i style="width:0%"></i></div><b class="sval">–</b></div><div class="slot"><span class="slabel">Pass 2</span><div class="sbar"><i style="width:0%"></i></div><b class="sval">–</b></div></div>
+        <div class="mcap">rest — nothing has come due yet</div>
+      </div>
+    
+      <div>
+        <div class="meter"><div class="slot live"><span class="slabel">Pass 1</span><div class="sbar"><i style="width:62%"></i></div><b class="sval">62%</b></div><div class="slot"><span class="slabel">Pass 2</span><div class="sbar"><i style="width:0%"></i></div><b class="sval">–</b></div></div>
+        <div class="mcap">live — the running pass, filling under the playhead</div>
+      </div>
+    
+      <div>
+        <div class="meter"><div class="slot ok"><span class="slabel">Pass 1</span><div class="sbar"><i style="width:89%"></i></div><b class="sval">89%</b></div><div class="slot"><span class="slabel">Pass 2</span><div class="sbar"><i style="width:0%"></i></div><b class="sval">–</b></div></div>
+        <div class="mcap">ok — the target reached</div>
+      </div>
+    
+      <div>
+        <div class="meter"><div class="slot no"><span class="slabel">Pass 1</span><div class="sbar"><i style="width:71%"></i></div><b class="sval">✗ 71%</b></div><div class="slot"><span class="slabel">Pass 2</span><div class="sbar"><i style="width:0%"></i></div><b class="sval">–</b></div></div>
+        <div class="mcap">no — short of the target</div>
+      </div>
+    
+      <div>
+        <div class="meter"><div class="slot ok done"><span class="slabel">Pass 1</span><div class="sbar"><i style="width:89%"></i></div><b class="sval">✓ 89%</b></div><div class="slot live"><span class="slabel">Pass 2</span><div class="sbar"><i style="width:40%"></i></div><b class="sval">40%</b></div></div>
+        <div class="mcap">done — a finished pass keeps its number, bar at half</div>
+      </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="lbl">Step state, under the meter</div>
+  <div class="lstate ok">Pass 1: 89% ✓ — one more</div>
+  <div class="lstate no">Pass 1: 71% — start again</div>
+  <div class="cap">One line, 18&nbsp;px tall whether or not it says anything, so the panel
+  never jumps as a pass lands.</div>
+</div>
+
+<div class="row">
+  <div class="lbl">Scoreline, under the stage</div>
+  <div class="wide">
+    <div id="scoreline"><span>pass: <b class="hitc">89%</b></span><span>hit <b>25</b> of <b>28</b></span><span>missed <b>3</b></span><span>extra <b>0</b></span><span>timing centred</span><span class="legend"><span><i style="background:var(--hit)"></i>hit</span><span><i style="background:#3a2126;border:1px solid var(--miss)"></i>missed</span><span><i style="background:var(--miss)"></i>wrong</span></span></div>
+  </div>
+  <div class="cap">Numbers in the foreground colour, the headline percentage green or red;
+  the legend is pushed to the far end and names the three colours the roll uses.</div>
+</div>
+
+<p class="rules">Rules: green is <code>--hit</code> and every failure is the same #7a3a3d border
+with #ffb0b0 type — a miss is never the accent. The meter is built once per challenge and only
+mutated after that, because it repaints forty times a second under a playhead, so nothing in it
+may change size: the slots share the row, the bar is always 5&nbsp;px, and the value is mono and
+tabular so 8% and 89% occupy the same width. A pass card is a fixed box for the same reason —
+<code>height:20px;min-width:34px</code> and an <code>inline-flex</code> centre, with the row itself
+centring them — so a row of passes is a row of equal cards and nothing shifts as one lands.</p>
+
+</body></html>

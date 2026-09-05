@@ -1,0 +1,151 @@
+<!-- @dsCard group="Backup C · Bars & panels" -->
+<!doctype html><html><head><meta charset="utf-8"><style>
+  /* app: style.css */
+  :root{--bg:#14161a;--pane:#1c1f26;--line:#2c313b;--fg:#e6e8ec;--dim:#8b93a3; --accent:#e8b44a;--play:#2f7fd0;--you:#ff2fd6; /* ---- the block --------------------------------------------------- A control in the bars is a machined block standing on the panel, not a painted rectangle. --h is how tall it stands; --side is the extruded body under the face and --base the 1px of shadow it puts on the panel. Every shadow here has 0 blur: the edges are cut, not lit. Pressed, the block travels the whole --h and is flush with the panel: no side under it, nothing painted where it used to be, and one faint line inside the top edge as the only thing left saying it went down. */ --h:5px; /* THE face height. Every control in a transport bar is exactly this tall and the round theme takes its diameter from it, so the bar has one line of faces and one line of base lines rather than a height per label. It has to be declared rather than left to `line-height:normal`, which measures the glyphs: a bold label, a musical sign or a pause bar each grew their own button by a pixel or five. */ --btn-h:29px; /* the transport is the one control that is not a face height: a square block two faces tall and just as wide. It is what the bar is now measured by -- everything else bottom-aligns on the base line it stands on. */ --xport-h:calc(var(--btn-h) * 2); --cap:10px; --capgap:3px; /* the strip's caption, and its gap under the base line */ --side:#232935; --base:#04060a; --face:#2c313b; --seam:#101319; /* the four edges are not one outline: the top catches the light, the bottom is where the face turns into the side, and both are exactly one pixel */ --edgeT:#5b6479; --edgeX:#3f4757; --edgeB:#191d25; --hi:.09; /* the 1px machined edge along the top; hover files it brighter */ --up:inset 0 1px 0 rgba(255,255,255,var(--hi)), 0 var(--h) 0 var(--side),0 calc(var(--h) + 1px) 0 var(--base); --down:inset 0 1px 0 rgba(0,0,0,.26); /* a dead control is pushed in, not standing out: the same flush geometry as a lit one, with a face a shade off the panel instead of the amber */ --face-off:#1a1e25; --down-off:inset 0 1px 0 rgba(0,0,0,.34); /* the opposite of --up: a hole in the panel, with a hard dark lip along the top where the panel was cut and one faint line at the bottom where light gets in. Readings live in it; nothing you can press does. */ --pkt:inset 0 2px 0 #05070b,inset 0 1px 0 #000,inset 0 -1px 0 rgba(255,255,255,.045); /* on amber the line has to be warm: pure black reads as dirt on a light face */ --down-lit:inset 0 1px 0 rgba(84,55,8,.30); /* a machined face is not polished. A 64px tile of grey noise, laid over whatever colour the button already had at 13% overlay, so the amber goes matte on the same terms as the grey. */ --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='64' height='64' filter='url(%23g)'/%3E%3C/svg%3E")}
+  *{box-sizing:border-box}
+  #bar{display:flex;flex-wrap:nowrap;gap:20px;align-items:center;padding:8px 14px; border-bottom:1px solid var(--line);flex:0 0 auto}
+  .grp{display:flex;align-items:flex-end;gap:6px;position:relative;flex:0 0 auto}
+  .grp.status{flex:1 1 0;min-width:0}
+  #bar #pos,#bar #speed,#bar #vol,#bar .grp.pkt{ height:var(--btn-h);border-radius:2px;background:#0b0e13;box-shadow:var(--pkt); display:inline-flex;align-items:center;gap:8px;padding:0 10px;line-height:1; font-variant-numeric:tabular-nums;font-size:13px}
+  #bar #pos b,#bar #speed b,#bar #vol b{ color:var(--accent);font-weight:700;letter-spacing:.02em;min-width:0;padding:0;border:0; text-align:left;text-shadow:0 0 9px rgba(232,180,74,.5)}
+  #bar #pos>span{display:inline-flex;align-items:center;gap:5px}
+  #bar .k,#bar .u{color:#5d6473;font-size:10px;font-style:normal;font-weight:700; letter-spacing:.08em;text-transform:uppercase}
+  #bar .grp.pkt>#played{min-width:0;font-size:13px}
+  #played{color:var(--you);font-weight:700;text-shadow:0 0 10px rgba(255,47,214,.5)}
+  #inled{width:7px;height:7px;border-radius:50%;background:#3a3f4a;flex:0 0 auto; transition:background .1s}
+  #inled.hit{background:var(--you);box-shadow:0 0 8px var(--you)}
+  #statusEl{color:var(--dim);font-size:11px;flex:1 1 0;min-width:0;text-align:right; overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .trk-err{padding:8px 9px;border-radius:6px;background:#3a2126;color:#ff9d9d;font-size:12px}
+  .trk-err small{color:#c98080}
+  /* end app */
+  /* app: looper.css */
+  :root{ --lane1:#ff2fd6; --lane2:#d250ec; --lane3:#a563ee; --lane4:#7c6fe0; --rec:#e63d40; --dub:var(--accent); --ok:#5fbf7a; /* lanes give up height first on a short screen, and the key strip second */ --lh:clamp(70px,calc((100vh - 520px) / 4),150px); --kbh:clamp(64px,11vh,90px); --headw:194px; /* lane header column */ --roll:#191d24; --rollEmpty:#171a20; --mono:ui-monospace,SFMono-Regular,Menlo,monospace; }
+  #bar #pos,#bar #played{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .chip[hidden]{display:none}
+  .chip{border-radius:4px;padding:1px 6px;font-size:10px;font-weight:600; background:#22262f;color:#6c7382;border:1px solid var(--line);cursor:pointer}
+  .chip.on{background:var(--accent);color:#14161a;border-color:var(--accent)}
+  .chip.solo.on{background:var(--play);border-color:var(--play);color:#fff}
+  kbd,.kbd{padding:1px 6px;border:1px solid var(--line);border-radius:4px;background:#22262f; font:600 11px var(--mono);color:var(--fg)}
+  #legend{display:flex;flex-wrap:wrap;gap:5px 14px;align-items:center;font-size:11px;color:var(--dim)}
+  #legend span.k{display:flex;align-items:center;gap:5px}
+  #legend .kbd.hot{background:var(--accent);color:#14161a;border-color:var(--accent)}
+  .tip{position:fixed;z-index:60;pointer-events:none;max-width:264px; background:#2a2f3a;color:var(--fg);border:1px solid #3a4150;border-radius:6px; padding:6px 9px;font-size:11.5px;line-height:1.45; box-shadow:0 6px 18px rgba(0,0,0,.5)}
+  .tip[hidden]{display:none}
+  .tip kbd{margin-left:7px;vertical-align:1px}
+  /* end app */
+  /* app: learn.css */
+  :root{ --rh:#e8b44a; --lh:#2f7fd0; --hit:#5fbf7a; --miss:#e63d40; }
+  .setline{font-size:12px;color:var(--dim)}
+  #sharestate.ok{color:var(--hit)}
+  .chips{display:flex;gap:4px;flex-wrap:wrap}
+  .chips .chip{padding:3px 8px;font-size:11px}
+  /* end app */
+
+/* ---- preview only --------------------------------------------------------
+   The readouts are pockets and a pocket only exists inside the bar, so each one
+   is a real #bar with the page chrome taken off. The tooltip is normally fixed
+   and follows the pointer; here it is parked in the flow so it can be looked at. */
+body{margin:0;padding:24px;background:var(--bg);color:var(--fg);
+     font:14px/1.45 ui-sans-serif,system-ui,sans-serif}
+/* the app's own rule is body:not(.mob) #bar, so the override is scoped the same way
+   or the bar keeps the page's padding around the pocket */
+body:not(.mob) .cell #bar{padding:0;border-bottom:0;display:inline-flex}
+.lbl{font:700 10px/1 ui-sans-serif,system-ui,sans-serif;letter-spacing:.08em;
+     text-transform:uppercase;color:var(--dim);margin:0 0 12px}
+.row{margin-bottom:26px}
+.stage{display:flex;align-items:flex-start;gap:28px;flex-wrap:wrap}
+.cell{display:flex;flex-direction:column;align-items:flex-start}
+.cap{font-size:11px;color:var(--dim);margin-top:9px;line-height:1.5;max-width:250px}
+.wide{max-width:560px}
+.rules{font-size:12px;color:var(--dim);max-width:700px;margin:30px 0 0;line-height:1.6}
+.statusbox{width:300px}
+.err{width:200px}
+.tip.parked{position:static;display:inline-block}
+</style></head><body>
+
+<div class="row">
+  <div class="lbl">The position pocket · one shape per page</div>
+  <div class="stage">
+    <div class="cell"><div id="bar"><div class="grp"><span id="pos"><span><i class="k">bar</i><b>3/12</b></span><span><b>C7</b></span></span></div></div>
+      <div class="cap">Practice: which bar of the form, and the chord under it. <code>bar</code> is an engraved key, <code>3/12</code> and <code>C7</code> are lit.</div></div>
+    <div class="cell"><div id="bar"><div class="grp"><span id="pos"><span><i class="k">bar</i><b>5/12</b></span><span><b>Cm7</b></span></span></div></div>
+      <div class="cap">Looper: the same two, counted over the one chorus the lanes are as wide as.</div></div>
+    <div class="cell"><div id="bar"><div class="grp"><span id="pos"><span><i class="k">bar</i><b>1</b></span><span><i class="k">beat</i><b>3</b></span><span><i class="k">pass</i><b>2</b></span></span></div></div>
+      <div class="cap">Learn: three parts, so three keys. Each key sits tight against its own value and the pocket’s 8&nbsp;px keeps the pairs apart.</div></div>
+    <div class="cell"><div id="bar"><div class="grp"><span id="pos"><span><b>–</b></span></span></div></div>
+      <div class="cap">Idle. A part with no number is all value and gets no key — the dash is lit like any other reading.</div></div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="lbl">The input pocket</div>
+  <div class="stage">
+    <div class="cell"><div id="bar"><div class="grp"><div class="grp pkt"><span id="played">–</span><span id="inled"></span></div></div></div>
+      <div class="cap">Nothing held, nothing arriving: the LED is the panel’s own grey.</div></div>
+    <div class="cell"><div id="bar"><div class="grp"><div class="grp pkt"><span id="played">C4 E4 G4</span><span id="inled" class="hit"></span></div></div></div>
+      <div class="cap">What you are holding, in the magenta that means <em>you</em> everywhere else. The LED takes the same magenta and an 8&nbsp;px glow for as long as notes keep coming.</div></div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="lbl">Status line · 300px</div>
+  <div id="bar" class="statusbox"><span id="statusEl">out: computer audio · MIDI blocked: Permission to use Web MIDI API was not granted.</span></div>
+  <div class="cap wide">Not a pocket — plain text, 11&nbsp;px dim, pushed to the far end of the bar,
+  one line, ellipsis. It is the only thing in the bar that gives, so a long MIDI error can never
+  put Play on two lines.</div>
+</div>
+
+<div class="row">
+  <div class="lbl">Connected</div>
+  <div class="setline" id="sharestate">Connecting…</div>
+  <div class="setline ok" id="sharestate">Phone connected · playing here</div>
+  <div class="cap">The one line that turns green: same size, same place, only the colour says
+  it worked.</div>
+</div>
+
+<div class="row">
+  <div class="lbl">Chips</div>
+  <div class="chips">
+    <span class="chip">mute</span>
+    <span class="chip on">mute</span>
+    <span class="chip solo on">solo</span>
+  </div>
+  <div class="cap wide">A chip is a label you can press, not a block: 4&nbsp;px radius, flat, 10&nbsp;px.
+  Amber is on; solo is the blue the app's own hand is drawn in, so two lit chips never read as
+  the same thing.</div>
+</div>
+
+<div class="row">
+  <div class="lbl">Keys</div>
+  <div id="legend">
+    <span class="k"><kbd>Space</kbd>play</span>
+    <span class="k"><span class="kbd">Q</span>quantize</span>
+    <span class="k"><span class="kbd hot">R</span>armed</span>
+  </div>
+  <div class="cap wide">A key cap is mono, 11&nbsp;px, on the panel's own grey; the one that is armed
+  right now goes amber.</div>
+</div>
+
+<div class="row">
+  <div class="lbl">Tooltip</div>
+  <div class="tip parked">Wait mode: no clock. The song only moves on once you have played the
+  notes it is waiting on.<kbd>W</kbd></div>
+  <div class="cap wide">Fixed, 264&nbsp;px at most, one step lighter than the panel with a real
+  shadow — it is the one thing in the app allowed to float over everything else.</div>
+</div>
+
+<div class="row">
+  <div class="lbl">Error card</div>
+  <div class="err">
+    <div class="trk-err">Could not load tracks.json<br><small>Failed to fetch</small></div>
+  </div>
+  <div class="cap wide">Where a song card would have been: the same 6&nbsp;px row, in the miss red's
+  dark ground with the reason on the <code>small</code> line.</div>
+</div>
+
+<p class="rules">Rules: a reading is sunk, not standing — position and input are pockets one face
+high, the words in them engraved and only the numbers lit. The status line is the exception: it is
+text, because it is a sentence and not a reading. Nothing on this card stands proud; only something
+you press is a block.</p>
+
+</body></html>

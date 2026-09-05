@@ -1,0 +1,63 @@
+<!-- @dsCard group="Backup C · Foundations" -->
+<!doctype html><html><head><meta charset="utf-8"><style>
+/* app: style.css */
+:root{--bg:#14161a;--pane:#1c1f26;--line:#2c313b;--fg:#e6e8ec;--dim:#8b93a3; --accent:#e8b44a;--play:#2f7fd0;--you:#ff2fd6; /* ---- the block --------------------------------------------------- A control in the bars is a machined block standing on the panel, not a painted rectangle. --h is how tall it stands; --side is the extruded body under the face and --base the 1px of shadow it puts on the panel. Every shadow here has 0 blur: the edges are cut, not lit. Pressed, the block travels the whole --h and is flush with the panel: no side under it, nothing painted where it used to be, and one faint line inside the top edge as the only thing left saying it went down. */ --h:5px; /* THE face height. Every control in a transport bar is exactly this tall and the round theme takes its diameter from it, so the bar has one line of faces and one line of base lines rather than a height per label. It has to be declared rather than left to `line-height:normal`, which measures the glyphs: a bold label, a musical sign or a pause bar each grew their own button by a pixel or five. */ --btn-h:29px; /* the transport is the one control that is not a face height: a square block two faces tall and just as wide. It is what the bar is now measured by -- everything else bottom-aligns on the base line it stands on. */ --xport-h:calc(var(--btn-h) * 2); --cap:10px; --capgap:3px; /* the strip's caption, and its gap under the base line */ --side:#232935; --base:#04060a; --face:#2c313b; --seam:#101319; /* the four edges are not one outline: the top catches the light, the bottom is where the face turns into the side, and both are exactly one pixel */ --edgeT:#5b6479; --edgeX:#3f4757; --edgeB:#191d25; --hi:.09; /* the 1px machined edge along the top; hover files it brighter */ --up:inset 0 1px 0 rgba(255,255,255,var(--hi)), 0 var(--h) 0 var(--side),0 calc(var(--h) + 1px) 0 var(--base); --down:inset 0 1px 0 rgba(0,0,0,.26); /* a dead control is pushed in, not standing out: the same flush geometry as a lit one, with a face a shade off the panel instead of the amber */ --face-off:#1a1e25; --down-off:inset 0 1px 0 rgba(0,0,0,.34); /* the opposite of --up: a hole in the panel, with a hard dark lip along the top where the panel was cut and one faint line at the bottom where light gets in. Readings live in it; nothing you can press does. */ --pkt:inset 0 2px 0 #05070b,inset 0 1px 0 #000,inset 0 -1px 0 rgba(255,255,255,.045); /* on amber the line has to be warm: pure black reads as dirt on a light face */ --down-lit:inset 0 1px 0 rgba(84,55,8,.30); /* a machined face is not polished. A 64px tile of grey noise, laid over whatever colour the button already had at 13% overlay, so the amber goes matte on the same terms as the grey. */ --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='64' height='64' filter='url(%23g)'/%3E%3C/svg%3E")}
+button{background:#2a2f3a;color:var(--fg);border:1px solid var(--line);border-radius:6px; padding:6px 12px;cursor:pointer;font-size:13px}
+.tgl.on{background:var(--accent);border-color:var(--accent);color:#14161a;font-weight:600}
+:where(body:not(.mob)) button,:where(body:not(.mob)) .seg>a{ position:relative;box-shadow:var(--up); /* the drop is instant -- a block does not ease into a hole. Only the colour gets a beat, and 60ms of it is under the threshold where you read it as movement rather than as the button having simply changed. */ transition:background-color .06s linear}
+:where(body:not(.mob)) button::before,:where(body:not(.mob)) .seg>a::before{ content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none; background:var(--grain);opacity:.13;mix-blend-mode:overlay}
+:where(body:not(.mob)) button{background-color:var(--face)}
+:where(body:not(.mob)) button,:where(body:not(.mob)) button.mini{ border-color:var(--edgeT) var(--edgeX) var(--edgeB)}
+body:not(.mob) button,body:not(.mob) button.mini,body:not(.mob) .seg, body:not(.mob) .seg>button,body:not(.mob) .seg>a{border-radius:2px}
+body:not(.mob) .tgl.on{transform:translateY(var(--h));box-shadow:var(--down-lit)}
+/* end app */
+body{margin:0;padding:24px;background:var(--bg);color:var(--fg);font:14px/1.45 ui-sans-serif,system-ui,sans-serif}
+h1{font-size:15px;font-weight:700;margin:0 0 4px}
+.sub{font-size:12px;color:var(--dim);margin:0 0 18px;max-width:660px}
+.lbl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--dim);margin:18px 0 6px}
+.stage{background:var(--pane);border-radius:8px;padding:14px}
+.pair{display:flex;gap:26px;flex-wrap:wrap}
+.one{width:190px}
+/* the faces are made wide and tall so the 64px noise tile can be seen at all */
+.one button{width:190px;height:96px;font-size:13px}
+.cap{font-size:11px;color:var(--dim);margin-top:9px}
+/* "plain" is the same button with the overlay layer switched off */
+.plain::before{display:none}
+pre{white-space:pre-wrap;word-break:break-all;margin:0;
+    font:11px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--fg)}
+.decode{font-size:11px;color:var(--dim);margin:10px 0 0}
+.rules{font-size:12px;color:var(--dim);margin:20px 0 0;max-width:660px}
+</style></head><body>
+<h1>Grain</h1>
+<p class="sub">One 64&times;64 tile of grey noise, laid over whatever colour the control already had, at
+13% and in <code>overlay</code> blend. It sits on the button's own <code>::before</code> layer, so every
+later <code>background:</code> rule &mdash; amber, red &mdash; is textured by the same one.</p>
+
+<div class="lbl">Grey face &mdash; <span style="text-transform:none;letter-spacing:0;font-weight:400">--face #2c313b</span></div>
+<div class="stage"><div class="pair">
+  <div class="one"><button class="plain">Play</button><div class="cap">plain: flat, and it reads as paint</div></div>
+  <div class="one"><button>Play</button><div class="cap">grain .13: matte, and it reads as metal</div></div>
+</div></div>
+
+<div class="lbl">Amber face &mdash; <span style="text-transform:none;letter-spacing:0;font-weight:400">--accent #e8b44a, pressed</span></div>
+<div class="stage"><div class="pair">
+  <div class="one"><button class="tgl on plain">Click</button><div class="cap">plain: a lit amber face goes glossy</div></div>
+  <div class="one"><button class="tgl on">Click</button><div class="cap">grain .13: the same matte as the grey</div></div>
+</div></div>
+
+<div class="lbl">The recipe</div>
+<div class="stage">
+<pre>--grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='64' height='64' filter='url(%23g)'/%3E%3C/svg%3E")</pre>
+<p class="decode">Decoded: a 64&times;64 SVG, one <code>feTurbulence</code> of <code>fractalNoise</code> at
+<code>baseFrequency .85</code>, <code>numOctaves 2</code>, <code>stitchTiles stitch</code> so the tile
+repeats without a visible seam, then <code>feColorMatrix saturate 0</code> to take the colour out of it.
+Painted onto a rect that fills the tile.</p>
+</div>
+
+<p class="rules"><b>Rules.</b> A machined face is not polished. The grain is the one thing standing between
+a flat swatch and a surface, and it is deliberately near the threshold: at 13% you do not see noise, you
+see that the face is not glass. Because it is a separate layer under <code>mix-blend-mode:overlay</code>,
+it never has to be re-stated per colour &mdash; the amber goes matte on exactly the same terms as the grey,
+which is why lit and unlit blocks look like the same object. Nothing else in the app is textured: the
+grain means "this is a control you press".</p>
+</body></html>

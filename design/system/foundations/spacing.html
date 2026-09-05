@@ -1,0 +1,270 @@
+<!-- @dsCard group="Foundations" -->
+<!doctype html><html><head><meta charset="utf-8"><style>
+/* app: style.css */
+*{box-sizing:border-box}
+:root{--bg:#14161a;--pane:#1c1f26;--line:#2c313b;--fg:#e6e8ec;--dim:#8b93a3;
+      --accent:#e8b44a;--play:#2f7fd0;--you:#ff2fd6;
+      --mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+/* the bar is one row of groups: 14px between groups, 6px inside one. The status line is
+   the one thing that gives; below laptop width the row wraps, because clipping hid a
+   readout rather than merely looking tight. */
+#bar{display:flex;flex-wrap:wrap;gap:14px;align-items:center;padding:8px 14px;
+     border-bottom:1px solid var(--line);flex:0 0 auto;min-width:0}
+#bar .grp{display:flex;align-items:center;gap:6px;flex:0 0 auto}
+#bar button,#bar .chk{white-space:nowrap;flex:0 0 auto}
+button{background:#2a2f3a;color:var(--fg);border:1px solid var(--line);border-radius:6px;
+       padding:6px 12px;cursor:pointer;font:13px/16px ui-sans-serif,system-ui,sans-serif}
+.tgl.on{background:var(--accent);border-color:var(--accent);color:#14161a;font-weight:600}
+.tgl.icon{padding:6px 9px;font-size:15px;line-height:16px}
+.chk{display:flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;white-space:nowrap}
+.chk input{accent-color:var(--accent);cursor:pointer;margin:0}
+.seg{display:inline-flex;align-items:stretch;border:1px solid var(--line);border-radius:6px;
+     overflow:hidden;flex:0 0 auto}
+.seg>b{display:flex;align-items:center;padding:0 7px;background:#20242c;color:var(--dim);
+       font-size:11px;font-weight:500;white-space:nowrap}
+/* 16px line + 6+6 padding + the strip's own 2px border = the 30px every button is */
+.seg>button{border:0;border-radius:0;padding:6px 9px;font-size:12px;line-height:16px;white-space:nowrap}
+.seg>button+button{border-left:1px solid var(--line)}
+.seg>button.on{background:var(--accent);color:#14161a;font-weight:600}
+#side{background:var(--pane);border-right:1px solid var(--line);padding:10px;overflow:auto;
+      display:flex;flex-direction:column;gap:16px}
+#side h2{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin:0 0 8px}
+.trk{padding:7px 9px;border-radius:6px;cursor:pointer;margin-bottom:3px}
+.trk small{display:block;color:var(--dim);font-size:11px}
+/* measured: 101.53px, the widest string */
+#pos{font-variant-numeric:tabular-nums;color:var(--dim);min-width:102px}
+#speed,#vol{display:flex;align-items:center;gap:7px;color:var(--dim);font-size:12px;
+  white-space:nowrap}
+#speed input,#vol input{width:110px;accent-color:var(--accent)}
+/* measured: the old reserves were one digit short, so the row shifted at 200 bpm and 100% */
+#speed b,#vol b{color:var(--fg);font-variant-numeric:tabular-nums;min-width:35px;text-align:right;
+  cursor:text;border-radius:4px;padding:1px 4px;border:1px solid transparent}
+#speed b:hover{border-color:var(--line)}
+#played{color:var(--you);font-weight:700;min-width:90px;font-size:14px;
+  font-family:var(--mono);font-variant-numeric:tabular-nums;
+  text-shadow:0 0 10px rgba(255,47,214,.5)}
+#inled{width:9px;height:9px;border-radius:50%;background:#3a3f4a;transition:background .1s}
+#statusEl{flex:1 1 0;min-width:0;text-align:right;overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap;color:var(--dim);font-size:11px}
+#sheet{padding:10px 14px;display:flex;flex-direction:column;gap:8px;min-height:0;overflow:hidden}
+.bar{border:1px solid var(--line);border-radius:5px;padding:4px 2px;text-align:center;
+     background:var(--pane);font-weight:700;color:var(--accent);font-size:12px}
+/* end app */
+/* app: looper.css */
+button.mini{background:#22262f;border:1px solid var(--line);border-radius:5px;
+            padding:3px 8px;font-size:11px;font-variant-numeric:tabular-nums}
+.chip{border-radius:4px;padding:1px 6px;font-size:10px;font-weight:600;
+      background:#22262f;color:#6c7382;border:1px solid var(--line);cursor:pointer}
+kbd,.kbd{padding:1px 6px;border:1px solid var(--line);border-radius:4px;background:#22262f;
+         font:600 11px var(--mono);color:var(--fg)}
+.layer{display:flex;align-items:center;gap:8px;padding:5px 9px;border-radius:5px;
+       background:#22262f;border:1px solid var(--line);font-size:12px}
+#insp{background:var(--pane);border-left:1px solid var(--line);padding:12px;overflow:auto;
+      display:flex;flex-direction:column;gap:14px}
+#insp h2{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin:0}
+/* end app */
+/* app: learn.css */
+:root{
+  --rh:#e8b44a; --lh:#2f7fd0; --hit:#5fbf7a; --miss:#e63d40;
+}
+#progbar{height:5px;border-radius:3px;background:#22262f;overflow:hidden}
+#progbar i{display:block;height:100%;width:0;background:var(--hit);transition:width .3s}
+#lesson{background:var(--pane);border:1px solid var(--line);border-radius:8px;padding:12px;
+        overflow:hidden;display:flex;flex-direction:column;gap:12px}
+#lesson h2{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin:0 0 4px}
+.ltitle{font-size:15px;font-weight:700}
+.ltext{font-size:12px;line-height:1.5;color:var(--dim)}
+/* end app */
+/* app: learn-m.css */
+#songs{padding:0 12px;display:flex;flex-direction:column;gap:10px}
+.songcard{background:var(--pane);border:1px solid var(--line);border-radius:12px;padding:14px}
+.songcard .st1{font-size:20px;font-weight:700}
+.songcard .st2{font-size:13px;color:var(--dim);margin-top:2px}
+/* end app */
+/* preview only: the bar's gaps drawn as spacers. gap:0 plus a 14px / 6px block is
+   the same geometry as the real gap and padding, so this row measures what the row above is.
+   #speed b:hover is pinned too, so the 4px radius on a readout is visible in a screenshot. */
+#speed b.is-hover{border-color:var(--line)}
+#bar.ruler{gap:0;padding:8px 0;border-bottom:0}
+#bar.ruler .grp{gap:0}
+#bar.ruler i{flex:0 0 auto;height:30px;border-radius:2px;display:block}
+.sgrp{width:14px;background:repeating-linear-gradient(45deg,rgba(232,180,74,.42) 0 3px,transparent 3px 6px);
+     border:1px solid rgba(232,180,74,.55)}
+.s6{width:6px;background:repeating-linear-gradient(45deg,rgba(47,127,208,.55) 0 3px,transparent 3px 6px);
+    border:1px solid rgba(47,127,208,.7)}
+.s14{width:14px;background:repeating-linear-gradient(45deg,rgba(139,147,163,.35) 0 3px,transparent 3px 6px);
+     border:1px solid rgba(139,147,163,.5)}
+/* preview only: sidebars and inspectors are grid children in the app; here they are plain boxes. */
+#side,#insp{border:1px solid var(--line);border-radius:8px;height:auto;overflow:visible}
+#insp{border-left:1px solid var(--line)}
+/* preview only: the card's own page furniture. */
+body{margin:0;padding:24px;background:var(--bg);color:var(--fg);font:14px/1.45 ui-sans-serif,system-ui,sans-serif}
+h1{font-size:15px;font-weight:700;margin:0 0 4px}
+.sub{font-size:12px;color:var(--dim);margin:0 0 18px;max-width:680px}
+.lbl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--dim);margin:20px 0 6px}
+.stage{background:var(--pane);border-radius:8px;padding:14px}
+.stage.ground{background:var(--bg);border:1px solid var(--line)}
+.row{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start}
+.st{width:132px}
+.st .box{height:38px;display:flex;align-items:center;gap:8px}
+.st.w{width:190px}
+.st.t .box{height:64px;display:block}
+div.cap{font-size:11px;color:var(--dim);margin-top:8px}
+div.cap b{display:block;color:var(--fg);font-weight:600;margin-bottom:2px}
+.cap2{font-size:11px;color:var(--dim);margin-top:12px;max-width:660px;line-height:1.5}
+.cap2 b{color:var(--fg);font-weight:600}
+.key{display:flex;gap:20px;flex-wrap:wrap;margin-top:12px;font-size:11px;color:var(--dim)}
+.key span{display:flex;align-items:center;gap:7px}
+.key i{height:15px;border-radius:2px;display:block;flex:0 0 auto}
+.line30{border-top:1px dashed rgba(139,147,163,.55);border-bottom:1px dashed rgba(139,147,163,.55);
+        height:30px;display:flex;align-items:center;gap:20px;margin:22px 0 8px}
+.gapdemo{display:flex;align-items:center;margin-bottom:10px}
+.gapdemo em{font:600 11px var(--mono);font-style:normal;color:var(--fg);width:52px;flex:0 0 auto}
+.gapdemo u{display:flex;text-decoration:none;width:186px;flex:0 0 auto}
+.gapdemo u b{display:block;width:44px;height:22px;border-radius:4px;background:#2a2f3a;border:1px solid var(--line)}
+.gapdemo s{font-size:11px;color:var(--dim);text-decoration:none}
+.rad{display:flex;gap:22px;flex-wrap:wrap;align-items:flex-end}
+.rad>div{width:126px}
+.rad p{margin:8px 0 0;font-size:11px;color:var(--dim);line-height:1.45}
+.rad p b{display:block;color:var(--fg);font:600 11px var(--mono);margin-bottom:2px}
+.rules{font-size:12px;color:var(--dim);margin:22px 0 0;max-width:680px}
+</style></head><body>
+<h1>Spacing &amp; radius</h1>
+<p class="sub">Two scales carry the layout. Distance is 6 inside a group, 14 between bar groups and
+inside a bar or a card, 16 between sidebar sections, 8 and 12 between panels, 10 between list rows. Radius is 3
+for a bar, 4 for a chip, 5 for a small control, 6 for a control, 8 for a panel, 12 for a phone card
+&mdash; the radius grows with the thing, and the padding stays on the same six numbers.</p>
+
+<div class="lbl">The bar, and the same bar with its gaps drawn</div>
+<div class="stage ground">
+  <div id="bar">
+    <span class="grp">
+      <button id="play">&#9654; Play</button>
+      <button id="stop">&#9632; Stop</button>
+      <button id="metroBtn" class="tgl">&#9679; Click</button>
+    </span>
+    <span id="outsel"><span class="seg"><b>Out:</b><button class="on">Piano</button><button>Computer</button></span></span>
+    <span class="grp">
+      <label class="chk"><input type="checkbox"> Melody</label>
+      <button class="tgl icon">&#9834;</button>
+    </span>
+    <span id="pos">bar 3/12 &middot; beat 2</span>
+    <span class="grp">
+      <span id="speed">Speed <input type="range" min="50" max="200" value="100"> <b>100</b> bpm</span>
+    </span>
+    <span class="grp"><span id="played">C4 E4 G4</span><span id="inled"></span></span>
+    <span id="statusEl">MIDI: Roland FP-30</span>
+  </div>
+
+  <div id="bar" class="ruler">
+    <i class="s14"></i>
+    <span class="grp">
+      <button>&#9654; Play</button><i class="s6"></i>
+      <button>&#9632; Stop</button><i class="s6"></i>
+      <button class="tgl">&#9679; Click</button>
+    </span>
+    <i class="sgrp"></i>
+    <span class="seg"><b>Out:</b><button class="on">Piano</button><button>Computer</button></span>
+    <i class="sgrp"></i>
+    <span class="grp">
+      <label class="chk"><input type="checkbox"> Melody</label><i class="s6"></i>
+      <button class="tgl icon">&#9834;</button>
+    </span>
+    <i class="sgrp"></i>
+    <span id="pos">bar 3/12 &middot; beat 2</span>
+    <i class="sgrp"></i>
+    <span class="grp"><span id="speed">Speed <input type="range" min="50" max="200" value="100"> <b>100</b> bpm</span></span>
+    <i class="sgrp"></i>
+    <span class="grp"><span id="played">C4 E4 G4</span><i class="s6"></i><span id="inled"></span></span>
+    <i class="sgrp"></i>
+    <span id="statusEl">MIDI: Roland FP-30</span>
+    <i class="s14"></i>
+  </div>
+  <div class="key">
+    <span><i class="sgrp"></i>14px &mdash; between two groups</span>
+    <span><i class="s6"></i>6px &mdash; between siblings inside one group</span>
+    <span><i class="s14"></i>14px &mdash; the bar's own side padding (8px top and bottom)</span>
+  </div>
+  <div class="cap2"><b>Only two distances exist in the bar.</b> A group is a set of controls that mean
+  one thing, and the eye reads the 14 as the join and the 6 as the seam. The gaps themselves never
+  change: at laptop width the whole row fits, <code>#statusEl</code> is <code>flex:1 1 0</code> and
+  truncates first, and below laptop width the row wraps rather than clipping a readout.</div>
+</div>
+
+<div class="lbl">The gap scale</div>
+<div class="stage">
+  <div class="gapdemo"><em>6</em><u style="gap:6px"><b></b><b></b><b></b></u><s>inside a group &mdash; <code>#bar .grp</code>. Also <code>.lrow</code>, <code>.modes</code>, a lesson row</s></div>
+  <div class="gapdemo"><em>8</em><u style="gap:8px"><b></b><b></b><b></b></u><s>between panels stacked in a pane &mdash; <code>#sheet</code>, <code>.lane</code>, <code>#ruler</code>, <code>.layer</code>'s own row</s></div>
+  <div class="gapdemo"><em>10</em><u style="gap:10px"><b></b><b></b><b></b></u><s>between list rows &mdash; <code>#songs</code> on the phone, <code>#deck</code>'s row gap</s></div>
+  <div class="gapdemo"><em>12</em><u style="gap:12px"><b></b><b></b><b></b></u><s>inside a panel &mdash; <code>#lesson</code>, and between the two learn columns</s></div>
+  <div class="gapdemo"><em>14</em><u style="gap:14px"><b></b><b></b><b></b></u><s>between bar groups (<code>#bar</code>), and an inset: the padding of <code>#bar</code>, <code>#sheet</code>, <code>.songcard</code>, and <code>#insp</code>'s section gap</s></div>
+  <div class="gapdemo"><em>16</em><u style="gap:16px"><b></b><b></b><b></b></u><s>between sidebar sections (<code>#side</code>) &mdash; the largest gap there is, and the one that means "a different thing"</s></div>
+</div>
+
+<div class="lbl">Padding, and the 30px it adds up to</div>
+<div class="stage">
+  <div class="line30">
+    <button>&#9654; Play</button>
+    <span class="seg"><b>Out:</b><button class="on">Piano</button><button>Computer</button></span>
+    <button class="tgl icon">&#9834;</button>
+    <button class="mini">1/16</button>
+    <span class="chip">solo</span>
+  </div>
+  <div class="row">
+    <div class="st"><div class="cap"><b>button &mdash; 6px 12px</b>16px line + 6 + 6 + 2px border = <b style="display:inline">30px</b></div></div>
+    <div class="st"><div class="cap"><b>.seg&gt;button &mdash; 6px 9px</b>16 + 6 + 6 + the strip's own 2px border = 30px. Tighter sides because the segments touch</div></div>
+    <div class="st"><div class="cap"><b>.tgl.icon &mdash; 6px 9px</b>one glyph, so the sides come in to 9 and the square stays 30px tall</div></div>
+    <div class="st"><div class="cap"><b>.mini &mdash; 3px 8px</b>11px text = 24px. Deliberately not 30: it is not a bar control</div></div>
+    <div class="st"><div class="cap"><b>.chip &mdash; 1px 6px</b>10px text = 16px. A chip is a label you can press, not a button</div></div>
+  </div>
+  <div class="cap2"><b>Everything in the bar is 30px and nothing else is.</b> The dashed guides above are
+  30px apart. <code>button</code>, <code>.seg</code> and <code>.tgl.icon</code> land on them exactly
+  because the line box is fixed at 16px and only the padding differs. <code>#bar</code> itself pads
+  <b>8px 14px</b>; a panel pads <b>10px</b> (<code>#side</code>, <code>#sheet</code>,
+  <code>#deck</code>) to <b>12px</b> (<code>#lesson</code>, <code>#insp</code>).</div>
+</div>
+
+<div class="lbl">The radius scale</div>
+<div class="stage"><div class="rad">
+  <div><div id="progbar"><i style="width:62%"></i></div>
+    <p><b>3px</b>a bar of any kind: <code>#progbar</code>, <code>.sbar</code>, the overlay bar, a quantize button</p></div>
+  <div><span class="chip">solo</span> <kbd>R</kbd> <span id="speed"><b class="is-hover">100</b></span>
+    <p><b>4px</b>a chip, a key cap, an editable readout &mdash; the small things that carry a value</p></div>
+  <div><button class="mini">1/16</button> <span class="bar" style="display:inline-block;width:34px">7</span>
+    <p><b>5px</b>a small control: <code>.mini</code>, a strip cell, <code>.layer</code>, the capture buffer</p></div>
+  <div><button>&#9654; Play</button>
+    <p><b>6px</b>a control, a strip, a list row, a lane head, a tooltip &mdash; the default radius</p></div>
+  <div class="st w"><div id="lesson"><h2>Lesson</h2><div class="ltitle">Blues in F</div><div class="ltext">Right hand, bars 1&ndash;4.</div></div>
+    <p><b>8px</b>a panel: <code>#lesson</code>, <code>#deck</code>, <code>#notewrap</code>, <code>#rollwrap</code>, the staff</p></div>
+  <div class="st w"><div id="songs"><div class="songcard"><div class="st1">Blues in F</div><div class="st2">12 bars &middot; 96 bpm</div></div></div>
+    <p><b>12px</b>a phone card. The phone is the one place the radius goes past 8, because a card is the whole screen wide</p></div>
+</div>
+<div class="cap2"><b>The radius says how big the thing is, not what it is.</b> Read it as a scale:
+3 for something 5px tall, 4 for something 16&ndash;22px, 5 for 24px, 6 for 30px, 8 for a panel,
+12 for a full-width card. The one thing that breaks it is the strip cell <code>.bar</code>, which is
+5px sitting beside 6px buttons.</div>
+</div>
+
+<div class="lbl">The sidebar &mdash; 10px pad, 16px between sections</div>
+<div class="stage ground"><div class="row">
+  <div class="st w"><div id="side"><div><h2>Songs</h2>
+      <div class="trk">Blues in F<small>12 bars &middot; 96 bpm</small></div>
+      <div class="trk">Autumn Leaves<small>32 bars &middot; 120 bpm</small></div></div>
+    <div><h2>Practice</h2><div class="trk">Right hand<small>bars 1&ndash;4</small></div></div></div>
+    <div class="cap"><b>#side</b>10px padding, 16px between sections, 8px under a heading, 3px between rows</div></div>
+  <div class="st w"><div id="insp"><div><h2>Layers</h2></div>
+      <div class="layer"><span>Layer 1</span></div>
+      <div class="layer"><span>Layer 2</span></div></div>
+    <div class="cap"><b>#insp</b>12px padding, 14px between sections &mdash; the same idea two steps up, because the panel is narrower</div></div>
+</div></div>
+
+<p class="rules"><b>Rules.</b> Distance comes from one list &mdash; 6, 8, 10, 12, 14, 16 &mdash; and each
+number means something: 6 is a seam inside a group, 14 is the join between bar groups and the inset of a bar
+or a card, 16 is the gap between sidebar sections, 8 and 12 stack panels, 10 stacks list rows. Never put an in-between value in.
+Padding follows the control: 6px&nbsp;12px for a button, 6px&nbsp;9px when segments touch, 3px&nbsp;8px for
+a small one, 1px&nbsp;6px for a chip; a panel pads 10 to 12 and the bar pads 8&nbsp;14. Height is not set
+directly &mdash; every bar control comes to 30px from a fixed 16px line box plus its own padding plus the
+1px border, so the arithmetic is what keeps the row level. Radius rises with size: 3, 4, 5, 6, 8, 12,
+and a new element takes the value of the thing it is nearest in height, not the value of the thing next
+to it.</p>
+</body></html>

@@ -1,0 +1,118 @@
+<!-- @dsCard group="Backup C · Controls" -->
+<!doctype html><html><head><meta charset="utf-8"><style>
+  /* app: style.css */
+  :root{--bg:#14161a;--pane:#1c1f26;--line:#2c313b;--fg:#e6e8ec;--dim:#8b93a3; --accent:#e8b44a;--play:#2f7fd0;--you:#ff2fd6; /* ---- the block --------------------------------------------------- A control in the bars is a machined block standing on the panel, not a painted rectangle. --h is how tall it stands; --side is the extruded body under the face and --base the 1px of shadow it puts on the panel. Every shadow here has 0 blur: the edges are cut, not lit. Pressed, the block travels the whole --h and is flush with the panel: no side under it, nothing painted where it used to be, and one faint line inside the top edge as the only thing left saying it went down. */ --h:5px; /* THE face height. Every control in a transport bar is exactly this tall and the round theme takes its diameter from it, so the bar has one line of faces and one line of base lines rather than a height per label. It has to be declared rather than left to `line-height:normal`, which measures the glyphs: a bold label, a musical sign or a pause bar each grew their own button by a pixel or five. */ --btn-h:29px; /* the transport is the one control that is not a face height: a square block two faces tall and just as wide. It is what the bar is now measured by -- everything else bottom-aligns on the base line it stands on. */ --xport-h:calc(var(--btn-h) * 2); --cap:10px; --capgap:3px; /* the strip's caption, and its gap under the base line */ --side:#232935; --base:#04060a; --face:#2c313b; --seam:#101319; /* the four edges are not one outline: the top catches the light, the bottom is where the face turns into the side, and both are exactly one pixel */ --edgeT:#5b6479; --edgeX:#3f4757; --edgeB:#191d25; --hi:.09; /* the 1px machined edge along the top; hover files it brighter */ --up:inset 0 1px 0 rgba(255,255,255,var(--hi)), 0 var(--h) 0 var(--side),0 calc(var(--h) + 1px) 0 var(--base); --down:inset 0 1px 0 rgba(0,0,0,.26); /* a dead control is pushed in, not standing out: the same flush geometry as a lit one, with a face a shade off the panel instead of the amber */ --face-off:#1a1e25; --down-off:inset 0 1px 0 rgba(0,0,0,.34); /* the opposite of --up: a hole in the panel, with a hard dark lip along the top where the panel was cut and one faint line at the bottom where light gets in. Readings live in it; nothing you can press does. */ --pkt:inset 0 2px 0 #05070b,inset 0 1px 0 #000,inset 0 -1px 0 rgba(255,255,255,.045); /* on amber the line has to be warm: pure black reads as dirt on a light face */ --down-lit:inset 0 1px 0 rgba(84,55,8,.30); /* a machined face is not polished. A 64px tile of grey noise, laid over whatever colour the button already had at 13% overlay, so the amber goes matte on the same terms as the grey. */ --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='64' height='64' filter='url(%23g)'/%3E%3C/svg%3E")}
+  *{box-sizing:border-box}
+  #bar{display:flex;flex-wrap:nowrap;gap:20px;align-items:center;padding:8px 14px; border-bottom:1px solid var(--line);flex:0 0 auto}
+  .grp{display:flex;align-items:flex-end;gap:6px;position:relative;flex:0 0 auto}
+  #bar .grp>button{white-space:nowrap;flex:0 0 auto}
+  button{background:#2a2f3a;color:var(--fg);border:1px solid var(--line);border-radius:6px; padding:6px 12px;cursor:pointer;font-size:13px}
+  button:hover{background:#333947}
+  .tgl.on{background:var(--accent);border-color:var(--accent);color:#14161a;font-weight:600}
+  .seg{display:inline-flex;align-items:stretch;border:1px solid var(--line);border-radius:6px; overflow:hidden;flex:0 0 auto}
+  .seg>b{display:flex;align-items:center;padding:0 7px;background:#20242c;color:var(--dim); font-size:11px;font-weight:500;white-space:nowrap}
+  .seg>button{border:0;border-radius:0;padding:6px 9px;font-size:12px;white-space:nowrap}
+  .seg>button.on{background:var(--accent);color:#14161a;font-weight:600}
+  .seg>button:disabled{color:var(--dim);background:#23272f;cursor:not-allowed}
+  :where(body:not(.mob)) button,:where(body:not(.mob)) .seg>a{ position:relative;box-shadow:var(--up); /* the drop is instant -- a block does not ease into a hole. Only the colour gets a beat, and 60ms of it is under the threshold where you read it as movement rather than as the button having simply changed. */ transition:background-color .06s linear}
+  :where(body:not(.mob)) button::before,:where(body:not(.mob)) .seg>a::before{ content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none; background:var(--grain);opacity:.13;mix-blend-mode:overlay}
+  :where(body:not(.mob)) button{background-color:var(--face)}
+  :where(body:not(.mob)) button,:where(body:not(.mob)) button.mini{ border-color:var(--edgeT) var(--edgeX) var(--edgeB)}
+  :where(body:not(.mob)) button:hover{background-color:#363d4a;--hi:.17}
+  body:not(.mob) button,body:not(.mob) button.mini,body:not(.mob) .seg, body:not(.mob) .seg>button,body:not(.mob) .seg>a{border-radius:2px}
+  body:not(.mob) button:active{transform:translateY(var(--h));box-shadow:var(--down); border-color:var(--edgeX)}
+  body:not(.mob) .seg,body:not(.mob) .modes2{ gap:0;border-color:transparent;overflow:visible;border-radius:2px;position:relative; box-shadow:0 var(--h) 0 var(--side),0 calc(var(--h) + 1px) 0 var(--base)}
+  body:not(.mob) .seg>button,body:not(.mob) .seg>a,body:not(.mob) .modes2>button{ border-width:0;border-radius:0;box-shadow:inset 0 1px 0 rgba(255,255,255,var(--hi))}
+  body:not(.mob) .seg>button:not(.on):not(:disabled),body:not(.mob) .seg>a:not(.on){ background-color:var(--face)}
+  body:not(.mob) .seg>button+button,body:not(.mob) .seg>a+a, body:not(.mob) .modes2>button+button{border-left:1px solid var(--seam)}
+  body:not(.mob) .seg>button:first-of-type,body:not(.mob) .seg>a:first-of-type, body:not(.mob) .modes2>button:first-of-type{border-radius:2px 0 0 2px}
+  body:not(.mob) .seg>button:last-of-type,body:not(.mob) .seg>a:last-of-type, body:not(.mob) .modes2>button:last-of-type{border-radius:0 2px 2px 0}
+  body:not(.mob) .seg>button:active,body:not(.mob) .modes2>button:active{ transform:translateY(var(--h));box-shadow:var(--down)}
+  body:not(.mob) .seg>button.on,body:not(.mob) .seg>a.on,body:not(.mob) .modes2>button.on{ transform:translateY(var(--h));box-shadow:var(--down-lit)}
+  body:not(.mob) .seg>b{position:absolute;left:0;right:0;display:block;text-align:center; bottom:calc(100% + var(--h) + 1px + var(--capgap)); padding:0;background:none;box-shadow:none; font-size:var(--cap);font-weight:700;line-height:1;letter-spacing:.08em; text-transform:uppercase;color:var(--dim)}
+  body:not(.mob) #bar button.tgl{ width:var(--xport-h);height:var(--xport-h);min-width:var(--xport-h);padding:0 6px; font-size:12px;font-weight:600;white-space:normal;text-align:center;line-height:1.15; display:inline-flex;align-items:center;justify-content:center}
+  body:not(.mob) #bar button.xport{ width:calc(var(--xport-h) * 2);min-width:calc(var(--xport-h) * 2);height:var(--xport-h); font-size:14px;font-weight:600;padding:0}
+  body:not(.mob) button:disabled,body:not(.mob) .seg>button:disabled{ transform:translateY(var(--h));box-shadow:var(--down-off);opacity:1; background-color:var(--face-off);border-color:var(--face-off);color:var(--dim)}
+  body:not(.mob) #bar .grp>button:not(.tgl),body:not(.mob) #bar .grp>#outsel, body:not(.mob) #bar .grp>#statusEl{height:var(--btn-h)}
+  body:not(.mob) #bar button,body:not(.mob) #bar .seg>button,body:not(.mob) #bar .seg>a{ height:var(--btn-h);padding-top:0;padding-bottom:0;line-height:1; display:inline-flex;align-items:center;justify-content:center}
+  body:not(.mob) #bar .seg{border-width:0}
+  body:not(.mob) #bar .seg>button{padding-left:10px;padding-right:10px;font-size:12px}
+  body:not(.mob) #bar .seg>button,body:not(.mob) #bar .seg>button.on{font-weight:600}
+  body:not(.mob) #bar{align-items:flex-end; padding-top:calc(8px + var(--cap) + var(--capgap) + var(--h)); padding-bottom:calc(8px + var(--h) + 1px)}
+  /* end app */
+
+/* ---- preview only --------------------------------------------------------
+   The strip only exists inside the bar, so every cell is a real #bar with the
+   page chrome taken off; the dashes and dimension lines are the ruler. */
+body{margin:0;padding:24px;background:var(--bg);color:var(--fg);
+     font:14px/1.45 ui-sans-serif,system-ui,sans-serif}
+/* the app's own #bar rule is body:not(.mob) #bar, so an override of its padding has
+   to be scoped the same way or the bar keeps the page's 26px of air above the block */
+body:not(.mob) .cell #bar{padding:0;border-bottom:0;display:inline-flex}
+body:not(.mob) .geo #bar{padding:0;border-bottom:0;display:flex}
+h1{font-size:15px;font-weight:700;margin:0 0 4px}
+.sub{font-size:12px;color:var(--dim);margin:0 0 18px;max-width:700px;line-height:1.6}
+.lbl{font:700 10px/1 ui-sans-serif,system-ui,sans-serif;letter-spacing:.08em;
+     text-transform:uppercase;color:var(--dim);margin:18px 0 8px}
+.stage{background:var(--pane);border-radius:8px;padding:16px 18px;
+       display:flex;align-items:flex-start;gap:34px;flex-wrap:wrap}
+.cell{display:flex;flex-direction:column;align-items:flex-start;padding-top:22px}   /* room for the name above the block */
+.cap{font-size:11px;color:var(--dim);margin-top:11px;max-width:230px;line-height:1.5}
+.geo{position:relative;width:620px;padding:26px 0 12px}
+.guide{position:absolute;left:0;right:0;border-top:1px dashed rgba(232,180,74,.5)}
+.tx{position:absolute;font-size:11px;color:var(--dim);white-space:nowrap}
+.tx b{color:var(--fg);font-weight:600}
+.note{font-size:11px;color:var(--dim);margin-top:14px;max-width:700px;line-height:1.6;
+      border-left:2px solid var(--line);padding-left:12px}
+.rules{font-size:12px;color:var(--dim);max-width:74ch;margin:26px 0 0;line-height:1.6}
+</style></head><body>
+
+<h1>Out strip</h1>
+<p class="sub">Where the sound goes: the piano over MIDI, or the computer's own speakers. It is one
+block with a cut across it, not two buttons — the container owns the corners and the single
+continuous side, the halves own only their faces and the one pixel of seam between them. It stays
+<b>one face high</b> while the toggles beside it are the transport's square, and its name sits in the
+air <b>above</b> it rather than in the row, so the block itself is a clean row of faces.</p>
+
+<div class="lbl">The three states it is ever in</div>
+<div class="stage">
+    <div class="cell"><div id="bar"><div class="grp"><span id="outsel" class="seg"><b>Out</b><button disabled>Piano</button><button class="on">Computer</button></span></div></div>
+      <div class="cap">No MIDI output: the Piano half is <b>dead</b> — pushed all the way in, a shade off the panel, dim. Computer is lit.</div></div>
+    <div class="cell"><div id="bar"><div class="grp"><span id="outsel" class="seg"><b>Out</b><button class="on">Piano</button><button>Computer</button></span></div></div>
+      <div class="cap">A piano is connected and picked: that half is down and amber, the other stands raised and pressable.</div></div>
+    <div class="cell"><div id="bar"><div class="grp"><span id="outsel" class="seg"><b>Out</b><button disabled>Piano</button><button class="on">Phone</button></span></div></div>
+      <div class="cap">A phone on the music stand is making the sound, so the lit half renames itself — the label has to name the right speaker.</div></div>
+</div>
+
+<div class="lbl">Where the name sits</div>
+<div class="stage">
+  <div class="geo">
+    <div class="guide" style="top:7px"></div>
+    <div class="guide" style="top:26px"></div>
+    <div class="guide" style="top:55px"></div>
+    <div id="bar"><div class="grp"><span id="outsel" class="seg"><b>Out</b><button disabled>Piano</button><button class="on">Computer</button></span></div></div>
+    <span class="tx" style="left:300px;top:5px">the name — <b>--cap</b> 10, uppercase, .08em, dim</span>
+    <span class="tx" style="left:300px;top:33px">the block — <b>--btn-h</b> 29, one face, both halves</span>
+  </div>
+</div>
+<div class="cap" style="max-width:700px">Three lines: the top of the name, the top of the face, and the
+base line the block stands on. Between the name and the face is <code>--capgap</code> 3 plus the
+<code>--h</code> 5 and the 1&nbsp;px of base the block puts <em>under</em> itself — the same distance,
+mirrored above, so the name can never crowd the face. It is all out of flow; the bar's top padding,
+<code>8 + --cap + --capgap + --h</code>, is what reserves the line.</div>
+
+<div class="note"><b>Not chosen.</b> The other way round was to put the label in the flow, left of the
+block in dim 12&nbsp;px, the way <code>speed</code> and <code>vol</code> read. It uses one convention
+for the whole bar, but it adds about 30&nbsp;px to the row and puts a word between two blocks. The
+name above won: it costs the bar a line of padding it already reserves, and nothing in the row of
+faces has to move aside for a caption.</div>
+
+<p class="rules">Rules: the strip is <b>one block</b>. Shared 2&nbsp;px corners, one continuous
+5&nbsp;px side under both halves, a <code>--seam</code> hairline where they meet, and only one half
+ever down — the lit half drops the whole 5&nbsp;px and covers the side in its own column, so the seam
+reads as a step rather than a gap. Both halves carry the <b>same weight in both states</b> (600), so
+picking a face never changes the strip's width and nothing beside it moves. The name is
+<code>position:absolute</code>, so it can never push the block down; the bar's top padding is what
+reserves the line it sits in.</p>
+
+</body></html>

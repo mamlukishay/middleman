@@ -1,0 +1,85 @@
+<!-- @dsCard group="Buttons" -->
+<!doctype html><html><head><meta charset="utf-8"><style>
+/* app: style.css */
+:root{--bg:#14161a;--pane:#1c1f26;--line:#2c313b;--fg:#e6e8ec;--dim:#8b93a3;
+      --accent:#e8b44a;--play:#2f7fd0;--you:#ff2fd6;
+      --mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+button{background:#2a2f3a;color:var(--fg);border:1px solid var(--line);border-radius:6px;
+       padding:6px 12px;cursor:pointer;font:13px/16px ui-sans-serif,system-ui,sans-serif}
+button:hover{background:#333947}
+button:disabled{opacity:.45;cursor:default}
+.tgl.on{background:var(--accent);border-color:var(--accent);color:#14161a;font-weight:600}
+/* end app */
+/* app: looper.css */
+:root{ --lane1:#ff2fd6; --lane2:#d250ec; --lane3:#a563ee; --lane4:#7c6fe0; --rec:#e63d40; --dub:var(--accent); --ok:#5fbf7a; /* lanes give up height first on a short screen, and the key strip second */ --lh:clamp(70px,calc((100vh - 520px) / 4),150px); --kbh:clamp(64px,11vh,90px); --headw:194px; /* lane header column */ --roll:#191d24; --rollEmpty:#171a20; }
+.recrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#recBtn.armed,#recBtn.on{background:var(--rec);border-color:var(--rec);color:#fff;font-weight:600}
+/* end app */
+/* preview only: hover is a state a screenshot cannot hold, so it is pinned here at
+   exactly the value button:hover uses. */
+button.is-hover{background:#333947}
+/* preview only: the card's own page furniture. */
+body{margin:0;padding:24px;background:var(--bg);color:var(--fg);font:14px/1.45 ui-sans-serif,system-ui,sans-serif}
+h1{font-size:15px;font-weight:700;margin:0 0 4px}
+.sub{font-size:12px;color:var(--dim);margin:0 0 18px;max-width:660px}
+.lbl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--dim);margin:18px 0 6px}
+.stage{background:var(--pane);border-radius:8px;padding:14px}
+.row{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start}
+.st{width:140px}
+.st .slot{height:34px;display:flex;align-items:center}
+.st.w{width:300px}
+.cap{font-size:11px;color:var(--dim);margin-top:10px}
+.cap b{display:block;color:var(--fg);font-weight:600;margin-bottom:2px}
+.cap2{font-size:11px;color:var(--dim);margin-top:12px;max-width:640px;line-height:1.5}
+.cap2 b{color:var(--fg);font-weight:600}
+.rules{font-size:12px;color:var(--dim);margin:20px 0 0;max-width:660px}
+</style></head><body>
+<h1>Record</h1>
+<p class="sub">The looper's one red control. It is the base button in every respect &mdash; same face,
+same border, same 30px &mdash; until it is running, when it takes the only colour in the app that is
+not amber, grey or magenta. One key, one button, the whole record &rarr; end &rarr; overdub cycle.</p>
+
+<div class="lbl">#recBtn</div>
+<div class="stage"><div class="row">
+  <div class="st"><div class="slot"><button id="recBtn">● Record</button></div>
+    <div class="cap"><b>rest</b>the plain base button: face #2a2f3a, --line border, 6px radius, 30px. The red is in the glyph only</div></div>
+  <div class="st"><div class="slot"><button id="recBtn" class="is-hover">● Record</button></div>
+    <div class="cap"><b>hover</b>face #333947. Nothing else moves</div></div>
+  <div class="st"><div class="slot"><button id="recBtn" class="on">● Record</button></div>
+    <div class="cap"><b>.on</b>ground and border --rec #e63d40, ink #fff, weight 600 &mdash; the one white-on-colour control in the app</div></div>
+</div></div>
+
+<div class="lbl">In its row, where it actually lives</div>
+<div class="stage">
+  <div class="recrow">
+    <button id="recBtn" class="on">● Record</button>
+    <button>↶ Undo</button>
+    <button>✕ Clear</button>
+  </div>
+  <div class="cap2"><b>Lit, it is the only thing in the row that has a colour.</b> Undo and Clear
+  stay on the grey face beside it, 8px away, so the red carries the whole state of the deck: the
+  lane is taking your playing right now. Note that <code>#recBtn.on</code> is an id rule, so it
+  beats <code>button:hover</code> &mdash; once recording, the button stops answering the pointer,
+  the same way a lit <code>.tgl.on</code> does.</div>
+</div>
+
+<div class="lbl">The state that does not exist</div>
+<div class="stage">
+  <div class="cap2"><b><code>.armed</code> is styled and never set.</b> The selector reads
+  <code>#recBtn.armed,#recBtn.on</code>, so the sheet describes two states &mdash; armed, and
+  recording &mdash; drawn identically in <code>--rec</code>. Nothing in <code>src/</code> ever adds
+  <code>.armed</code>; only <code>.on</code> is used. So there is no arming step to see, and if one
+  were ever added it would be indistinguishable from recording. Read the rule as
+  <code>#recBtn.on</code> and treat the rest as a leftover: dead CSS that quietly promises a state
+  the app does not have.</div>
+</div>
+
+<p class="rules"><b>Rules.</b> Record is the base button, unmodified, until it is running. It never
+gets a red rest state, a red border or a red outline &mdash; the red appears only while the lane is
+actually taking sound, which is what makes it worth having a colour of its own. That colour is
+<code>--rec</code> #e63d40 with white ink at weight 600, and it is the sole exception to
+&ldquo;on means amber&rdquo;, allowed because recording is destructive and amber already means
+&ldquo;selected&rdquo; everywhere else. Like every lit control it drops its hover. Nothing else in
+the app may borrow <code>--rec</code> for a button, and <code>.armed</code> stays unused unless
+someone gives it a look that is visibly not this one.</p>
+</body></html>

@@ -1,0 +1,83 @@
+<!-- @dsCard group="Split toggles" -->
+<!doctype html><html><head><meta charset="utf-8"><style>
+/* app: style.css */
+:root{--bg:#14161a;--pane:#1c1f26;--line:#2c313b;--fg:#e6e8ec;--dim:#8b93a3;
+      --accent:#e8b44a;--play:#2f7fd0;--you:#ff2fd6;
+      --mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+button{background:#2a2f3a;color:var(--fg);border:1px solid var(--line);border-radius:6px;
+       padding:6px 12px;cursor:pointer;font:13px/16px ui-sans-serif,system-ui,sans-serif}
+button:hover{background:#333947}
+button:disabled{opacity:.45;cursor:default}
+.seg{display:inline-flex;align-items:stretch;border:1px solid var(--line);border-radius:6px;
+     overflow:hidden;flex:0 0 auto}
+.seg>b{display:flex;align-items:center;padding:0 7px;background:#20242c;color:var(--dim);
+       font-size:11px;font-weight:500;white-space:nowrap}
+/* 16px line + 6+6 padding + the strip's own 2px border = the 30px every button is */
+.seg>button{border:0;border-radius:0;padding:6px 9px;font-size:12px;line-height:16px;white-space:nowrap}
+.seg>button+button{border-left:1px solid var(--line)}
+.seg>button.on{background:var(--accent);color:#14161a;font-weight:600}
+.seg>button:disabled{color:var(--dim);background:#23272f;cursor:not-allowed}
+/* end app */
+/* preview only: hover is a state a screenshot cannot hold, so it is pinned here at
+   exactly the value button:hover uses on a half. */
+.seg>button.is-hover{background:#333947}
+/* preview only: the card's own page furniture. */
+body{margin:0;padding:24px;background:var(--bg);color:var(--fg);font:14px/1.45 ui-sans-serif,system-ui,sans-serif}
+h1{font-size:15px;font-weight:700;margin:0 0 4px}
+.sub{font-size:12px;color:var(--dim);margin:0 0 18px;max-width:660px}
+.lbl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--dim);margin:18px 0 6px}
+.stage{background:var(--pane);border-radius:8px;padding:14px}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start}
+.st{width:168px}
+.st .slot{height:34px;display:flex;align-items:center}
+.cap{font-size:11px;color:var(--dim);margin-top:10px}
+.cap b{display:block;color:var(--fg);font-weight:600;margin-bottom:2px}
+.cap2{font-size:11px;color:var(--dim);margin-top:12px;max-width:640px;line-height:1.5}
+.cap2 b{color:var(--fg);font-weight:600}
+.rules{font-size:12px;color:var(--dim);margin:20px 0 0;max-width:660px}
+</style></head><body>
+<h1>Two-way toggle</h1>
+<p class="sub">The Out control: where the notes go, piano or computer. One strip, one border, two
+halves and a label plate built into the left end &mdash; the same element on all three laptop pages,
+mounted by one function. It is the app's only inline label, and the only place a
+<code>&lt;b&gt;</code> is a piece of chrome.</p>
+
+<div class="lbl">States</div>
+<div class="stage"><div class="row">
+  <div class="st"><div class="slot"><div class="seg"><b>Out:</b><button class="on">Piano</button><button>Computer</button></div></div>
+    <div class="cap"><b>Piano on</b>left half amber, ink #14161a, 600; the right half stays on the base face</div></div>
+  <div class="st"><div class="slot"><div class="seg"><b>Out:</b><button>Piano</button><button class="on">Computer</button></div></div>
+    <div class="cap"><b>Computer on</b>the same treatment, other half. Nothing else in the strip moves</div></div>
+  <div class="st"><div class="slot"><div class="seg"><b>Out:</b><button class="on">Piano</button><button class="on">Computer</button></div></div>
+    <div class="cap"><b>both on</b>the &ldquo;both&rdquo; mode has no button of its own &mdash; it lights both halves, and the 1px --line divider is what keeps them two</div></div>
+  <div class="st"><div class="slot"><div class="seg"><b>Out:</b><button disabled>Piano</button><button class="on">Computer</button></div></div>
+    <div class="cap"><b>Piano disabled</b>no MIDI out: --dim ink on #23272f, cursor not-allowed &mdash; and opacity .45 from <code>button:disabled</code> on top of it</div></div>
+  <div class="st"><div class="slot"><div class="seg"><b>Out:</b><button class="is-hover">Piano</button><button class="on">Computer</button></div></div>
+    <div class="cap"><b>hover on a half</b>#333947 on that half alone; the lit half does not answer hover, because <code>.seg&gt;button.on</code> outranks <code>button:hover</code></div></div>
+</div></div>
+
+<div class="lbl">How the strip is built</div>
+<div class="stage">
+  <div class="seg"><b>Out:</b><button class="on">Piano</button><button>Computer</button></div>
+  <div class="cap2"><b>One border, one radius, and the halves have neither.</b> <code>.seg</code>
+  carries the 1px <code>--line</code> border, the 6px radius and <code>overflow:hidden</code>; every
+  child sets <code>border:0;border-radius:0</code> and gets its shape by being clipped. So the
+  rounding happens once, on the outside, and the seam between the halves is a single hairline from
+  <code>.seg&gt;button+button</code> &mdash; never two borders meeting. The label is a plate, not a
+  caption: <code>.seg&gt;b</code> is 11px/500 <code>--dim</code> on <code>#20242c</code>, a shade
+  darker than the buttons, with <code>align-items:stretch</code> making it full height. The strip
+  measures the same 30px as every button: a 16px line box, 6px of padding above and below, and the
+  strip's own 2px of border.</div>
+</div>
+
+<p class="rules"><b>Rules.</b> A two-way toggle is one strip: one border, one 6px radius on the
+outside only, and halves that are separated by a single 1px <code>--line</code> and nothing else
+&mdash; no gap, no second border, no shadow. The half that is on is amber with <code>#14161a</code>
+ink at weight 600, exactly as a lit button is; more than one half may be lit when the state is
+genuinely both. The label lives inside the strip as a plate, 11px/500 dim on <code>#20242c</code>,
+and this is the only inline label in the app &mdash; everywhere else a label sits outside its
+control. Disabled is the one place the language breaks its own rule and swaps colour instead of
+only fading: <code>--dim</code> on <code>#23272f</code> with <code>cursor:not-allowed</code>,
+because a half that cannot be chosen has to be distinguishable from a half that simply is not
+chosen.</p>
+</body></html>

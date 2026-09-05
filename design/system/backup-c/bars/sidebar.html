@@ -1,0 +1,147 @@
+<!-- @dsCard group="Backup C · Bars & panels" -->
+<!doctype html><html><head><meta charset="utf-8"><style>
+  /* app: style.css */
+  :root{--bg:#14161a;--pane:#1c1f26;--line:#2c313b;--fg:#e6e8ec;--dim:#8b93a3; --accent:#e8b44a;--play:#2f7fd0;--you:#ff2fd6; /* ---- the block --------------------------------------------------- A control in the bars is a machined block standing on the panel, not a painted rectangle. --h is how tall it stands; --side is the extruded body under the face and --base the 1px of shadow it puts on the panel. Every shadow here has 0 blur: the edges are cut, not lit. Pressed, the block travels the whole --h and is flush with the panel: no side under it, nothing painted where it used to be, and one faint line inside the top edge as the only thing left saying it went down. */ --h:5px; /* THE face height. Every control in a transport bar is exactly this tall and the round theme takes its diameter from it, so the bar has one line of faces and one line of base lines rather than a height per label. It has to be declared rather than left to `line-height:normal`, which measures the glyphs: a bold label, a musical sign or a pause bar each grew their own button by a pixel or five. */ --btn-h:29px; /* the transport is the one control that is not a face height: a square block two faces tall and just as wide. It is what the bar is now measured by -- everything else bottom-aligns on the base line it stands on. */ --xport-h:calc(var(--btn-h) * 2); --cap:10px; --capgap:3px; /* the strip's caption, and its gap under the base line */ --side:#232935; --base:#04060a; --face:#2c313b; --seam:#101319; /* the four edges are not one outline: the top catches the light, the bottom is where the face turns into the side, and both are exactly one pixel */ --edgeT:#5b6479; --edgeX:#3f4757; --edgeB:#191d25; --hi:.09; /* the 1px machined edge along the top; hover files it brighter */ --up:inset 0 1px 0 rgba(255,255,255,var(--hi)), 0 var(--h) 0 var(--side),0 calc(var(--h) + 1px) 0 var(--base); --down:inset 0 1px 0 rgba(0,0,0,.26); /* a dead control is pushed in, not standing out: the same flush geometry as a lit one, with a face a shade off the panel instead of the amber */ --face-off:#1a1e25; --down-off:inset 0 1px 0 rgba(0,0,0,.34); /* the opposite of --up: a hole in the panel, with a hard dark lip along the top where the panel was cut and one faint line at the bottom where light gets in. Readings live in it; nothing you can press does. */ --pkt:inset 0 2px 0 #05070b,inset 0 1px 0 #000,inset 0 -1px 0 rgba(255,255,255,.045); /* on amber the line has to be warm: pure black reads as dirt on a light face */ --down-lit:inset 0 1px 0 rgba(84,55,8,.30); /* a machined face is not polished. A 64px tile of grey noise, laid over whatever colour the button already had at 13% overlay, so the amber goes matte on the same terms as the grey. */ --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='64' height='64' filter='url(%23g)'/%3E%3C/svg%3E")}
+  *{box-sizing:border-box}
+  #side{background:var(--pane);border-right:1px solid var(--line);padding:10px;overflow:auto; display:flex;flex-direction:column;gap:16px}
+  #side h2{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin:0 0 8px}
+  .trk{padding:7px 9px;border-radius:6px;cursor:pointer;margin-bottom:3px}
+  .trk:hover{background:#242832}
+  .trk.on{background:var(--accent);color:#14161a;font-weight:600}
+  .trk small{display:block;color:var(--dim);font-size:11px}
+  .trk.on small{color:#5c4a1c}
+  button{background:#2a2f3a;color:var(--fg);border:1px solid var(--line);border-radius:6px; padding:6px 12px;cursor:pointer;font-size:13px}
+  .seg{display:inline-flex;align-items:stretch;border:1px solid var(--line);border-radius:6px; overflow:hidden;flex:0 0 auto}
+  .seg>a{border:0;border-radius:0;padding:6px 9px;font-size:12px;white-space:nowrap; background:#2a2f3a;color:var(--fg);text-decoration:none; display:flex;align-items:center;justify-content:center}
+  .seg>a+a{border-left:1px solid var(--line)}
+  .seg>a.on{background:var(--accent);color:#14161a;font-weight:600}
+  .seg>a:hover{background:#333947}
+  .seg>a.on:hover{background:var(--accent)}
+  .nav{display:flex;width:100%}
+  .nav>a{flex:1 1 0}
+  :where(body:not(.mob)) button,:where(body:not(.mob)) .seg>a{ position:relative;box-shadow:var(--up); /* the drop is instant -- a block does not ease into a hole. Only the colour gets a beat, and 60ms of it is under the threshold where you read it as movement rather than as the button having simply changed. */ transition:background-color .06s linear}
+  :where(body:not(.mob)) button::before,:where(body:not(.mob)) .seg>a::before{ content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none; background:var(--grain);opacity:.13;mix-blend-mode:overlay}
+  :where(body:not(.mob)) button{background-color:var(--face)}
+  :where(body:not(.mob)) button,:where(body:not(.mob)) button.mini{ border-color:var(--edgeT) var(--edgeX) var(--edgeB)}
+  :where(body:not(.mob)) button:hover{background-color:#363d4a;--hi:.17}
+  :where(body:not(.mob)) .seg>a:hover{--hi:.17}
+  body:not(.mob) button,body:not(.mob) button.mini,body:not(.mob) .seg, body:not(.mob) .seg>button,body:not(.mob) .seg>a{border-radius:2px}
+  body:not(.mob) button:active{transform:translateY(var(--h));box-shadow:var(--down); border-color:var(--edgeX)}
+  body:not(.mob) .seg,body:not(.mob) .modes2{ gap:0;border-color:transparent;overflow:visible;border-radius:2px;position:relative; box-shadow:0 var(--h) 0 var(--side),0 calc(var(--h) + 1px) 0 var(--base)}
+  body:not(.mob) .seg>button,body:not(.mob) .seg>a,body:not(.mob) .modes2>button{ border-width:0;border-radius:0;box-shadow:inset 0 1px 0 rgba(255,255,255,var(--hi))}
+  body:not(.mob) .seg>button:not(.on):not(:disabled),body:not(.mob) .seg>a:not(.on){ background-color:var(--face)}
+  body:not(.mob) .seg>a:not(.on):hover{background-color:#363d4a}
+  body:not(.mob) .seg>button+button,body:not(.mob) .seg>a+a, body:not(.mob) .modes2>button+button{border-left:1px solid var(--seam)}
+  body:not(.mob) .seg>button:first-of-type,body:not(.mob) .seg>a:first-of-type, body:not(.mob) .modes2>button:first-of-type{border-radius:2px 0 0 2px}
+  body:not(.mob) .seg>button:last-of-type,body:not(.mob) .seg>a:last-of-type, body:not(.mob) .modes2>button:last-of-type{border-radius:0 2px 2px 0}
+  body:not(.mob) .seg>button:active,body:not(.mob) .modes2>button:active{ transform:translateY(var(--h));box-shadow:var(--down)}
+  body:not(.mob) .seg>button.on,body:not(.mob) .seg>a.on,body:not(.mob) .modes2>button.on{ transform:translateY(var(--h));box-shadow:var(--down-lit)}
+  body:not(.mob) #setbox{gap:calc(7px + var(--h))}
+  /* end app */
+  /* app: looper.css */
+  #setbox{margin-top:auto;border-top:1px solid var(--line);padding-top:12px; display:flex;flex-direction:column;gap:7px}
+  .setbtns{display:flex;flex-direction:column;gap:5px}
+  .setbtns button{text-align:left;font-size:12px;padding:5px 9px}
+  button.mini{background:#22262f;border:1px solid var(--line);border-radius:5px; padding:3px 8px;font-size:11px;font-variant-numeric:tabular-nums}
+  button.mini.on{background:var(--accent);border-color:var(--accent);color:#14161a;font-weight:600}
+  body:not(.mob) button.mini.on{transform:translateY(var(--h));box-shadow:var(--down-lit)}
+  /* end app */
+  /* app: learn.css */
+  :root{ --rh:#e8b44a; --lh:#2f7fd0; --hit:#5fbf7a; --miss:#e63d40; }
+  .modes2{display:flex;gap:5px}
+  .modes2 button{flex:1;font-size:12px;padding:6px 8px;font-weight:600}
+  .modes2 button.on{background:var(--accent);border-color:var(--accent);color:#14161a;font-weight:600}
+  body:not(.mob) .modes2 button.on{transform:translateY(var(--h));box-shadow:var(--down-lit)}
+  .setline{font-size:12px;color:var(--dim)}
+  #progbar{height:5px;border-radius:3px;background:#22262f;overflow:hidden}
+  #progbar i{display:block;height:100%;width:0;background:var(--hit);transition:width .3s}
+  #shareBtn.share{width:100%;margin-top:6px}
+  #steplist{display:flex;flex-direction:column;gap:2px;margin-top:4px;border-top:1px solid var(--line);padding-top:8px; overflow:auto;flex:1 1 auto;min-height:100px}
+  .st{display:flex;gap:7px;align-items:center;font-size:11px;padding:3px 6px;border-radius:4px;flex:0 0 auto; color:var(--dim);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .st:hover{background:#242832}
+  .st.cur{background:#242832;color:var(--fg)}
+  .st.done i{background:var(--hit)}
+  .st i{width:7px;height:7px;border-radius:50%;background:#3a3f4a;flex:0 0 auto}
+  .st.sec{margin-top:5px;color:var(--fg);font-weight:600;cursor:default;font-size:10px; letter-spacing:.06em;text-transform:uppercase}
+  .st.sec:hover{background:none}
+  .mini.on{background:var(--accent);border-color:var(--accent);color:#14161a;font-weight:600}
+  body:not(.mob) .mini.on{transform:translateY(var(--h));box-shadow:var(--down-lit)}
+  /* end app */
+
+/* ---- preview only --------------------------------------------------------
+   The sidebar is a grid child in the app, so here it only needs a width, a
+   height for #setbox's margin-top:auto to push against, and one forced hover. */
+body{margin:0;padding:24px;background:var(--bg);color:var(--fg);
+     font:14px/1.45 ui-sans-serif,system-ui,sans-serif;
+     display:flex;align-items:flex-start;gap:40px}
+.lbl{font:700 10px/1 ui-sans-serif,system-ui,sans-serif;letter-spacing:.08em;
+     text-transform:uppercase;color:var(--dim);margin:0 0 12px}
+.cap{font-size:11px;color:var(--dim);margin-top:8px;max-width:200px;line-height:1.5}
+.notes{max-width:420px}
+.notes dt{font:700 10px/1 ui-sans-serif,system-ui,sans-serif;letter-spacing:.08em;
+          text-transform:uppercase;color:var(--dim);margin:16px 0 5px}
+.notes dt:first-of-type{margin-top:0}
+.notes dd{margin:0;font-size:12px;color:var(--dim);line-height:1.55}
+.rules{font-size:12px;color:var(--dim);line-height:1.6;margin:26px 0 0}
+#side{width:200px;height:640px}
+/* the hover a screenshot cannot hold */
+.trk.is-hover{background:#242832}
+</style></head><body>
+
+<div>
+  <div class="lbl">Sidebar · 200px</div>
+  <div id="side">
+    <nav class="seg nav"><a href="#">Practice</a><a href="#">Looper</a><a href="#" class="on">Learn</a></nav>
+    <div>
+      <h2>Songs</h2>
+      <div class="trk on"><div>City of Stars</div><small>piano arrangement · swing</small></div>
+      <div class="trk"><div>Blue Monk</div><small>head · 12-bar blues</small></div>
+      <div class="trk is-hover"><div>Autumn Leaves</div><small>the A section, slowly</small></div>
+    </div>
+    <div id="steplist">
+      <div class="st sec">Intro</div>
+      <div class="st done"><i></i>Listen</div>
+      <div class="st done"><i></i>Left hand: find the notes</div>
+      <div class="st cur"><i></i>Left hand in time</div>
+      <div class="st sec">Theme</div>
+      <div class="st"><i></i>Listen</div>
+      <div class="st"><i></i>Left hand: find the notes</div>
+      <div class="st"><i></i>Right hand in time</div>
+      <div class="st"><i></i>Hands together, slowly</div>
+    </div>
+    <div id="setbox">
+      <div class="modes2"><button class="on">Tutor</button><button>Free practice</button></div>
+      <div class="setline">0 of 57 steps done</div>
+      <div id="progbar"><i style="width:30%"></i></div>
+      <button id="shareBtn" class="mini share">Put it on the phone</button>
+    </div>
+  </div>
+  <div class="cap">Learn is down in the nav, one song card is on, the third is hovered.</div>
+</div>
+
+<div class="notes">
+  <div class="lbl">What each part is</div>
+  <dl class="notes">
+    <dt>Nav</dt>
+    <dd>The three pages are one split block of links, full width, and the page you
+        are on is the half that is down. It is <code>&lt;a&gt;</code>s, so it works
+        before a module has loaded.</dd>
+    <dt>Song cards</dt>
+    <dd>6&nbsp;px radius rows, 3&nbsp;px apart: title on one line, the <code>small</code>
+        line under it in dim. On is amber with the sub-line warmed to #5c4a1c; hover is
+        a flat #242832 wash, no depth — a row is not a block.</dd>
+    <dt>Steps</dt>
+    <dd>10&nbsp;px section labels in the foreground colour, then 11&nbsp;px rows with a
+        7&nbsp;px dot: grey while undone, green once done, and the current one carries the
+        hover wash permanently.</dd>
+    <dt>The foot</dt>
+    <dd>Pushed down by <code>margin-top:auto</code> over a hairline: the Tutor / Free
+        practice split block, the count, a 5&nbsp;px progress bar, and one full-width
+        mini button.</dd>
+  </dl>
+  <p class="rules">Rules: 10&nbsp;px of padding, 16&nbsp;px between the column's sections,
+  and hair gaps inside one — 3&nbsp;px between song cards, 2&nbsp;px between steps. Only the
+  blocks stand proud; cards, step rows and the progress bar are painted flat on the panel.</p>
+</div>
+
+</body></html>

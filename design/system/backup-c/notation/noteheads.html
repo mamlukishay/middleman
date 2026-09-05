@@ -1,0 +1,197 @@
+<!-- @dsCard group="Backup C · Notation" -->
+<!doctype html><html><head><meta charset="utf-8"><style>
+  /* app: style.css */
+  :root{--bg:#14161a;--pane:#1c1f26;--line:#2c313b;--fg:#e6e8ec;--dim:#8b93a3; --accent:#e8b44a;--play:#2f7fd0;--you:#ff2fd6; /* ---- the block --------------------------------------------------- A control in the bars is a machined block standing on the panel, not a painted rectangle. --h is how tall it stands; --side is the extruded body under the face and --base the 1px of shadow it puts on the panel. Every shadow here has 0 blur: the edges are cut, not lit. Pressed, the block travels the whole --h and is flush with the panel: no side under it, nothing painted where it used to be, and one faint line inside the top edge as the only thing left saying it went down. */ --h:5px; /* THE face height. Every control in a transport bar is exactly this tall and the round theme takes its diameter from it, so the bar has one line of faces and one line of base lines rather than a height per label. It has to be declared rather than left to `line-height:normal`, which measures the glyphs: a bold label, a musical sign or a pause bar each grew their own button by a pixel or five. */ --btn-h:29px; /* the transport is the one control that is not a face height: a square block two faces tall and just as wide. It is what the bar is now measured by -- everything else bottom-aligns on the base line it stands on. */ --xport-h:calc(var(--btn-h) * 2); --cap:10px; --capgap:3px; /* the strip's caption, and its gap under the base line */ --side:#232935; --base:#04060a; --face:#2c313b; --seam:#101319; /* the four edges are not one outline: the top catches the light, the bottom is where the face turns into the side, and both are exactly one pixel */ --edgeT:#5b6479; --edgeX:#3f4757; --edgeB:#191d25; --hi:.09; /* the 1px machined edge along the top; hover files it brighter */ --up:inset 0 1px 0 rgba(255,255,255,var(--hi)), 0 var(--h) 0 var(--side),0 calc(var(--h) + 1px) 0 var(--base); --down:inset 0 1px 0 rgba(0,0,0,.26); /* a dead control is pushed in, not standing out: the same flush geometry as a lit one, with a face a shade off the panel instead of the amber */ --face-off:#1a1e25; --down-off:inset 0 1px 0 rgba(0,0,0,.34); /* the opposite of --up: a hole in the panel, with a hard dark lip along the top where the panel was cut and one faint line at the bottom where light gets in. Readings live in it; nothing you can press does. */ --pkt:inset 0 2px 0 #05070b,inset 0 1px 0 #000,inset 0 -1px 0 rgba(255,255,255,.045); /* on amber the line has to be warm: pure black reads as dirt on a light face */ --down-lit:inset 0 1px 0 rgba(84,55,8,.30); /* a machined face is not polished. A 64px tile of grey noise, laid over whatever colour the button already had at 13% overlay, so the amber goes matte on the same terms as the grey. */ --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='64' height='64' filter='url(%23g)'/%3E%3C/svg%3E")}
+  *{box-sizing:border-box}
+  #notewrap{flex:1 1 auto;min-height:0;overflow:hidden;background:#fff;border-radius:8px; padding:4px 6px;color:#000;position:relative}
+  #notation{height:100%;overflow:hidden}
+  #notation svg{display:block}
+  #notation .abcjs-notehead,#notation .abcjs-notehead *{fill:#000;stroke:none}
+  #notation .cur-note,#notation .cur-note *{fill:var(--play)!important;stroke:var(--play)!important}
+  #notation .you-note,#notation .you-note *{fill:var(--you)!important;stroke:var(--you)!important}
+  #barhl{position:absolute;display:none;pointer-events:none;border-radius:6px; background:rgba(124,111,224,.30);border:1.5px solid #7c6fe0; transition:left .1s ease,top .1s ease,width .1s ease}
+  /* end app */
+  /* app: learn.css */
+  :root{ --rh:#e8b44a; --lh:#2f7fd0; --hit:#5fbf7a; --miss:#e63d40; }
+  .staff{background:#fff;border-radius:8px;color:#000}
+  .staff .abcjs-notehead,.staff .abcjs-notehead *{fill:#000;stroke:none}
+  .staff .abcjs-notehead.dim,.staff .abcjs-notehead.dim *{fill:#6b7280!important}
+  .staff [data-hand=lh],.staff [data-hand=lh] *{fill:var(--lh)}
+  .staff [data-hand=rh],.staff [data-hand=rh] *{fill:#b07d1a}
+  .staff .abcjs-notehead.hit,.staff .abcjs-notehead.hit *{fill:#16a34a!important}
+  .staff .abcjs-notehead.miss,.staff .abcjs-notehead.miss *{fill:var(--miss)!important}
+  .staff .abcjs-notehead.wait,.staff .abcjs-notehead.wait *{fill:#7c6fe0!important;stroke:#7c6fe0!important;stroke-width:3px}
+  .staff .sbar{position:absolute;visibility:hidden;pointer-events:none;border-radius:6px; background:rgba(124,111,224,.14);border:1.5px solid rgba(124,111,224,.6)}
+  .staff .shead{position:absolute;visibility:hidden;width:2px;margin-left:-1px;background:#7c6fe0;pointer-events:none;opacity:.9}
+  .staff .shead.countin{background:var(--accent)}
+  .staff .shover{position:absolute;visibility:hidden;width:2px;margin-left:-1px;background:#7c6fe0;pointer-events:none;opacity:.35}
+  .staff .smarks i{position:absolute;width:6px;height:6px;border-radius:50%;background:var(--miss);margin:-3px 0 0 -1px;pointer-events:none}
+  .scroll{background:#fff;border-radius:8px;overflow:hidden}
+  .scroll .sline{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px; background:var(--accent);pointer-events:none;opacity:.85}
+  .scroll .splayed{position:absolute;top:0;bottom:0;pointer-events:none; background:linear-gradient(90deg,rgba(124,111,224,0),rgba(124,111,224,.13))}
+  .scroll .abcjs-notehead,.scroll .abcjs-notehead *{stroke:currentColor;stroke-width:.6px}
+  #rollwrap{flex:1 1 auto;min-height:0;border:1px solid var(--line);border-radius:8px; background:#171a20;overflow:hidden;position:relative}
+  svg.roll{display:block}
+  .rn{fill:var(--rh);stroke:#0d0f13;stroke-width:.6;opacity:.95}
+  .rn.lh{fill:var(--lh)}
+  .rn.dim{opacity:.45}
+  .rn.hit{fill:var(--hit)!important;opacity:1}
+  .rn.miss{fill:#3a2126!important;stroke:var(--miss);stroke-width:1;opacity:1}
+  .rx{fill:var(--miss);opacity:.9}
+  .rhead{stroke:#fff;stroke-width:1.2;opacity:.9}
+  .rhover{stroke:#7c6fe0;stroke-width:1.2;opacity:.55}
+  /* end app */
+
+/* ---- preview only --------------------------------------------------------
+   abcjs engraves the sheet in the app; here the staff is five divs and each
+   notehead one rotated ellipse carrying the class the engraver would put on it.
+   The overlays are normally positioned and revealed by js, so they are given a
+   place and made visible -- nothing else about them is changed. */
+body{margin:0;padding:24px;background:var(--bg);color:var(--fg);
+     font:14px/1.45 ui-sans-serif,system-ui,sans-serif}
+.lbl{font:700 10px/1 ui-sans-serif,system-ui,sans-serif;letter-spacing:.08em;
+     text-transform:uppercase;color:var(--dim);margin:0 0 12px}
+.row{margin-bottom:28px}
+.cap{font-size:11px;color:var(--dim);margin-top:8px;line-height:1.5;max-width:880px}
+.rules{font-size:12px;color:var(--dim);max-width:820px;margin:32px 0 0;line-height:1.6}
+.sheet{position:relative;width:900px;height:118px;padding:0}
+.staff,.scroll,#notewrap{position:relative}
+.lines{position:absolute;left:0;right:0;top:26px;height:41px}
+.lines i{position:absolute;left:14px;right:14px;height:1px;background:#000;opacity:.85}
+.lines i:nth-child(1){top:0}.lines i:nth-child(2){top:10px}.lines i:nth-child(3){top:20px}
+.lines i:nth-child(4){top:30px}.lines i:nth-child(5){top:40px}
+.nslot{position:absolute;top:0;width:110px}
+.nhead{position:absolute;left:0}
+.nlabel{position:absolute;top:86px;font:700 9px/1.3 ui-sans-serif,system-ui,sans-serif;
+        letter-spacing:.06em;text-transform:uppercase;color:#5c6472;width:110px}
+/* what js normally sets: a place, and being on screen at all */
+.staff .sbar,.staff .shead,.staff .shover{visibility:visible}
+.roll{background:transparent}
+#rollwrap{width:860px;height:128px}
+.rollpad{padding:0}
+</style></head><body>
+
+<div class="row">
+  <div class="lbl">Noteheads · the white sheet</div>
+  <div class="staff sheet">
+    <div class="lines"><i></i><i></i><i></i><i></i><i></i></div>
+    
+      <div class="nslot" style="left:40px">
+        <div class="nhead" style="top:30px"><svg width="26" height="22"><g transform="translate(13,11) rotate(-22)"><ellipse class="abcjs-notehead" rx="6.4" ry="4.6"/></g></svg></div>
+        <div class="nlabel">unplayed</div>
+      </div>
+      <div class="nslot" style="left:160px">
+        <div class="nhead" style="top:25px"><svg width="26" height="22"><g transform="translate(13,11) rotate(-22)"><ellipse class="abcjs-notehead dim" rx="6.4" ry="4.6"/></g></svg></div>
+        <div class="nlabel">the app's hand</div>
+      </div>
+      <div class="nslot" style="left:280px">
+        <div class="nhead" style="top:35px"><svg width="26" height="22"><g transform="translate(13,11) rotate(-22)"><ellipse class="abcjs-notehead hit" rx="6.4" ry="4.6"/></g></svg></div>
+        <div class="nlabel">hit</div>
+      </div>
+      <div class="nslot" style="left:400px">
+        <div class="nhead" style="top:40px"><svg width="26" height="22"><g transform="translate(13,11) rotate(-22)"><ellipse class="abcjs-notehead miss" rx="6.4" ry="4.6"/></g></svg></div>
+        <div class="nlabel">missed</div>
+      </div>
+      <div class="nslot" style="left:520px">
+        <div class="nhead" style="top:25px"><svg width="26" height="22"><g transform="translate(13,11) rotate(-22)"><ellipse class="abcjs-notehead wait" rx="6.4" ry="4.6"/></g></svg></div>
+        <div class="nlabel">waiting</div>
+      </div>
+      <div class="nslot" style="left:640px">
+        <div class="nhead" style="top:30px"><svg width="26" height="22"><g transform="translate(13,11) rotate(-22)"><ellipse class="abcjs-notehead" data-hand="lh" rx="6.4" ry="4.6"/></g></svg></div>
+        <div class="nlabel">left hand</div>
+      </div>
+      <div class="nslot" style="left:760px">
+        <div class="nhead" style="top:20px"><svg width="26" height="22"><g transform="translate(13,11) rotate(-22)"><ellipse class="abcjs-notehead" data-hand="rh" rx="6.4" ry="4.6"/></g></svg></div>
+        <div class="nlabel">right hand</div>
+      </div>
+    <div class="smarks"><i style="left:413px;top:72px"></i></div>
+  </div>
+  <div class="cap">Black is a note you have not played yet and is yours to play. The hand the app
+  is playing goes #6b7280 — clearly quieter, still readable from the music stand. Green and red are
+  the two answers; the red dot under a missed note is the mark the sheet keeps. Violet with a
+  3&nbsp;px stroke is a note the song is waiting on. The two hand colours are only used where the
+  sheet is showing you which hand is which.</div>
+</div>
+
+<div class="row">
+  <div class="lbl">Playheads · the staff sheet</div>
+  <div class="staff sheet">
+    <div class="lines"><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="sbar" style="left:200px;top:18px;width:160px;height:58px"></div>
+    <div class="shead" style="left:440px;top:14px;height:66px"></div>
+    <div class="shead countin" style="left:110px;top:14px;height:66px"></div>
+    <div class="shover" style="left:580px;top:14px;height:66px"></div>
+    <div class="nslot" style="left:100px"><div class="nlabel">count-in</div></div>
+    <div class="nslot" style="left:205px"><div class="nlabel">the bars you are looping</div></div>
+    <div class="nslot" style="left:430px"><div class="nlabel">now</div></div>
+    <div class="nslot" style="left:570px"><div class="nlabel">pointer</div></div>
+  </div>
+  <div class="cap">A 2&nbsp;px violet line is now; amber is the bar of click counting you in;
+  the same line at .35 is where the pointer is. The bar you are looping is a violet wash at .14
+  behind a 1.5&nbsp;px border — it names a bar without covering the notes in it.</div>
+</div>
+
+<div class="row">
+  <div class="lbl">Playhead · the scrolling strip</div>
+  <div class="scroll sheet">
+    <div class="lines"><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="splayed" style="left:0;width:420px"></div>
+    <div class="sline" style="left:420px"></div>
+    <div class="nslot" style="left:200px"><div class="nlabel">already played</div></div>
+    <div class="nslot" style="left:410px"><div class="nlabel">now</div></div>
+  </div>
+  <div class="cap">The strip slides under a fixed line, so the line is amber — it is a
+  position on the page, not a position in the music — and what has gone by carries a violet
+  gradient that fades to nothing at the left edge.</div>
+</div>
+
+<div class="row">
+  <div class="lbl">Practice sheet</div>
+  <div id="notewrap" class="sheet">
+    <div id="notation">
+      <div class="lines"><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="nslot" style="left:40px"><div class="nhead" style="top:18px">
+        <svg width="26" height="22"><g transform="translate(13,11) rotate(-22)"><ellipse class="abcjs-notehead" rx="6.4" ry="4.6"/></g></svg>
+      </div><div class="nlabel">unplayed</div></div>
+      <div class="nslot" style="left:162px"><div class="nhead" style="top:28px">
+        <svg width="26" height="22"><g transform="translate(13,11) rotate(-22)"><ellipse class="abcjs-notehead cur-note" rx="6.4" ry="4.6"/></g></svg>
+      </div><div class="nlabel">the app is here</div></div>
+      <div class="nslot" style="left:284px"><div class="nhead" style="top:8px">
+        <svg width="26" height="22"><g transform="translate(13,11) rotate(-22)"><ellipse class="abcjs-notehead you-note" rx="6.4" ry="4.6"/></g></svg>
+      </div><div class="nlabel">you played it</div></div>
+    </div>
+    <div id="barhl" style="display:block;left:420px;top:18px;width:170px;height:58px"></div>
+  </div>
+  <div class="cap">The practice view has its own two: blue for the note the backing is on, magenta
+  for the note you are holding — the same magenta as the key strip and the bar's LED. The bar
+  highlight is violet again, at .30, because it is a place and not a note.</div>
+</div>
+
+<div class="row">
+  <div class="lbl">The roll · on dark</div>
+  <div id="rollwrap"><svg class="roll" width="860" height="128">
+      <rect class="rn" x="28" y="26" width="88" height="9" rx="2"/><rect class="rn" x="128" y="26" width="56" height="9" rx="2"/>
+      <rect class="rn lh" x="28" y="50" width="88" height="9" rx="2"/><rect class="rn lh" x="128" y="50" width="56" height="9" rx="2"/>
+      <rect class="rn dim" x="238" y="26" width="88" height="9" rx="2"/><rect class="rn lh dim" x="238" y="50" width="88" height="9" rx="2"/>
+      <rect class="rn hit" x="396" y="38" width="88" height="9" rx="2"/>
+      <rect class="rn miss" x="530" y="38" width="88" height="9" rx="2"/>
+      <path class="rx" d="M672 35 l8 8 8-8 5 5-8 8 8 8-5 5-8-8-8 8-5-5 8-8-8-8z"/>
+      <line class="rhead" x1="770" y1="20" x2="770" y2="74"/>
+      <line class="rhover" x1="800" y1="20" x2="800" y2="74"/>
+      <text x="28" y="104" fill="#6c7382" font-size="10" font-family="ui-sans-serif,system-ui,sans-serif" letter-spacing=".06em">right · left hand</text><text x="238" y="104" fill="#6c7382" font-size="10" font-family="ui-sans-serif,system-ui,sans-serif" letter-spacing=".06em">the app's hand</text>
+      <text x="396" y="104" fill="#6c7382" font-size="10" font-family="ui-sans-serif,system-ui,sans-serif" letter-spacing=".06em">hit</text><text x="530" y="104" fill="#6c7382" font-size="10" font-family="ui-sans-serif,system-ui,sans-serif" letter-spacing=".06em">missed</text><text x="660" y="104" fill="#6c7382" font-size="10" font-family="ui-sans-serif,system-ui,sans-serif" letter-spacing=".06em">wrong</text>
+      <text x="750" y="104" fill="#6c7382" font-size="10" font-family="ui-sans-serif,system-ui,sans-serif" letter-spacing=".06em">now · pointer</text>
+    </svg></div>
+  <div class="cap">On the dark roll the hands swap roles with the sheet: amber is the right hand,
+  blue the left, and the app's own hand drops to .45 rather than changing colour. A hit turns green
+  and a miss becomes a dark red box with a red edge — the note is still there to read, it is only
+  no longer yours. A cross is a note that was not in the music at all.</div>
+</div>
+
+<p class="rules">Rules: green means right and red means wrong, everywhere, and violet is never
+either — it is where you are. The white sheet takes a stronger green (#16a34a) than the dark
+chrome does, because <code>--hit</code> washes out on white; the miss red carries on both and is
+left alone. Nothing on the sheet is filled with the accent: amber is a playhead on the strip and a
+hand on the roll, never a note on paper.</p>
+
+</body></html>

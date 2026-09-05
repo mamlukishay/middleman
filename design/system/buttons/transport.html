@@ -1,0 +1,113 @@
+<!-- @dsCard group="Buttons" -->
+<!doctype html><html><head><meta charset="utf-8"><style>
+/* app: style.css */
+:root{--bg:#14161a;--pane:#1c1f26;--line:#2c313b;--fg:#e6e8ec;--dim:#8b93a3;
+      --accent:#e8b44a;--play:#2f7fd0;--you:#ff2fd6;
+      --mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+/* the bar is one row of groups: 14px between groups, 6px inside one. The status line is
+   the one thing that gives; below laptop width the row wraps, because clipping hid a
+   readout rather than merely looking tight. */
+#bar{display:flex;flex-wrap:wrap;gap:14px;align-items:center;padding:8px 14px;
+     border-bottom:1px solid var(--line);flex:0 0 auto;min-width:0}
+#bar .grp{display:flex;align-items:center;gap:6px;flex:0 0 auto}
+#bar button,#bar .chk{white-space:nowrap;flex:0 0 auto}
+button{background:#2a2f3a;color:var(--fg);border:1px solid var(--line);border-radius:6px;
+       padding:6px 12px;cursor:pointer;font:13px/16px ui-sans-serif,system-ui,sans-serif}
+button:hover{background:#333947}
+button:disabled{opacity:.45;cursor:default}
+.tgl.on{background:var(--accent);border-color:var(--accent);color:#14161a;font-weight:600}
+/* end app */
+/* app: learn.css */
+/* a toggle that is on but cannot act right now (the click in wait mode) */
+.tgl.na{opacity:.45;text-decoration:line-through}
+/* end app */
+/* preview only: hover is a state a screenshot cannot hold, so it is pinned here at
+   exactly the value button:hover uses. */
+button.is-hover{background:#333947}
+/* preview only: the card's own page furniture. The three specimens below are each a real
+   #bar, so the app's own group rule applies to them; the id repeats because the card shows
+   three pages at once. */
+body{margin:0;padding:24px;background:var(--bg);color:var(--fg);font:14px/1.45 ui-sans-serif,system-ui,sans-serif}
+h1{font-size:15px;font-weight:700;margin:0 0 4px}
+.sub{font-size:12px;color:var(--dim);margin:0 0 18px;max-width:660px}
+.lbl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--dim);margin:18px 0 6px}
+.stage{background:var(--pane);border-radius:8px;padding:14px}
+.stage.flush{padding:0;overflow:hidden}
+.row{display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start}
+.st{width:104px}
+.st .slot{height:34px;display:flex;align-items:center}
+.cap{font-size:11px;color:var(--dim);margin-top:10px}
+.cap b{display:block;color:var(--fg);font-weight:600;margin-bottom:2px}
+.cap2{font-size:11px;color:var(--dim);margin-top:12px;max-width:640px;line-height:1.5}
+.cap2 b{color:var(--fg);font-weight:600}
+.cap2.pad{padding:0 14px 14px}
+.pg{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--dim);padding:10px 14px 0}
+.rules{font-size:12px;color:var(--dim);margin:20px 0 0;max-width:660px}
+</style></head><body>
+<h1>Transport</h1>
+<p class="sub">Play, Stop and Click: the first group in every bar, and the only controls that appear
+on more than one page. They are plain buttons &mdash; the group is made by markup, not by a component
+&mdash; and the only thing that separates an action from a toggle is whether the element carries
+<code>.tgl</code>.</p>
+
+<div class="lbl">States</div>
+<div class="stage"><div class="row">
+  <div class="st"><div class="slot"><button>▶ Play</button></div>
+    <div class="cap"><b>Play, rest</b>base face #2a2f3a, --line border, 6px radius, 30px</div></div>
+  <div class="st"><div class="slot"><button class="tgl on">❚❚ Pause</button></div>
+    <div class="cap"><b>Play, .tgl.on</b>amber on #14161a at 600, and the label becomes the thing it will do next</div></div>
+  <div class="st"><div class="slot"><button>■ Stop</button></div>
+    <div class="cap"><b>Stop, rest</b>the same base button. It has no on-state at all &mdash; it fires and returns</div></div>
+  <div class="st"><div class="slot"><button class="tgl">● Click</button></div>
+    <div class="cap"><b>Click, off</b>the base face again; a toggle looks like an action until it is lit</div></div>
+  <div class="st"><div class="slot"><button class="tgl on">● Click</button></div>
+    <div class="cap"><b>Click, on</b>amber ground and border, ink #14161a, 600</div></div>
+  <div class="st"><div class="slot"><button class="tgl on na">● Click</button></div>
+    <div class="cap"><b>.tgl.na</b>still on, but nothing to do: opacity .45 and a line through the label (learn.css, wait mode)</div></div>
+</div>
+  <div class="cap2"><b><code>.tgl</code> is the whole difference.</b> <code>#play</code> is a plain
+  button on the practice page &mdash; it starts a track and hands control back &mdash; carries
+  <code>.tgl</code> in the markup on learn, and is given <code>.tgl</code> from JS on the looper
+  before the first sync. Same element, same id, three pages, and only the class says whether the
+  button can light. <code>.na</code> is the only state that stacks: it sits on top of
+  <code>.on</code> rather than replacing it, so the control still reads as switched on while saying
+  it cannot act.</div>
+</div>
+
+<div class="lbl">The three real groups</div>
+<div class="stage flush">
+  <div class="pg">Practice</div>
+  <div id="bar"><span class="grp">
+    <button id="play">▶ Play</button>
+    <button id="stop">■ Stop</button>
+    <button id="metroBtn" class="tgl">● Click</button>
+  </span></div>
+  <div class="pg">Looper</div>
+  <div id="bar"><span class="grp">
+    <button id="play" class="tgl on">❚❚ Pause</button>
+    <button id="stop">■ Stop</button>
+    <button id="metroBtn" class="tgl">● Click</button>
+  </span></div>
+  <div class="pg">Learn</div>
+  <div id="bar"><span class="grp">
+    <button id="play" class="tgl">▶ Play</button>
+    <button id="metroBtn" class="tgl on">● Click</button>
+  </span></div>
+  <div class="cap2 pad"><b>One group, 6px inside it.</b> Each row is a real <code>#bar</code>, so the
+specimens get the app's own <code>#bar .grp</code>: 6px between the buttons that belong together,
+14px before whatever comes next, and <code>white-space:nowrap</code> so a label can never break in
+two. Practice and looper carry all three; learn drops Stop, because a lesson is a loop you leave
+rather than a track you end. Nothing about the group is a component &mdash; it is a
+<code>&lt;span class="grp"&gt;</code> around plain buttons, and that is deliberate: the bar is
+assembled, not configured.</div>
+</div>
+
+<p class="rules"><b>Rules.</b> The transport is plain buttons at the one height, 6px apart, in the
+order Play, Stop, Click, first in the bar and never anywhere else. An action button (Stop) has rest,
+hover and disabled only. A toggle (Click, and Play where it can pause) adds <code>.tgl</code> and
+lights amber on <code>#14161a</code> at 600 &mdash; and a lit toggle no longer answers hover, which
+is how you can tell the state is held rather than hovered. A toggle that is on but powerless takes
+<code>.na</code> on top: opacity .45 and a strikethrough, never a colour change and never a
+<code>disabled</code> attribute, because the setting is still yours &mdash; it just has nothing to
+act on. Labels carry a leading glyph and change to name the next action, not the current one.</p>
+</body></html>

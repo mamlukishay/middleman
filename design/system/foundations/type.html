@@ -1,0 +1,221 @@
+<!-- @dsCard group="Foundations" -->
+<!doctype html><html><head><meta charset="utf-8"><style>
+/* app: style.css */
+:root{--bg:#14161a;--pane:#1c1f26;--line:#2c313b;--fg:#e6e8ec;--dim:#8b93a3;
+      --accent:#e8b44a;--play:#2f7fd0;--you:#ff2fd6;
+      --mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+body{margin:0;display:grid;grid-template-columns:200px 1fr;
+     font:14px/1.45 ui-sans-serif,system-ui,sans-serif;background:var(--bg);color:var(--fg)}
+#side h2{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin:0 0 8px}
+.trk{padding:7px 9px;border-radius:6px;cursor:pointer;margin-bottom:3px}
+.trk.on{background:var(--accent);color:#14161a;font-weight:600}
+.trk small{display:block;color:var(--dim);font-size:11px}
+.trk.on small{color:#5c4a1c}
+/* the page font with a fixed line box, so every button is 30px tall: buttons used to
+   be in the UA font at line-height:normal, which measured the glyph (▶ Play 30, ● Click 29) */
+button{background:#2a2f3a;color:var(--fg);border:1px solid var(--line);border-radius:6px;
+       padding:6px 12px;cursor:pointer;font:13px/16px ui-sans-serif,system-ui,sans-serif}
+.tgl.on{background:var(--accent);border-color:var(--accent);color:#14161a;font-weight:600}
+.tgl.icon{padding:6px 9px;font-size:15px;line-height:16px}
+.chk{display:flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;white-space:nowrap}
+.seg{display:inline-flex;align-items:stretch;border:1px solid var(--line);border-radius:6px;
+     overflow:hidden;flex:0 0 auto}
+.seg>b{display:flex;align-items:center;padding:0 7px;background:#20242c;color:var(--dim);
+       font-size:11px;font-weight:500;white-space:nowrap}
+.seg>button{border:0;border-radius:0;padding:6px 9px;font-size:12px;line-height:16px;white-space:nowrap}
+.seg>button+button{border-left:1px solid var(--line)}
+.seg>button.on{background:var(--accent);color:#14161a;font-weight:600}
+/* measured: 101.53px, the widest string */
+#pos{font-variant-numeric:tabular-nums;color:var(--dim);min-width:102px}
+#speed,#vol{display:flex;align-items:center;gap:7px;color:var(--dim);font-size:12px;
+  white-space:nowrap}
+/* measured: the old reserves were one digit short, so the row shifted at 200 bpm and 100% */
+#speed b,#vol b{color:var(--fg);font-variant-numeric:tabular-nums;min-width:35px;text-align:right;
+  cursor:text;border-radius:4px;padding:1px 4px;border:1px solid transparent}
+/* the notes you hold change on every chord: mono + tabular so the readout keeps
+   its width instead of shoving the rest of the bar around */
+#played{color:var(--you);font-weight:700;min-width:90px;font-size:14px;
+  font-family:var(--mono);font-variant-numeric:tabular-nums;
+  text-shadow:0 0 10px rgba(255,47,214,.5)}
+#statusEl{flex:1 1 0;min-width:0;text-align:right;overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap;color:var(--dim);font-size:11px}
+#info{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:7px;font-size:12px}
+#info b{color:var(--accent)}
+/* end app */
+/* app: looper.css */
+button.mini{background:#22262f;border:1px solid var(--line);border-radius:5px;
+            padding:3px 8px;font-size:11px;font-variant-numeric:tabular-nums}
+kbd,.kbd{padding:1px 6px;border:1px solid var(--line);border-radius:4px;background:#22262f;
+         font:600 11px var(--mono);color:var(--fg)}
+.lname{font-size:13px;font-weight:600;min-width:0;
+       overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lst{margin-left:auto;font:600 9px var(--mono);letter-spacing:.06em;white-space:nowrap;
+     flex:0 0 auto;min-width:54px;text-align:right}   /* fits REC/DUB/END NEXT */
+.lspan{font-size:11px;color:var(--dim);font-variant-numeric:tabular-nums;flex:1 1 0;min-width:0;
+       overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rlabel{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);
+        font-weight:700;text-align:right;padding-right:4px}
+/* end app */
+/* app: learn.css */
+:root{
+  --rh:#e8b44a; --lh:#2f7fd0; --hit:#5fbf7a; --miss:#e63d40;
+}
+#lesson h2{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin:0 0 4px}
+.ltitle{font-size:15px;font-weight:700}
+.ltext{font-size:12px;line-height:1.5;color:var(--dim)}
+.slot{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:3px;padding:6px 8px;border-radius:6px;
+      border:1px solid var(--line);background:#22262f}
+.slabel{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim)}
+.sbar{height:5px;border-radius:3px;background:#171a20;overflow:hidden}
+.sval{font:700 14px var(--mono);color:var(--dim);font-variant-numeric:tabular-nums}
+#overlay .otitle{font-size:26px;font-weight:700}
+#overlay .osub{font-size:14px;color:var(--fg)}
+#overlay .ohint{font-size:12px;color:var(--dim)}
+button.start{font-size:15px;font-weight:700;padding:11px 14px;background:var(--accent);border-color:var(--accent);color:#14161a}
+/* end app */
+/* preview only: the app's body rule is quoted above for the record; the card is a document,
+   not the app's two-column grid, so display and margin are put back here. The font is not. */
+body{margin:0;padding:24px;display:block}
+/* preview only: the card's own page furniture. */
+h1{font-size:15px;font-weight:700;margin:0 0 4px}
+.sub{font-size:12px;color:var(--dim);margin:0 0 18px;max-width:680px}
+.lbl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--dim);margin:20px 0 6px}
+.stage{background:var(--pane);border-radius:8px;padding:14px}
+.scale>div{display:flex;align-items:baseline;gap:16px;padding:9px 0;border-bottom:1px solid var(--line)}
+.scale>div:last-child{border-bottom:0}
+.scale em{font:600 11px var(--mono);font-style:normal;color:var(--dim);width:34px;flex:0 0 auto;text-align:right}
+.scale span{flex:0 0 260px}
+.scale s{font-size:11px;color:var(--dim);text-decoration:none;line-height:1.45}
+.scale s b{color:var(--fg);font-weight:600}
+.row{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start}
+.st{width:160px}
+.st .box{height:38px;display:flex;align-items:center;gap:8px}
+.st.t .box{height:60px;display:block}
+div.cap{font-size:11px;color:var(--dim);margin-top:8px}
+div.cap b{display:block;color:var(--fg);font-weight:600;margin-bottom:2px}
+.cap2{font-size:11px;color:var(--dim);margin-top:12px;max-width:660px;line-height:1.5}
+.cap2 b{color:var(--fg);font-weight:600}
+.st.m{width:280px}
+.st.m .box{height:66px;display:flex;align-items:stretch;gap:8px}
+.jit{font-size:11px;color:var(--dim);line-height:1.45;margin-top:8px}
+.rules{font-size:12px;color:var(--dim);margin:22px 0 0;max-width:680px}
+</style></head><body>
+<h1>Type</h1>
+<p class="sub">One stack, set once on <code>body</code>: <code>14px/1.45 ui-sans-serif, system-ui,
+sans-serif</code>. Seven sizes, three weights, one uppercase label, and a monospace face reserved for
+numbers that change while you watch them. A button now takes the page font too, in a fixed 13/16 line
+box &mdash; which is what makes every control in the bar exactly 30px tall.</p>
+
+<div class="lbl">The stack</div>
+<div class="stage">
+  <div style="font-size:20px">Blues in F &mdash; bar 3 of 12 &middot; 96 bpm</div>
+  <div class="cap2"><b>body</b> is the only place a family is named:
+  <code>font:14px/1.45 ui-sans-serif,system-ui,sans-serif</code>. Everything inherits it; nothing else
+  sets <code>font-family</code> except <code>--mono</code>, and <code>button</code>, which repeats the
+  same stack because a form control does not inherit one.</div>
+</div>
+
+<div class="lbl">The size scale &mdash; live, at the size named</div>
+<div class="stage"><div class="scale">
+  <div><em>10</em><span class="rlabel" style="text-align:left">Lanes</span>
+    <s><b>label</b> &mdash; only ever uppercase at .08em in <code>--dim</code>: <code>#side h2</code>, <code>#lesson h2</code>, <code>.rlabel</code>, <code>.slabel</code>. Also <code>.chip</code></s></div>
+  <div><em>11</em><span style="font-size:11px;color:var(--dim)">MIDI: Roland FP-30</span>
+    <s><b>fine</b> &mdash; the smallest running text: <code>#statusEl</code>, <code>.trk small</code>, every hint, <code>.mini</code>, <code>kbd</code>, <code>.seg&gt;b</code></s></div>
+  <div><em>12</em><span class="ltext" style="display:inline">Right hand only, bars 1&ndash;4.</span>
+    <s><b>control &amp; secondary</b> &mdash; <code>.seg&gt;button</code>, <code>.seg&gt;a</code>, <code>#speed</code>, <code>#info</code>, <code>.ltext</code>, the strip cell</s></div>
+  <div><em>13</em><span><button>&#9654; Play</button></span>
+    <s><b>button</b> &mdash; <code>button</code>, <code>.chk</code>, <code>.lname</code>. The one size a control's own label is set at</s></div>
+  <div><em>14</em><span>bar 3 of 12</span>
+    <s><b>body</b> &mdash; the inherited size. <code>#pos</code>, <code>#played</code>, <code>.sval</code> all sit here</s></div>
+  <div><em>15</em><span class="ltitle">Blues in F</span>
+    <s><b>title</b> &mdash; <code>.ltitle</code>, <code>button.start</code>, <code>.tgl.icon</code>'s glyph. The largest size on a laptop page</s></div>
+  <div><em>26</em><span id="overlay"><span class="otitle">Nice.</span></span>
+    <s><b>overlay</b> &mdash; <code>#overlay .otitle</code>, the one line you read from a music stand. Nothing else is this size</s></div>
+</div>
+<div class="cap2">Between 15 and 26 there is nothing, on purpose: the overlay is the only type that has to
+be read across a room, and everything else is read at a keyboard.</div>
+</div>
+
+<div class="lbl">The three weights</div>
+<div class="stage"><div class="row">
+  <div class="st"><div class="box"><span class="seg"><b>Out:</b><button class="on">Piano</button><button>Computer</button></span></div>
+    <div class="cap"><b>500 &mdash; <code>.seg&gt;b</code></b>the <code>Out:</code> plate, and nothing else in the app. A word that names the control it sits inside</div></div>
+  <div class="st"><div class="box"><button class="tgl on">&#9679; Click</button><button class="mini">1/16</button></div>
+    <div class="cap"><b>600 &mdash; every <code>.on</code></b>the on-state is amber, dark ink <em>and</em> 600. The weight is part of the state, not decoration</div></div>
+  <div class="st"><div class="box"><span class="ltitle">Blues in F</span></div>
+    <div class="cap"><b>700 &mdash; titles and readouts</b><code>.ltitle</code>, <code>#played</code>, <code>.sval</code>, <code>.rlabel</code>, <code>#overlay .otitle</code>. A heading or a number, never a paragraph</div></div>
+  <div class="st"><div class="box"><span id="played">C4 E4 G4</span></div>
+    <div class="cap"><b>700 in mono</b>a readout is bold because it is the thing you glance at, not because it is important</div></div>
+</div>
+<div class="cap2"><b>400 is everything else.</b> There is no 300, no 800 and no italic anywhere in the app.
+A weight change always means a state change or a change of role &mdash; it is never used for emphasis
+inside a sentence.</div>
+</div>
+
+<div class="lbl">The uppercase label</div>
+<div class="stage"><div class="row">
+  <div class="st t"><div class="box"><div id="side"><h2>Songs</h2>
+      <div class="trk">Blues in F<small>96 bpm</small></div></div></div>
+    <div class="cap"><b>#side h2</b>10px, .08em, uppercase, <code>--dim</code>, 8px of air under it</div></div>
+  <div class="st t"><div class="box"><div class="rlabel">Lanes</div></div>
+    <div class="cap"><b>.rlabel</b>the same label at weight 700, right-aligned to its column</div></div>
+  <div class="st t"><div class="box"><div class="slabel">Timing</div><div class="sval">96%</div></div>
+    <div class="cap"><b>.slabel</b>the same idea at .06em &mdash; the one place the tracking is not .08em</div></div>
+</div>
+<div class="cap2"><b>A section is named, never boxed.</b> Ten pixels, uppercase, letter-spaced, dim, and no
+rule under it &mdash; the gap does the separating. It is written out six times across the four sheets
+with the same five declarations; two of those six use .06em rather than .08em.</div>
+</div>
+
+<div class="lbl">Numbers: tabular, and mono when they change</div>
+<div class="stage"><div class="row">
+  <div class="st"><div class="box"><span id="pos">bar 3/12 &middot; beat 2</span></div>
+    <div class="cap"><b>#pos</b>tabular figures, <code>min-width:102px</code> &mdash; the reserve holds the widest string and stops the bar re-flowing every beat</div></div>
+  <div class="st"><div class="box"><span id="speed">Speed <b>100</b> bpm</span></div>
+    <div class="cap"><b>#speed b</b>tabular, <code>min-width:35px</code>, right-aligned, so 96 and 200 end on the same pixel</div></div>
+  <div class="st"><div class="box"><span id="played">C4 E4 G4</span></div>
+    <div class="cap"><b>#played</b><code>--mono</code> + tabular + <code>min-width:90px</code>: the notes you hold change on every chord</div></div>
+  <div class="st"><div class="box"><kbd>R</kbd><kbd>Space</kbd><span class="lst">REC</span></div>
+    <div class="cap"><b>kbd, .lst</b>mono at 600: a key cap is a literal key, and a lane state is a fixed-width word</div></div>
+  <div class="st m"><div class="box"><div class="slot"><div class="slabel">Timing</div><div class="sbar"></div><div class="sval">96%</div></div>
+      <div class="slot"><div class="slabel">Notes</div><div class="sbar"></div><div class="sval">43/45</div></div></div>
+    <div class="cap"><b>.sval</b><code>font:700 14px var(--mono)</code> &mdash; a score that ticks up while you play</div></div>
+</div>
+<div class="cap2"><b>Two rules, and they are different rules.</b> <code>tabular-nums</code> goes on
+<em>every</em> number, so digits share a width; <code>--mono</code> goes only on a number that is
+<em>changing in front of you</em> &mdash; a readout, a key cap, a lane state, a live score. A number
+that merely sits there (<code>#info b</code>, a bar count in a hint) stays in the page font.
+Both are only half the fix: a tabular readout with no <code>min-width</code> still moves the row when
+the text gets longer, which is why <code>#pos</code>, <code>#played</code>, <code>#speed b</code> and
+<code>.lst</code> each reserve one.</div>
+</div>
+
+<div class="lbl">The button rule, and why it is a type rule</div>
+<div class="stage"><div class="row">
+  <div class="st"><div class="box"><button>&#9654; Play</button></div>
+    <div class="cap"><b>13/16</b>the glyph is a triangle, the box is 16px, the button is 30px</div></div>
+  <div class="st"><div class="box"><button class="tgl">&#9679; Click</button></div>
+    <div class="cap"><b>13/16</b>the glyph is a circle, one pixel shorter &mdash; the box is still 16px, the button is still 30px</div></div>
+  <div class="st"><div class="box"><button class="tgl icon">&#9834;</button></div>
+    <div class="cap"><b>15/16</b>a bigger glyph in the same line box: wider padding, same height</div></div>
+  <div class="st"><div class="box"><span class="seg"><b>Out:</b><button class="on">Piano</button><button>Computer</button></span></div>
+    <div class="cap"><b>12/16</b>smaller type, same line box, plus the strip's own border &mdash; 30px again</div></div>
+</div>
+<div class="cap2"><b>Fixing the line box is what makes the row level.</b> With
+<code>line-height:normal</code> a button measured its tallest glyph, so <code>&#9654; Play</code> came out
+30px and <code>&#9679; Click</code> 29px beside it. Naming the line 16px takes the glyph out of the
+arithmetic: <code>16 + 6 + 6 + 2 = 30</code>, whatever is printed on it.</div>
+</div>
+
+<p class="rules"><b>Rules.</b> One family, named once on <code>body</code> and repeated on
+<code>button</code> because a control will not inherit it. Sizes come from the seven &mdash; 10 label,
+11 fine, 12 control and secondary, 13 button, 14 body, 15 title, 26 overlay &mdash; and a new element
+takes the one that matches its role, not a new number in between. Weight has three values and each means
+something: 500 is the plate that names a control, 600 is an on-state, 700 is a title or a readout;
+everything else is 400 and emphasis is done with colour, not weight. A section heading is 10px uppercase
+at .08em in <code>--dim</code> with air under it and no rule. Every number is
+<code>tabular-nums</code>; a number that changes while you watch also takes <code>--mono</code> and a
+<code>min-width</code>, because tabular figures keep the digits aligned but only a reserved width keeps
+the row from moving. Line height is 1.45 for prose and a fixed 16px inside any control, so type never
+decides how tall a control is.</p>
+</body></html>

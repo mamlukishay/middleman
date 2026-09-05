@@ -1,0 +1,175 @@
+<!-- @dsCard group="Bars &amp; panels" -->
+<!doctype html><html><head><meta charset="utf-8"><style>
+/* app: style.css */
+:root{--bg:#14161a;--pane:#1c1f26;--line:#2c313b;--fg:#e6e8ec;--dim:#8b93a3;
+      --accent:#e8b44a;--play:#2f7fd0;--you:#ff2fd6;
+      --mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+/* the bar is one row of groups: 14px between groups, 6px inside one. The status line is
+   the one thing that gives; below laptop width the row wraps, because clipping hid a
+   readout rather than merely looking tight. */
+#bar{display:flex;flex-wrap:wrap;gap:14px;align-items:center;padding:8px 14px;
+     border-bottom:1px solid var(--line);flex:0 0 auto;min-width:0}
+#bar .grp{display:flex;align-items:center;gap:6px;flex:0 0 auto}
+#bar button,#bar .chk{white-space:nowrap;flex:0 0 auto}
+button{background:#2a2f3a;color:var(--fg);border:1px solid var(--line);border-radius:6px;
+       padding:6px 12px;cursor:pointer;font:13px/16px ui-sans-serif,system-ui,sans-serif}
+/* measured: 101.53px, the widest string */
+#pos{font-variant-numeric:tabular-nums;color:var(--dim);min-width:102px}
+/* the notes you hold change on every chord: mono + tabular so the readout keeps
+   its width instead of shoving the rest of the bar around */
+#played{color:var(--you);font-weight:700;min-width:90px;font-size:14px;
+  font-family:var(--mono);font-variant-numeric:tabular-nums;
+  text-shadow:0 0 10px rgba(255,47,214,.5)}
+#inled{width:9px;height:9px;border-radius:50%;background:#3a3f4a;transition:background .1s}
+#inled.hit{background:var(--you);box-shadow:0 0 8px var(--you)}
+/* the one thing in the bar that gives: a long MIDI error truncates instead of wrapping */
+#statusEl{flex:1 1 0;min-width:0;text-align:right;overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap;color:var(--dim);font-size:11px}
+/* end app */
+/* app: looper.css */
+.chip[hidden]{display:none}
+.chip{border-radius:4px;padding:1px 6px;font-size:10px;font-weight:600;
+      background:#22262f;color:#6c7382;border:1px solid var(--line);cursor:pointer}
+.chip.on{background:var(--accent);color:#14161a;border-color:var(--accent)}
+.chip.solo.on{background:var(--play);border-color:var(--play);color:#fff}
+kbd,.kbd{padding:1px 6px;border:1px solid var(--line);border-radius:4px;background:#22262f;
+         font:600 11px var(--mono);color:var(--fg)}
+#legend{display:flex;flex-wrap:wrap;gap:5px 14px;align-items:center;font-size:11px;color:var(--dim)}
+#legend span.k{display:flex;align-items:center;gap:5px}
+#legend .kbd.hot{background:var(--accent);color:#14161a;border-color:var(--accent)}
+.tip{position:fixed;z-index:60;pointer-events:none;max-width:264px;
+     background:#2a2f3a;color:var(--fg);border:1px solid #3a4150;border-radius:6px;
+     padding:6px 9px;font-size:11.5px;line-height:1.45;
+     box-shadow:0 6px 18px rgba(0,0,0,.5)}
+.tip[hidden]{display:none}
+.tip kbd{margin-left:7px;vertical-align:1px}
+[data-tip]{cursor:pointer}
+/* end app */
+/* app: learn.css */
+.chips{display:flex;gap:4px;flex-wrap:wrap}
+.chips .chip{padding:3px 8px;font-size:11px}
+.chips .chip.on{background:var(--accent);color:#14161a;border-color:var(--accent)}
+#scoreline{display:flex;gap:16px;align-items:center;font-size:12px;color:var(--dim);min-height:18px;flex:0 0 auto}
+#scoreline b{color:var(--fg);font-variant-numeric:tabular-nums}
+#scoreline .hitc{color:var(--hit)} #scoreline .missc{color:#ffb0b0}
+:root{
+  --rh:#e8b44a; --lh:#2f7fd0; --hit:#5fbf7a; --miss:#e63d40;
+}
+/* end app */
+/* preview only: the tooltip is a fixed, JS-placed element and the status line only
+   truncates inside a flex row; both are pinned here so a screenshot can hold them. */
+.tip.is-static{position:static;display:inline-block;max-width:220px}
+.st .slot{display:flex;align-items:center;height:22px}
+/* preview only: the status line is right-aligned inside whatever slack is left, so the
+   column it lives in has to be drawn for the alignment and the ellipsis to read */
+.frame .slot{border:1px dashed #333947;border-radius:4px;padding:0 6px;height:24px}
+/* preview only: page furniture */
+body{margin:0;padding:24px;background:var(--bg);color:var(--fg);font:14px/1.45 ui-sans-serif,system-ui,sans-serif}
+h1{font-size:15px;font-weight:700;margin:0 0 4px}
+.sub{font-size:12px;color:var(--dim);margin:0 0 18px;max-width:660px}
+.lbl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--dim);margin:18px 0 6px}
+.stage{background:var(--pane);border-radius:8px;padding:14px}
+.stage.plain{padding:0;overflow:hidden}
+.row{display:flex;gap:24px;flex-wrap:wrap}
+.st{width:150px}
+.st.wide{width:230px}
+.cap{font-size:11px;color:var(--dim);margin-top:10px}
+.cap b{display:block;color:var(--fg);font-weight:600;margin-bottom:2px}
+.cap2{font-size:11px;color:var(--dim);margin-top:12px;max-width:640px;line-height:1.5}
+.cap2 b{color:var(--fg);font-weight:600}
+.rules{font-size:12px;color:var(--dim);margin:20px 0 0;max-width:660px}
+</style></head><body>
+<h1>Status line, readouts and chips</h1>
+<p class="sub">The right-hand end of every transport bar: what the app is doing, where the playhead
+is, what you are holding, and whether a note just arrived. Everything here is text, not a control —
+it is dim, small and tabular, and it is the part of the bar that gives way when the window narrows.</p>
+
+<div class="lbl">Status line &mdash; <code>#statusEl</code>, 11px dim, right-aligned, truncating</div>
+<div class="stage"><div class="row">
+  <div class="st wide frame"><div class="slot"><span id="statusEl">MIDI: Yamaha P-125</span></div>
+    <div class="cap"><b>connected</b>11px, <code>--dim</code> #8b93a3, right-aligned; the whole line is <code>flex:1 1 0</code></div></div>
+  <div class="st wide frame"><div class="slot"><span id="statusEl">connecting…</span></div>
+    <div class="cap"><b>connecting</b>same rule; the text is the only thing that changes</div></div>
+  <div class="st wide frame"><div class="slot"><span id="statusEl">tracks.json: unexpected token &lt;, "&lt;!doctype " is not valid JSON</span></div>
+    <div class="cap"><b>truncating</b><code>min-width:0</code> + <code>text-overflow:ellipsis</code>; it shortens rather than wrapping the bar</div></div>
+</div></div>
+
+<div class="lbl">In the bar</div>
+<div class="stage plain">
+  <div id="bar">
+    <span class="grp"><button>▶ Play</button><button>● Click</button></span>
+    <span id="pos">bar 3/12 · Bb7</span>
+    <span class="grp"><span id="played">C#4 E4 G4</span><span id="inled" class="hit"></span></span>
+    <span id="statusEl">MIDI: Yamaha P-125</span>
+  </div>
+  <div class="cap2" style="padding:0 14px 14px"><b>One row of groups.</b> 14px between groups, 6px inside a group.
+  <code>#statusEl</code> takes <code>flex:1 1 0</code>, so it absorbs the slack and pushes itself to the right edge;
+  it is the one thing in the bar that gives. Everything else is <code>flex:0 0 auto</code> and holds its width, and
+  the row wraps only below laptop width — clipping a readout is worse than a second line.</div>
+</div>
+
+<div class="lbl">Readouts</div>
+<div class="stage"><div class="row">
+  <div class="st"><div class="slot"><span id="pos">–</span></div>
+    <div class="cap"><b>#pos idle</b>tabular, <code>--dim</code>, <code>min-width:102px</code> holds the widest string, so it never re-lays</div></div>
+  <div class="st"><div class="slot"><span id="pos">bar 3/12 · Bb7</span></div>
+    <div class="cap"><b>#pos running</b>same box; only figures change, and they are tabular</div></div>
+  <div class="st"><div class="slot"><span id="played">–</span></div>
+    <div class="cap"><b>#played idle</b>magenta <code>--you</code>, 700, 14px mono, <code>min-width:90px</code></div></div>
+  <div class="st"><div class="slot"><span id="played">C#4 E4 G4</span></div>
+    <div class="cap"><b>#played held</b>same, with a 10px magenta glow at 50% behind the glyphs</div></div>
+</div></div>
+
+<div class="lbl">MIDI-in LED &mdash; <code>#inled</code></div>
+<div class="stage"><div class="row">
+  <div class="st"><div class="slot"><span id="inled"></span></div>
+    <div class="cap"><b>rest</b>9px circle, #3a3f4a, no shadow</div></div>
+  <div class="st"><div class="slot"><span id="inled" class="hit"></span></div>
+    <div class="cap"><b>.hit</b>fills <code>--you</code> with an 8px glow, for 140ms per note</div></div>
+</div></div>
+
+<div class="lbl">Chips</div>
+<div class="stage"><div class="row">
+  <div class="st"><div class="slot"><button class="chip">M</button></div>
+    <div class="cap"><b>.chip</b>10px/600, 4px radius, 1px 6px pad, #22262f on #6c7382 ink</div></div>
+  <div class="st"><div class="slot"><button class="chip on">M</button></div>
+    <div class="cap"><b>.chip.on</b>amber ground, #14161a ink, border amber — the bar's one "on"</div></div>
+  <div class="st"><div class="slot"><button class="chip solo on">S</button></div>
+    <div class="cap"><b>.chip.solo.on</b>the exception: <code>--play</code> blue on white ink</div></div>
+  <div class="st"><div class="slot"><span class="chips"><button class="chip">Off</button><button class="chip on">You</button></span></div>
+    <div class="cap"><b>.chips .chip</b>inside a <code>.chips</code> row it grows to 11px and 3px 8px</div></div>
+</div></div>
+
+<div class="lbl">Keys &mdash; <code>kbd</code> / <code>.kbd</code></div>
+<div class="stage"><div class="row">
+  <div class="st"><div class="slot"><kbd>Space</kbd></div>
+    <div class="cap"><b>kbd</b>600 11px mono, 4px radius, #22262f, <code>--line</code> border</div></div>
+  <div class="st"><div class="slot"><span class="kbd">R</span></div>
+    <div class="cap"><b>.kbd</b>the same rule for a span, where a <code>kbd</code> would be wrong</div></div>
+  <div class="st"><div class="slot"><span id="legend"><span class="k"><span class="kbd hot">1</span> lane</span></span></div>
+    <div class="cap"><b>#legend .kbd.hot</b>a live key: amber ground, dark ink, amber border</div></div>
+</div></div>
+
+<div class="lbl">Tooltip &mdash; <code>.tip</code></div>
+<div class="stage"><div class="row">
+  <div class="st wide"><div class="slot" style="height:auto"><span class="tip is-static">Start everything — the backing track, the click and every loop <kbd>Space</kbd></span></div>
+    <div class="cap"><b>.tip</b>#2a2f3a on a #3a4150 border, 6px radius, 6px 9px, 11.5px/1.45, max 264px, shadow 0 6px 18px black at 50%</div></div>
+</div>
+  <div class="cap2">One element per page, moved and filled from <code>data-tip</code>; it never appears
+  in flow. A key inside it is the same <code>kbd</code>, pushed 7px off the text.</div>
+</div>
+
+<div class="lbl">Score line &mdash; <code>#scoreline</code></div>
+<div class="stage">
+  <div id="scoreline">pass: <b>96%</b> · <span class="hitc">hit <b>43</b></span> · <span class="missc">missed <b>2</b></span> · of <b>45</b></div>
+  <div class="cap2"><b>12px dim with tabular <code>&lt;b&gt;</code> figures.</b> <code>.hitc</code> is <code>--hit</code> #5fbf7a,
+  <code>.missc</code> is #ffb0b0 — the light red the dark chrome uses for a number, not the hard <code>--miss</code> used on notes.</div>
+</div>
+
+<p class="rules"><b>Rules.</b> Everything on the right of the bar is a readout, not a control: dim,
+small, and never bordered. Numbers are tabular so a figure changing never moves anything beside it,
+and a readout that changes on every note (<code>#played</code>) is mono as well. Only the status line shortens — it takes all the slack and truncates with an ellipsis; every
+other item holds its width, and below laptop width the row wraps rather than clipping one. Amber on #14161a is the one "on": a chip, a key, a toggle all use it. The two exceptions
+are named — solo is <code>--play</code> blue on white, because a chip that means "only this one" has
+to be told apart from a chip that means "this one is on".</p>
+</body></html>

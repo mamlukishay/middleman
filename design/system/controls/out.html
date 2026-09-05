@@ -1,0 +1,146 @@
+<!-- @dsCard group="Controls" -->
+<!doctype html><html><head><meta charset="utf-8"><style>
+/* app: style.css */
+:root{--bg:#14161a;--pane:#1c1f26;--line:#2c313b;--fg:#e6e8ec;--dim:#8b93a3;
+      --accent:#e8b44a;--play:#2f7fd0;--you:#ff2fd6;
+      --mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+*{box-sizing:border-box}
+/* the page font with a fixed line box, so every button is 30px tall: buttons used to
+   be in the UA font at line-height:normal, which measured the glyph (▶ Play 30, ● Click 29) */
+button{background:#2a2f3a;color:var(--fg);border:1px solid var(--line);border-radius:6px;
+       padding:6px 12px;cursor:pointer;font:13px/16px ui-sans-serif,system-ui,sans-serif}
+button:hover{background:#333947}
+button:disabled{opacity:.45;cursor:default}
+.tgl.on{background:var(--accent);border-color:var(--accent);color:#14161a;font-weight:600}
+/* a one-glyph toggle (the melody's speaker): a square, so it takes no more room than a note */
+.tgl.icon{padding:6px 9px;font-size:15px;line-height:16px}
+.seg{display:inline-flex;align-items:stretch;border:1px solid var(--line);border-radius:6px;
+     overflow:hidden;flex:0 0 auto}
+.seg>b{display:flex;align-items:center;padding:0 7px;background:#20242c;color:var(--dim);
+       font-size:11px;font-weight:500;white-space:nowrap}
+/* 16px line + 6+6 padding + the strip's own 2px border = the 30px every button is */
+.seg>button{border:0;border-radius:0;padding:6px 9px;font-size:12px;line-height:16px;white-space:nowrap}
+.seg>button+button{border-left:1px solid var(--line)}
+.seg>button.on{background:var(--accent);color:#14161a;font-weight:600}
+.seg>button:disabled{color:var(--dim);background:#23272f;cursor:not-allowed}
+/* end app */
+/* app: learn-m.css */
+/* the out toggle is the shared .seg markup; the desktop's is 20px tall, which is a
+   control you can only hit with a mouse */
+.mob .seg{display:inline-flex;align-items:stretch;height:44px;flex:0 0 auto;
+  border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.mob .seg > b{display:flex;align-items:center;padding:0 10px;background:#20242c;
+  color:var(--dim);font-size:11px;font-weight:600}
+.mob .seg > button{border:0;border-radius:0;padding:0 14px;font-size:14px;
+  background:#2a2f3a;color:var(--fg)}
+.mob .seg > button + button{border-left:1px solid var(--line)}
+.mob .seg > button.on{background:var(--accent);color:#14161a;font-weight:700}
+.mob .seg > button:disabled{color:var(--dim);background:#23272f}
+/* end app */
+/* preview only: page furniture */
+body{margin:0;padding:24px;background:var(--bg);color:var(--fg);font:14px/1.45 ui-sans-serif,system-ui,sans-serif}
+h1{font-size:15px;font-weight:700;margin:0 0 4px}
+.sub{font-size:12px;color:var(--dim);margin:0 0 18px;max-width:700px}
+.lbl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--dim);margin:18px 0 6px}
+.stage{background:var(--pane);border-radius:8px;padding:14px}
+.row{display:flex;gap:24px;flex-wrap:wrap}
+.st{width:190px}
+.st .slot{height:32px;display:flex;align-items:center}
+.cap{font-size:11px;color:var(--dim);margin-top:10px}
+.cap b{color:var(--fg);font-weight:600}
+.cap>b:first-child{display:block;margin-bottom:2px}
+.cap2{font-size:11px;color:var(--dim);margin-top:12px;max-width:760px;line-height:1.55}
+.cap2 b{color:var(--fg);font-weight:600}
+.rules{font-size:12px;color:var(--dim);margin:22px 0 0;max-width:760px;line-height:1.6}
+/* preview only: a 30px band, ruled top and bottom, so a control that is the bar's one
+   height fills it exactly and one that is not shows a gap. */
+.band{display:flex;align-items:center;gap:10px;height:30px;
+      border-top:1px dashed rgba(232,180,74,.5);border-bottom:1px dashed rgba(232,180,74,.5)}
+.bandwrap{padding:14px 0 0}
+.tick{font-size:10px;color:var(--accent);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px}
+code{font-family:var(--mono);font-size:11px;color:var(--fg)}
+</style></head><body>
+<h1>Out toggle</h1>
+<p class="sub">Where the notes go: to the piano over MIDI, or out of the computer's own speakers.
+One control with one implementation (<code>src/outtoggle.js</code>), built into the empty
+<code>&lt;span id="outsel"&gt;</code> that every transport bar carries &mdash; the script overwrites
+that span's class with <code>seg</code> and writes <code>&lt;b&gt;Out:&lt;/b&gt;</code> plus two
+buttons into it. Nothing about it is per-page.</p>
+
+<div class="lbl">Which half is lit &mdash; the laptop strip</div>
+<div class="stage"><div class="row">
+  <div class="st"><div class="slot">
+    <span class="seg"><b>Out:</b><button class="on">Piano</button><button>Computer</button></span></div>
+    <div class="cap"><b>Piano</b>the lit half is amber #e8b44a with #14161a ink at 600; the other keeps
+    the ordinary button face #2a2f3a</div></div>
+  <div class="st"><div class="slot">
+    <span class="seg"><b>Out:</b><button>Piano</button><button class="on">Computer</button></span></div>
+    <div class="cap"><b>Computer</b>the same swap the other way &mdash; but the lit half is 600, and
+    600 is wider than 400: the strip measures <b>162.47</b> with neither lit, <b>163.98</b> with Piano
+    and <b>165.13</b> with Computer</div></div>
+  <div class="st"><div class="slot">
+    <span class="seg"><b>Out:</b><button class="on">Piano</button><button class="on">Computer</button></span></div>
+    <div class="cap"><b>both</b>both halves lit. There is no button for it &mdash; only the console sets
+    <code>both</code> &mdash; but the strip has to be able to say it. Two bold words: <b>166.64</b>,
+    the widest the strip gets</div></div>
+</div></div>
+
+<div class="lbl">When the world changes under it</div>
+<div class="stage"><div class="row">
+  <div class="st"><div class="slot">
+    <span class="seg"><b>Out:</b><button disabled>Piano</button><button class="on">Computer</button></span></div>
+    <div class="cap"><b>Piano disabled</b>no MIDI output found. Two rules land at once now that
+    <code>button:disabled</code> lives in style.css: the generic <code>opacity:.45</code>, and the
+    strip's own colour swap &mdash; ink to --dim, face to #23272f, cursor <code>not-allowed</code></div></div>
+  <div class="st"><div class="slot">
+    <span class="seg"><b>Out:</b><button>Piano</button><button class="on">Phone</button></span></div>
+    <div class="cap"><b>Phone</b>while a phone is mirroring the page it is the one making the sound, so
+    the second half is relabelled. Only the word changes &mdash; but it is a shorter word, and the strip
+    drops to <b>143.42</b></div></div>
+</div></div>
+
+<div class="lbl">In the bar &mdash; one height</div>
+<div class="stage">
+  <div class="bandwrap">
+    <div class="tick">30 px</div>
+    <div class="band">
+      <button>&#9654; Play</button>
+      <span class="seg"><b>Out:</b><button class="on">Piano</button><button>Computer</button></span>
+      <button class="tgl icon">&#9834;</button>
+      <button class="tgl on">&#9679; Click</button>
+    </div>
+  </div>
+  <div class="cap2">The strip stands beside plain buttons and has to measure the same as them.
+  Its halves are <code>padding:6px 9px</code> over a fixed <code>line-height:16px</code> &mdash;
+  <b>28&nbsp;px of button</b> &mdash; and <code>.seg</code>'s own 1&nbsp;px border adds the last
+  two: <b>28 + 2 = 30</b>, the height of every button in the bar. The border belongs to the strip,
+  not to the halves: the halves carry <code>border:0</code> and a single 1&nbsp;px <code>--line</code>
+  seam between them, so the two faces touch and the corner radius is cut once, by the strip's
+  <code>overflow:hidden</code>.</div>
+</div>
+
+<div class="lbl">Phone &mdash; the same markup, twice the target</div>
+<div class="stage">
+  <div class="mob"><span class="seg"><b>Out:</b><button>Piano</button><button class="on">Phone</button></span></div>
+  <div class="cap2">On the phone the identical span is restyled rather than rebuilt: <b>44&nbsp;px</b> tall
+  (a finger, not a mouse), <b>8&nbsp;px</b> radius instead of 6, halves at <b>14&nbsp;px</b> with
+  <code>padding:0 14px</code> and the strip's height doing the vertical centring, the
+  <code>Out:</code> plate at 600 instead of 500. The lit half goes to <b>700</b> &mdash; the phone's one
+  weight difference from the laptop. Same amber, same #14161a ink, same seam.</div>
+</div>
+
+<p class="rules"><b>Rules.</b> The Out strip is one control, not two buttons: one border, one radius,
+one seam &mdash; but it is <i>not</i> a fixed box. Its width follows its words, and because the lit half
+is set at 600 the strip breathes about two pixels as the choice moves (162.47 &rarr; 166.64) and twenty
+when <b>Computer</b> becomes <b>Phone</b>. Everything to its right in the bar shifts by that much, and the
+status line is what absorbs it. Lit is always amber #e8b44a with #14161a ink
+&mdash; 600 on the laptop, 700 on the phone &mdash; and unlit is always the ordinary button face #2a2f3a,
+so the strip reads at a glance from across the room. Both halves can be lit at once; the strip must never
+be drawn as if exactly one is. A half that cannot be chosen is repainted as well as faded: --dim on #23272f
+with a <code>not-allowed</code> cursor, the one disabled treatment in the app that is a colour swap and not
+only an opacity. The <code>Out:</code> label lives inside the strip on its own #20242c plate at
+11&nbsp;px/500 &mdash; never above it, never beside it as a separate span. The second half is named for
+whatever is actually going to make the sound (<b>Computer</b>, or <b>Phone</b> while one is mirroring);
+the first is always <b>Piano</b>. In a bar the strip measures 30&nbsp;px like every button next to it, and
+on a phone 44&nbsp;px like every other target.</p>
+</body></html>

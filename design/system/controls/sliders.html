@@ -1,0 +1,249 @@
+<!-- @dsCard group="Controls" -->
+<!doctype html><html><head><meta charset="utf-8"><style>
+/* app: style.css */
+:root{--bg:#14161a;--pane:#1c1f26;--line:#2c313b;--fg:#e6e8ec;--dim:#8b93a3;
+      --accent:#e8b44a;--play:#2f7fd0;--you:#ff2fd6;
+      --mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+*{box-sizing:border-box}
+button{background:#2a2f3a;color:var(--fg);border:1px solid var(--line);border-radius:6px;
+       padding:6px 12px;cursor:pointer;font:13px/16px ui-sans-serif,system-ui,sans-serif}
+button:hover{background:#333947}
+.chk{display:flex;align-items:center;gap:5px;cursor:pointer;font-size:13px;white-space:nowrap}
+.chk input{accent-color:var(--accent);cursor:pointer;margin:0}
+.chk.off{color:var(--dim);cursor:default}
+.chk.off input{cursor:default}
+/* the two sliders in the transport: tempo, and how loud the backing plays */
+#speed,#vol{display:flex;align-items:center;gap:7px;color:var(--dim);font-size:12px;
+  white-space:nowrap}
+#speed input,#vol input{width:110px;accent-color:var(--accent)}
+#vol input{width:64px}
+/* measured: the old reserves were one digit short, so the row shifted at 200 bpm and 100% */
+#speed b,#vol b{color:var(--fg);font-variant-numeric:tabular-nums;min-width:35px;text-align:right;
+  cursor:text;border-radius:4px;padding:1px 4px;border:1px solid transparent}
+#vol b{cursor:default;min-width:47px;text-align:right}
+#speed b:hover{border-color:var(--line)}
+#speed b:focus{outline:none;border-color:var(--accent);background:#22262f;text-align:center}
+/* end app */
+/* app: learn.css */
+/* the tempo marker: shows only when the tempo showing is yours, not the step's default */
+#speed .tmark{background:none;border:0;padding:0 0 0 4px;margin:0;color:var(--dim);
+              font-size:14px;line-height:1;cursor:pointer;opacity:.65}
+#speed .tmark:hover{opacity:1;color:var(--accent)}
+/* end app */
+/* app: learn-m.css */
+.stepper{display:flex;align-items:center;height:40px;border:1px solid var(--line);
+  border-radius:8px;overflow:hidden;flex:0 0 auto}
+.stepper button{width:40px;height:40px;border:0;border-radius:0;background:#22262f;
+  color:var(--fg);font-size:19px;padding:0}
+.stepper .bpmv{min-width:52px;padding:0 4px;text-align:center;font:700 14px var(--mono)}
+.stepper .bpmv small{font:10px ui-sans-serif,system-ui,sans-serif;color:var(--dim);margin-left:2px}
+#mvol{display:flex;align-items:center;gap:6px;height:40px;padding:0 9px;flex:0 0 auto;
+  border:1px solid var(--line);border-radius:8px;background:#22262f}
+#mvol svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round;color:var(--dim);flex:0 0 auto}
+#mvol input{width:76px;height:20px;margin:0;accent-color:var(--accent)}
+/* end app */
+/* preview only: the two states a screenshot cannot hold, at the values :hover and
+   :focus actually use. */
+#speed b.is-hover{border-color:var(--line)}
+#speed b.is-focus{outline:none;border-color:var(--accent);background:#22262f;text-align:center}
+.tmark.is-hover{opacity:1;color:var(--accent)}
+/* preview only: page furniture */
+body{margin:0;padding:24px;background:var(--bg);color:var(--fg);font:14px/1.45 ui-sans-serif,system-ui,sans-serif}
+h1{font-size:15px;font-weight:700;margin:0 0 4px}
+.sub{font-size:12px;color:var(--dim);margin:0 0 18px;max-width:760px}
+.lbl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--dim);margin:18px 0 6px}
+.lbl em{font-style:normal;color:var(--accent)}
+.stage{background:var(--pane);border-radius:8px;padding:14px}
+.row{display:flex;gap:24px;flex-wrap:wrap}
+.st{width:428px}
+.mid .st{width:244px}
+.narrow .st{width:200px}
+.phonerow{display:flex;gap:18px;flex-wrap:wrap;align-items:center}
+.st .slot{height:32px;display:flex;align-items:center}
+.cap{font-size:11px;color:var(--dim);margin-top:10px}
+.cap b{color:var(--fg);font-weight:600}
+.cap>b:first-child{display:block;margin-bottom:2px}
+.cap2{font-size:11px;color:var(--dim);margin-top:12px;max-width:790px;line-height:1.55}
+.cap2 b{color:var(--fg);font-weight:600}
+.rules{font-size:12px;color:var(--dim);margin:22px 0 0;max-width:790px;line-height:1.6}
+code{font-family:var(--mono);font-size:11px;color:var(--fg)}
+/* preview only: a shrink-wrapped stack with a dashed rule down its right edge. Each row
+   is its own max-content box, so a readout that grows pushes its row past the rule. */
+.gauge{display:inline-block;position:relative;padding-right:0}
+.gauge .fit{width:max-content;background:rgba(255,255,255,.05);border-radius:4px;padding:1px 0}
+.gauge .fit+.fit{margin-top:8px}
+.gauge:after{content:"";position:absolute;top:-4px;bottom:-4px;right:0;
+             border-right:1px dashed rgba(232,180,74,.6)}
+.gcol{display:flex;gap:56px;flex-wrap:wrap;align-items:flex-start}
+.gtitle{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin:0 0 8px}
+.gtitle.good{color:var(--accent)}
+</style></head><body>
+<h1>Sliders, readouts and the one checkbox</h1>
+<p class="sub">Speed and Volume are the same control twice: a word in <code>--dim</code>, a native
+range in <code>accent-color</code> amber, and a readout in body ink. Everything a slider does is
+native &mdash; no track, no thumb, no custom drawing &mdash; and everything the app adds is the
+box around the number. The bpm readout is also an input: a <code>contenteditable</code>
+<code>&lt;b&gt;</code>, not a text field, so it stays a reading until you click it.</p>
+
+<div class="lbl">The bpm readout &mdash; four states of the same box</div>
+<div class="stage"><div class="row">
+  <div class="st"><div class="slot">
+    <span id="speed">Speed
+      <input type="range" min="50" max="200" step="1" value="100">
+      <b contenteditable="plaintext-only" inputmode="numeric"
+         title="click to type a tempo">100</b> bpm</span></div>
+    <div class="cap"><b>rest</b>a 1&nbsp;px <b>transparent</b> border, 4&nbsp;px radius,
+    <code>padding:1px 4px</code>, right-aligned tabular figures. The border is there but unpainted,
+    so nothing moves when it appears</div></div>
+  <div class="st"><div class="slot">
+    <span id="speed">Speed
+      <input type="range" min="50" max="200" step="1" value="100">
+      <b class="is-hover" contenteditable="plaintext-only" inputmode="numeric"
+         title="click to type a tempo">100</b> bpm</span></div>
+    <div class="cap"><b>hover</b>the border alone is painted <code>--line</code>: the only hint that
+    a reading is a field. <code>cursor:text</code>, not <code>pointer</code></div></div>
+  <div class="st"><div class="slot">
+    <span id="speed">Speed
+      <input type="range" min="50" max="200" step="1" value="100">
+      <b class="is-focus" contenteditable="plaintext-only" inputmode="numeric"
+         title="click to type a tempo">100</b> bpm</span></div>
+    <div class="cap"><b>focus</b>border <code>--accent</code>, ground <code>#22262f</code>, and the
+    text goes <b>centred</b> &mdash; a reading is right-aligned, something you are typing is not.
+    The UA outline is dropped for the amber border</div></div>
+  <div class="st"><div class="slot">
+    <span id="speed">Speed
+      <input type="range" min="50" max="200" step="1" value="100">
+      <b class="is-focus" contenteditable="plaintext-only" inputmode="numeric"
+         title="click to type a tempo">143</b> bpm</span></div>
+    <div class="cap"><b>typed</b>a value you typed looks exactly like a value you dragged; the slider
+    thumb follows on input. Nothing about the box says "unsaved"</div></div>
+</div>
+<div class="cap2">The tempo track is <b>110&nbsp;px</b> and the volume track <b>64</b> &mdash; two
+fixed widths, not a clamp and not a share of the row. A slider never shrinks: in the transport bar the
+status line is the only thing that gives, so a level keeps the same reach on every page and at every
+window width, and a drag means the same tempo change wherever you do it.
+<code>accent-color</code> is the only paint the app puts on the control, so the track, the thumb and
+the fill are the browser's and the colour is ours.</div>
+</div>
+
+<div class="lbl">Does the readout hold its width? <em>&mdash; yes</em></div>
+<div class="stage">
+  <div class="gcol">
+    <div>
+      <div class="gtitle good">Speed &mdash; <code>min-width:35px</code></div>
+      <div class="gauge">
+        <div class="fit"><span id="speed">Speed
+          <input type="range" min="50" max="200" step="1" value="60">
+          <b contenteditable="plaintext-only" inputmode="numeric">60</b> bpm</span></div>
+        <div class="fit"><span id="speed">Speed
+          <input type="range" min="50" max="200" step="1" value="200">
+          <b contenteditable="plaintext-only" inputmode="numeric">200</b> bpm</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="gtitle good">Volume &mdash; <code>min-width:47px</code></div>
+      <div class="gauge">
+        <div class="fit"><span id="vol">Volume
+          <input type="range" min="0" max="100" step="1" value="7">
+          <b>7%</b></span></div>
+        <div class="fit"><span id="vol">Volume
+          <input type="range" min="0" max="100" step="1" value="100">
+          <b>100%</b></span></div>
+      </div>
+    </div>
+  </div>
+  <div class="cap2">Each dashed rule is the right edge of the widest row in its own stack, and the
+  narrow value lands on it too &mdash; the row does not move when the number grows a digit. Tabular
+  figures stop the digits from dancing; the <b>reserve</b> is what stops the row from moving. With
+  <code>box-sizing:border-box</code> a <code>min-width:35px</code> leaves 25&nbsp;px of content, so
+  <code>60</code> and <code>200</code> both measure <b>35&nbsp;px</b> and the word <i>bpm</i> never
+  shifts. Volume is the same story one size up: <code>7%</code> and <code>100%</code> both sit on
+  <code>min-width:47px</code>, where <code>100%</code> on its own measures <b>46.60</b>. The reserve
+  is the widest value the readout can reach, not the width it usually has &mdash; the earlier
+  30&nbsp;px and 38&nbsp;px were each one digit short, and the bar moved the moment the tempo passed
+  99 or the volume hit 100%.</div>
+</div>
+
+<div class="lbl">The tempo marker &mdash; learn only</div>
+<div class="stage mid"><div class="row">
+  <div class="st"><div class="slot">
+    <span id="speed">Speed
+      <input type="range" min="30" max="200" step="1" value="60">
+      <b contenteditable="plaintext-only" inputmode="numeric">60</b> bpm<button class="tmark" hidden
+        >&bull;</button></span></div>
+    <div class="cap"><b>step's tempo</b>the marker carries <code>hidden</code>; the row is exactly the
+    practice row</div></div>
+  <div class="st"><div class="slot">
+    <span id="speed">Speed
+      <input type="range" min="30" max="200" step="1" value="72">
+      <b contenteditable="plaintext-only" inputmode="numeric">72</b> bpm<button class="tmark"
+        >&bull;</button></span></div>
+    <div class="cap"><b>your tempo</b>a 14&nbsp;px <code>--dim</code> dot at <code>opacity:.65</code>,
+    with no face, no border and no padding but 4&nbsp;px on the left &mdash; a button that has to
+    read as a mark</div></div>
+  <div class="st"><div class="slot">
+    <span id="speed">Speed
+      <input type="range" min="30" max="200" step="1" value="72">
+      <b contenteditable="plaintext-only" inputmode="numeric">72</b> bpm<button class="tmark is-hover"
+        >&bull;</button></span></div>
+    <div class="cap"><b>hover</b>full opacity and <code>--accent</code>: clicking it puts the step's
+    own tempo back</div></div>
+</div></div>
+
+<div class="lbl">Melody &mdash; the one checkbox in the app</div>
+<div class="stage narrow"><div class="row">
+  <div class="st"><div class="slot">
+    <label class="chk"><input type="checkbox"> Melody</label></div>
+    <div class="cap"><b>rest</b>13&nbsp;px body ink, <code>gap:5px</code>, a native 13&nbsp;px box in
+    <code>accent-color</code> amber. 18.84&nbsp;px tall against 30&nbsp;px buttons</div></div>
+  <div class="st"><div class="slot">
+    <label class="chk"><input type="checkbox" checked> Melody</label></div>
+    <div class="cap"><b>checked</b>the browser's own tick on the amber ground. The app paints nothing
+    &mdash; there is no custom box anywhere</div></div>
+  <div class="st"><div class="slot">
+    <label class="chk off"><input type="checkbox"> Melody</label></div>
+    <div class="cap"><b>.off</b>this track has no melody: text to <code>--dim</code> and the cursor
+    back to <code>default</code> on both label and box. Not <code>disabled</code>, not faded</div></div>
+</div>
+<div class="cap2">Melody is the one control in the whole app whose <b>label sits to the right of it</b>.
+Everywhere else the name is on the left of the thing it names (<code>Speed</code>,
+<code>Volume</code>) or inside it on its own plate (<code>Out:</code>). It reads that way because it
+is a checkbox and the whole label is the hit target &mdash; but it means the bar has three label
+idioms in one row.</div>
+</div>
+
+<div class="lbl">Phone &mdash; a stepper instead of a slider, a slider with no readout</div>
+<div class="stage">
+  <div class="phonerow">
+    <div class="stepper">
+      <button aria-label="slower">&minus;</button>
+      <span class="bpmv"><b>60</b><small>bpm</small></span>
+      <button aria-label="faster">+</button>
+    </div>
+    <label id="mvol" aria-label="volume">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9v6h4l5 4V5L9 9z"/><path d="M17 9.5a4 4 0 0 1 0 5"/></svg>
+      <input type="range" min="0" max="100" step="1" value="100">
+    </label>
+  </div>
+  <div class="cap2">A 40&nbsp;px row, 8&nbsp;px radius, both of them. Tempo becomes two 40&nbsp;×&nbsp;40
+  targets around a <code>700 14px</code> mono value with a 10&nbsp;px <code>bpm</code> beside it &mdash;
+  a slider is not a thing you can set to 72 with a thumb. The stepper's own buttons have no border and
+  no radius: the strip's <code>overflow:hidden</code> cuts the corners, exactly as the Out strip does.
+  Volume keeps the native range on a sunk <code>#22262f</code> plate with a 15&nbsp;px stroked icon
+  where the word would be, and <b>no readout at all</b> &mdash; the handle is the reading.</div>
+</div>
+
+<p class="rules"><b>Rules.</b> A level is a native range with <code>accent-color:var(--accent)</code>
+and nothing else painted on it; the app never draws a track or a thumb. Its name goes to the left in
+12&nbsp;px <code>--dim</code>, its value to the right in body ink, 7&nbsp;px apart, on one line that
+never wraps. A value is always tabular and always right-aligned, and it lives in a 4&nbsp;px box with
+a transparent 1&nbsp;px border so the box can be painted on hover without moving anything. A readout
+you can type into says so only on hover (border <code>--line</code>) and only commits to amber while
+it has focus, where it also goes centred; a readout you cannot type into keeps
+<code>cursor:default</code> and never paints a border. The reserve on a readout has to be the widest
+value it can reach, not the width it usually has &mdash; 35&nbsp;px for three bpm digits and
+47&nbsp;px for <code>100%</code>, because the earlier 30 and 38 were each a digit short and the row
+shifted when the number grew. Where a slider will not do, the phone swaps the
+control rather than shrinking it: two 40&nbsp;px targets and a mono value, one strip, corners cut once.</p>
+</body></html>

@@ -1,0 +1,163 @@
+<!-- @dsCard group="Bars &amp; panels" -->
+<!doctype html><html><head><meta charset="utf-8"><style>
+/* app: style.css */
+:root{--bg:#14161a;--pane:#1c1f26;--line:#2c313b;--fg:#e6e8ec;--dim:#8b93a3;
+      --accent:#e8b44a;--play:#2f7fd0;--you:#ff2fd6;
+      --mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+/* end app */
+/* app: learn.css */
+:root{
+  --rh:#e8b44a; --lh:#2f7fd0; --hit:#5fbf7a; --miss:#e63d40;
+}
+.meter{display:flex;gap:8px;min-height:40px}
+.slot{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:3px;padding:6px 8px;border-radius:6px;
+      border:1px solid var(--line);background:#22262f}
+.slabel{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim)}
+.sbar{height:5px;border-radius:3px;background:#171a20;overflow:hidden}
+.sbar i{display:block;height:100%;width:0;background:#7a3a3d;transition:width .15s linear}
+.sval{font:700 14px var(--mono);color:var(--dim);font-variant-numeric:tabular-nums}
+.slot.live .sval{color:#ffb0b0}
+.slot.ok{border-color:var(--hit)}
+.slot.ok .sbar i{background:var(--hit)}
+.slot.ok .sval{color:var(--hit)}
+.slot.no{border-color:#7a3a3d}
+.slot.no .sval{color:#ffb0b0}
+.slot.done .sbar{opacity:.5}
+#progbar{height:5px;border-radius:3px;background:#22262f;overflow:hidden}
+#progbar i{display:block;height:100%;width:0;background:var(--hit);transition:width .3s}
+#overlay .obar{width:260px;height:6px;border-radius:3px;background:#2a2f3a;overflow:hidden}
+#overlay .obar i{display:block;height:100%;width:0;background:var(--accent)}
+.passes{display:flex;gap:4px;flex-wrap:wrap;min-height:22px}
+.pass{font:600 11px var(--mono);padding:2px 7px;border-radius:4px;border:1px solid var(--line);
+      background:#22262f;color:var(--dim)}
+.pass.ok{border-color:var(--hit);color:var(--hit)}
+.pass.no{border-color:#7a3a3d;color:#ffb0b0}
+.pass.pending{border-style:dashed}
+/* end app */
+/* app: learn-m.css */
+#meterrow{display:flex;gap:8px;align-items:stretch;flex:0 0 auto;height:52px;margin:8px 10px 0}
+#meterrow .meter{flex:1 1 auto;min-width:0;gap:8px;min-height:0}
+/* the slot's label and its number share a line, with the bar under both -- on a
+   52px row there is no height for the desktop's stack */
+#meterrow .slot{display:grid;grid-template-columns:minmax(0,1fr) auto;
+  grid-template-rows:1fr auto;gap:4px 8px;align-items:baseline;padding:6px 10px;border-radius:8px}
+#meterrow .slot .slabel{grid-area:1/1;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#meterrow .sval{grid-area:1/2;font-size:16px;text-align:right}
+#meterrow .sbar{grid-area:2/1/3/3;height:6px}
+.pbar{height:6px;border-radius:3px;background:#22262f;margin:8px 14px 4px;overflow:hidden}
+.pbar i{display:block;height:100%;width:0;background:var(--hit);transition:width .3s}
+.cbar{width:min(320px,70vw);height:6px;border-radius:3px;background:#2a2f3a;overflow:hidden}
+.cbar i{display:block;height:100%;width:0;background:var(--accent)}
+/* end app */
+/* preview only: the bars fill from JS (`i.style.width`), so the specimens carry the
+   widths inline; and #meterrow's margins are the phone screen's, not this card's. */
+#meterrow{margin:0}
+.retired{opacity:.72}
+/* preview only: page furniture */
+body{margin:0;padding:24px;background:var(--bg);color:var(--fg);font:14px/1.45 ui-sans-serif,system-ui,sans-serif}
+h1{font-size:15px;font-weight:700;margin:0 0 4px}
+.sub{font-size:12px;color:var(--dim);margin:0 0 18px;max-width:660px}
+.lbl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--dim);margin:18px 0 6px}
+.stage{background:var(--pane);border-radius:8px;padding:14px}
+.row{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start}
+.st{width:150px}
+.st.wide{width:200px}
+.st.pb{width:344px}
+.st .slot2{min-height:46px}
+.cap{font-size:11px;color:var(--dim);margin-top:10px}
+.cap b{display:block;color:var(--fg);font-weight:600;margin-bottom:2px}
+.cap2{font-size:11px;color:var(--dim);margin-top:12px;max-width:640px;line-height:1.5}
+.cap2 b{color:var(--fg);font-weight:600}
+.rules{font-size:12px;color:var(--dim);margin:20px 0 0;max-width:660px}
+</style></head><body>
+<h1>Challenge meter and progress bars</h1>
+<p class="sub">What a step wants of you, and how far along you are. The meter is one
+<code>.slot</code> per required pass — or a single slot for a "last N seconds" challenge — built once
+and then only mutated, because it repaints forty times a second under a playhead.</p>
+
+<div class="lbl">The slot &mdash; every state <code>src/learn/meter.js</code> can set</div>
+<div class="stage"><div class="row">
+  <div class="st"><div class="meter"><div class="slot idle"><span class="slabel">Pass 1</span><div class="sbar"><i style="width:0%"></i></div><b class="sval">–</b></div></div>
+    <div class="cap"><b>idle</b><code>.idle</code> has no rule of its own — it is the bare <code>.slot</code>: #22262f, <code>--line</code> border, dim <code>–</code>, empty bar</div></div>
+  <div class="st"><div class="meter"><div class="slot live"><span class="slabel">Pass 1</span><div class="sbar"><i style="width:62%"></i></div><b class="sval">62%</b></div></div>
+    <div class="cap"><b>.live</b>the pass under way: value goes #ffb0b0, the fill is the dull red #7a3a3d, border unchanged</div></div>
+  <div class="st"><div class="meter"><div class="slot ok live"><span class="slabel">Pass 1</span><div class="sbar"><i style="width:94%"></i></div><b class="sval">94%</b></div></div>
+    <div class="cap"><b>.ok.live</b>running and already over target: <code>.ok</code> turns border, fill and value <code>--hit</code></div></div>
+  <div class="st"><div class="meter"><div class="slot ok done"><span class="slabel">Pass 1</span><div class="sbar"><i style="width:96%"></i></div><b class="sval">✓ 96%</b></div></div>
+    <div class="cap"><b>.ok.done</b>finished and kept on show; <code>.done</code> drops the bar to 50% so the number leads</div></div>
+  <div class="st"><div class="meter"><div class="slot no done"><span class="slabel">Pass 2</span><div class="sbar"><i style="width:71%"></i></div><b class="sval">✗ 71%</b></div></div>
+    <div class="cap"><b>.no.done</b>border #7a3a3d, value #ffb0b0, bar left red at 50% — and the streak ends here</div></div>
+</div></div>
+
+<div class="lbl">A whole meter &mdash; <code>.meter</code>, one slot per pass</div>
+<div class="stage">
+  <div class="meter">
+    <div class="slot ok done"><span class="slabel">Pass 1</span><div class="sbar"><i style="width:96%"></i></div><b class="sval">✓ 96%</b></div>
+    <div class="slot live"><span class="slabel">Pass 2</span><div class="sbar"><i style="width:62%"></i></div><b class="sval">62%</b></div>
+    <div class="slot idle"><span class="slabel">Pass 3</span><div class="sbar"><i style="width:0%"></i></div><b class="sval">–</b></div>
+  </div>
+  <div class="cap2"><b>Equal slots, 8px apart, 40px minimum.</b> Every slot is
+  <code>flex:1 1 0</code>, so three passes and one pass fill the same width; nothing about the row
+  moves as a pass finishes. A "last N seconds" challenge is the same component with a single slot
+  labelled <code>last 8 s</code>.</div>
+</div>
+
+<div class="lbl">Phone &mdash; <code>#meterrow .slot</code></div>
+<div class="stage">
+  <div id="meterrow">
+    <div class="meter">
+      <div class="slot ok done"><span class="slabel">Pass 1</span><div class="sbar"><i style="width:96%"></i></div><b class="sval">✓ 96%</b></div>
+      <div class="slot live"><span class="slabel">Pass 2</span><div class="sbar"><i style="width:62%"></i></div><b class="sval">62%</b></div>
+    </div>
+  </div>
+  <div class="cap2"><b>The same slot, re-laid onto a 52px row.</b> A grid instead of a column: label
+  and value share the first line — label left and ellipsing, value right at 16px — and the bar spans
+  both columns underneath at 6px. Padding goes to 6px 10px and the corner to 8px, matching the phone's
+  panels. Every colour rule above still applies, unchanged.</div>
+</div>
+
+<div class="lbl">Progress bars &mdash; four near-identical implementations</div>
+<div class="stage"><div class="row">
+  <div class="st pb"><div class="slot2"><div id="progbar"><i style="width:62%"></i></div></div>
+    <div class="cap"><b>#progbar</b>sidebar, course progress: 5px, 3px radius, #22262f ground, <code>--hit</code> fill</div></div>
+  <div class="st pb"><div class="slot2"><div class="pbar"><i style="width:62%"></i></div></div>
+    <div class="cap"><b>.pbar</b>phone path screen: the same, at 6px, with 8px 14px 4px of margin baked in</div></div>
+  <div class="st pb"><div class="slot2"><div id="overlay"><div class="obar"><i style="width:62%"></i></div></div></div>
+    <div class="cap"><b>#overlay .obar</b>the count-in: 260px fixed, 6px, #2a2f3a ground, <code>--accent</code> fill</div></div>
+  <div class="st pb"><div class="slot2"><div class="cbar"><i style="width:62%"></i></div></div>
+    <div class="cap"><b>.cbar</b>phone step-done card: <code>min(320px,70vw)</code>, otherwise identical to <code>.obar</code></div></div>
+</div>
+  <div class="cap2"><b>Four rules for one component.</b> They differ only in height (5 or 6px), ground
+  (#22262f on a panel, #2a2f3a on a scrim) and fill (<code>--hit</code> for something you earned,
+  <code>--accent</code> for a clock running down). Everything else — 3px radius,
+  <code>overflow:hidden</code>, an <code>&lt;i&gt;</code> whose width is set from JS — is repeated
+  verbatim in all four.</div>
+</div>
+
+<div class="lbl">Retired &mdash; <code>.pass</code> cards</div>
+<div class="stage retired">
+  <div class="passes">
+    <span class="pass ok">✓ 96%</span>
+    <span class="pass no">✗ 71%</span>
+    <span class="pass">–</span>
+    <span class="pass pending">–</span>
+  </div>
+  <div class="cap2"><b>Nothing emits these any more.</b> <code>.passes</code> and its five states are
+  still in <code>learn.css</code>, but no HTML and nothing in <code>src/</code> sets the class — the
+  meter's <code>.slot</code> replaced them, and took the same three colours with it
+  (<code>--hit</code> for a pass, #7a3a3d and #ffb0b0 for a failed one, <code>--dim</code> for one not
+  reached). They are shown here only so the rules are accounted for: a 600 11px mono pill, 2px 7px,
+  4px radius, and a dashed border for <code>.pending</code>. Do not use them in new work.</div>
+</div>
+
+<p class="rules"><b>Rules.</b> The meter is the only place a score is shown while you are playing, and
+it never changes shape while it runs: the slots are built once for the challenge and only their
+class, their bar width and their number change after that. Slots share the row equally, so the count
+of passes is read from the number of slots, not from their size. Colour carries the whole state —
+dull red #7a3a3d while a pass is in progress, <code>--hit</code> green the moment it is over target,
+#7a3a3d again with #ffb0b0 figures if it failed — and the border is what says which, because it is
+the part visible from a music stand. A finished slot keeps its number and fades its bar to half; it
+never disappears. Numbers are 700 mono and tabular, so the row does not twitch at 40 repaints a
+second. Progress bars are all 3px-radius troughs with a JS-set fill: green for something you have
+earned, amber for a clock.</p>
+</body></html>

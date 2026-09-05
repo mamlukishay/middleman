@@ -1,0 +1,140 @@
+<!-- @dsCard group="Backup C · Split toggles" -->
+<!doctype html><html><head><meta charset="utf-8"><style>
+:root{
+/* app: style.css */
+--bg:#14161a;--pane:#1c1f26;--line:#2c313b;--fg:#e6e8ec;--dim:#8b93a3;
+--accent:#e8b44a;--play:#2f7fd0;--you:#ff2fd6;
+--h:5px;
+--cap:10px; --capgap:3px;
+--side:#232935; --base:#04060a; --face:#2c313b; --seam:#101319;
+--edgeT:#5b6479; --edgeX:#3f4757; --edgeB:#191d25;
+--hi:.09;
+--up:inset 0 1px 0 rgba(255,255,255,var(--hi)),
+0 var(--h) 0 var(--side),0 calc(var(--h) + 1px) 0 var(--base);
+--down:inset 0 1px 0 rgba(0,0,0,.26);
+--face-off:#1a1e25; --down-off:inset 0 1px 0 rgba(0,0,0,.34);
+--down-lit:inset 0 1px 0 rgba(84,55,8,.30);
+--grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='64' height='64' filter='url(%23g)'/%3E%3C/svg%3E")
+/* end app */
+}
+*{box-sizing:border-box}
+/* app: style.css */
+#bar{display:flex;flex-wrap:nowrap;gap:20px;align-items:center;padding:8px 14px; border-bottom:1px solid var(--line);flex:0 0 auto}
+.grp{display:flex;align-items:flex-end;gap:6px;position:relative;flex:0 0 auto}
+button{background:#2a2f3a;color:var(--fg);border:1px solid var(--line);border-radius:6px;
+       padding:6px 12px;cursor:pointer;font-size:13px}
+.seg{display:inline-flex;align-items:stretch;border:1px solid var(--line);border-radius:6px;
+     overflow:hidden;flex:0 0 auto}
+.seg>b{display:flex;align-items:center;padding:0 7px;background:#20242c;color:var(--dim);
+       font-size:11px;font-weight:500;white-space:nowrap}
+.seg>button{border:0;border-radius:0;padding:6px 9px;font-size:12px;white-space:nowrap}
+.seg>button+button{border-left:1px solid var(--line)}
+.seg>button.on{background:var(--accent);color:#14161a;font-weight:600}
+.seg>button:disabled{color:var(--dim);background:#23272f;cursor:not-allowed}
+:where(body:not(.mob)) button,:where(body:not(.mob)) .seg>a{
+  position:relative;box-shadow:var(--up); /* the drop is instant -- a block does not ease into a hole. Only the colour
+     gets a beat, and 60ms of it is under the threshold where you read it as
+     movement rather than as the button having simply changed. */
+  transition:background-color .06s linear}
+:where(body:not(.mob)) button::before,:where(body:not(.mob)) .seg>a::before{
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:var(--grain);opacity:.13;mix-blend-mode:overlay}
+:where(body:not(.mob)) button{background-color:var(--face)}
+:where(body:not(.mob)) button,:where(body:not(.mob)) button.mini{
+  border-color:var(--edgeT) var(--edgeX) var(--edgeB)}
+:where(body:not(.mob)) button:hover{background-color:#363d4a;--hi:.17}
+body:not(.mob) button,body:not(.mob) button.mini,body:not(.mob) .seg,
+body:not(.mob) .seg>button,body:not(.mob) .seg>a{border-radius:2px}
+body:not(.mob) .seg,body:not(.mob) .modes2{
+  gap:0;border-color:transparent;overflow:visible;border-radius:2px;position:relative;
+  box-shadow:0 var(--h) 0 var(--side),0 calc(var(--h) + 1px) 0 var(--base)}
+body:not(.mob) .seg>button,body:not(.mob) .seg>a,body:not(.mob) .modes2>button{
+  border-width:0;border-radius:0;box-shadow:inset 0 1px 0 rgba(255,255,255,var(--hi))}
+body:not(.mob) .seg>button:not(.on):not(:disabled),body:not(.mob) .seg>a:not(.on){
+  background-color:var(--face)}
+body:not(.mob) .seg>button+button,body:not(.mob) .seg>a+a,
+body:not(.mob) .modes2>button+button{border-left:1px solid var(--seam)}
+body:not(.mob) .seg>button:first-of-type,body:not(.mob) .seg>a:first-of-type,
+body:not(.mob) .modes2>button:first-of-type{border-radius:2px 0 0 2px}
+body:not(.mob) .seg>button:last-of-type,body:not(.mob) .seg>a:last-of-type,
+body:not(.mob) .modes2>button:last-of-type{border-radius:0 2px 2px 0}
+body:not(.mob) .seg>button.on,body:not(.mob) .seg>a.on,body:not(.mob) .modes2>button.on{
+  transform:translateY(var(--h));box-shadow:var(--down-lit)}
+body:not(.mob) .seg>b{position:absolute;left:0;right:0;display:block;text-align:center; bottom:calc(100% + var(--h) + 1px + var(--capgap)); padding:0;background:none;box-shadow:none; font-size:var(--cap);font-weight:700;line-height:1;letter-spacing:.08em; text-transform:uppercase;color:var(--dim)}
+body:not(.mob) button:disabled,body:not(.mob) .seg>button:disabled{
+  transform:translateY(var(--h));box-shadow:var(--down-off);opacity:1;
+  background-color:var(--face-off);border-color:var(--face-off);color:var(--dim)}
+body:not(.mob) #bar .grp>button:not(.tgl),body:not(.mob) #bar .grp>#outsel, body:not(.mob) #bar .grp>#statusEl{height:var(--btn-h)}
+body:not(.mob) #bar button,body:not(.mob) #bar .seg>button,body:not(.mob) #bar .seg>a{ height:var(--btn-h);padding-top:0;padding-bottom:0;line-height:1; display:inline-flex;align-items:center;justify-content:center}
+body:not(.mob) #bar .seg{border-width:0}
+body:not(.mob) #bar .seg>button{padding-left:10px;padding-right:10px;font-size:12px}
+body:not(.mob) #bar .seg>button,body:not(.mob) #bar .seg>button.on{font-weight:600}
+body:not(.mob) #bar{align-items:flex-end; padding-top:calc(8px + var(--cap) + var(--capgap) + var(--h)); padding-bottom:calc(8px + var(--h) + 1px)}
+/* end app */
+/* app: learn.css */
+.modes2{display:flex;gap:5px}
+.modes2 button{flex:1;font-size:12px;padding:6px 8px;font-weight:600}
+.modes2 button.on{background:var(--accent);border-color:var(--accent);color:#14161a;font-weight:600}
+body:not(.mob) .modes2 button.on{transform:translateY(var(--h));box-shadow:var(--down-lit)}
+/* end app */
+
+/* preview only below: layout, labels, and :hover forced on with a class */
+body{margin:0;padding:24px;background:var(--bg);color:var(--fg);font:14px/1.45 ui-sans-serif,system-ui,sans-serif}
+:where(body:not(.mob)) button.is-hover{background-color:#363d4a;--hi:.17}
+.lbl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--dim);margin:0 0 8px}
+.stage{background:var(--pane);border-radius:8px;padding:14px;display:flex;align-items:flex-start;gap:30px;flex-wrap:wrap}
+.cell{display:flex;flex-direction:column;align-items:flex-start}
+.cap{font-size:11px;color:var(--dim);margin-top:12px;max-width:200px;line-height:1.5}
+/* the strip's name is out of flow ABOVE the block now, so the room it needs is at the
+   top of the cell; the app's own rule is body:not(.mob) #bar, so the override that
+   takes the page chrome off the bar has to be scoped the same way to outrank it */
+body:not(.mob) .cell #bar{padding:0;border-bottom:0;display:inline-flex}
+.namerow{padding-top:22px}
+.row+.row{margin-top:22px}
+.w180{width:180px}   /* the sidebar's inner width, where .modes2 lives */
+.rules{font-size:12px;color:var(--dim);max-width:68ch;margin:24px 0 0}
+</style></head><body>
+
+<div class="row">
+  <p class="lbl">Two halves &middot; .modes2 (learn sidebar)</p>
+  <div class="stage">
+    <div class="cell">
+      <div class="modes2 w180"><button class="on">Tutor</button><button>Free practice</button></div>
+      <div class="cap">Tutor down. <b>Free practice</b> wraps onto two lines at 180&nbsp;px…</div>
+    </div>
+    <div class="cell">
+      <div class="modes2 w180"><button>Tutor</button><button class="on">Free practice</button></div>
+      <div class="cap">…and it wraps exactly the same way when it is the half that is down: both states are 600, so the block never changes width.</div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <p class="lbl">Two halves &middot; .seg (the OUT block, in a bar)</p>
+  <div class="stage">
+    <div class="cell namerow">
+      <div id="bar"><div class="grp"><span id="outsel" class="seg"><b>Out</b><button data-out="midi">Piano</button><button class="on" data-out="audio">Computer</button></span></div></div>
+      <div class="cap">Computer down, Piano raised. The name sits in the air above the block.</div>
+    </div>
+    <div class="cell namerow">
+      <div id="bar"><div class="grp"><span id="outsel" class="seg"><b>Out</b><button data-out="midi" disabled>Piano</button><button class="on" data-out="audio">Computer</button></span></div></div>
+      <div class="cap">No MIDI out: Piano pushed in and dark</div>
+    </div>
+    <div class="cell namerow">
+      <div id="bar"><div class="grp"><span id="outsel" class="seg"><b>Out</b><button class="is-hover" data-out="midi">Piano</button><button class="on" data-out="audio">Computer</button></span></div></div>
+      <div class="cap">Piano hovered: the top edge files brighter. Both halves are the same width in every one of these — the weight never changes.</div>
+    </div>
+  </div>
+</div>
+
+<p class="rules">One block, not two buttons. The container owns the 2px corners and the single
+continuous 5px side; the halves own only their faces and the one 1px seam between them. No gap.
+Only one half is ever down, and the half that is down travels the whole 5px, covers the side in
+its own column and turns amber with a warm 1px inset line. A half you cannot press is down too,
+but on a face a shade darker than the panel: pushed in, dim, and not coming back.
+Both halves carry the <b>same weight in both states</b> &mdash; 600 whether they are up or down &mdash;
+so picking a face never re-measures the block and nothing beside it moves; the same is true of
+<code>.modes2</code>, where a two-word label wraps identically either way. The strip's name is out of
+flow <b>above</b> the block, in the line the bar's top padding reserves.</p>
+
+</body></html>

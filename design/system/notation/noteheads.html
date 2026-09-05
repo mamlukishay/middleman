@@ -1,0 +1,245 @@
+<!-- @dsCard group="Notation" -->
+<!doctype html><html><head><meta charset="utf-8"><style>
+/* app: style.css */
+:root{--bg:#14161a;--pane:#1c1f26;--line:#2c313b;--fg:#e6e8ec;--dim:#8b93a3;
+      --accent:#e8b44a;--play:#2f7fd0;--you:#ff2fd6;
+      --mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+#notewrap{flex:1 1 auto;min-height:0;overflow:hidden;background:#fff;border-radius:8px;
+          padding:4px 6px;color:#000;position:relative}
+#notation{height:100%;overflow:hidden}
+#notation svg{display:block}
+#notation .abcjs-notehead,#notation .abcjs-notehead *{fill:#000;stroke:none}
+#notation .cur-note,#notation .cur-note *{fill:var(--play)!important;stroke:var(--play)!important}
+#notation .you-note,#notation .you-note *{fill:var(--you)!important;stroke:var(--you)!important}
+#notation .cur-note.you-note,#notation .cur-note.you-note *{fill:var(--you)!important;stroke:var(--you)!important}
+#barhl{position:absolute;display:none;pointer-events:none;border-radius:6px;
+       background:rgba(124,111,224,.30);border:1.5px solid #7c6fe0;
+       transition:left .1s ease,top .1s ease,width .1s ease}
+#kb{position:relative;height:90px;user-select:none}
+.w{position:absolute;top:0;height:90px;border:1px solid #333;border-radius:0 0 4px 4px;background:#f2f2f2}
+.b{position:absolute;top:0;height:56px;border-radius:0 0 3px 3px;background:#22252b;border:1px solid #000;z-index:2}
+.w.scale{background:#ffeec2}.b.scale{background:#6b5520}
+.w.play{background:var(--play)}.b.play{background:var(--play)}
+.w.you{background:var(--you);border-color:#c2149f}
+.b.you{background:var(--you);border-color:#c2149f}
+.w.you,.b.you{box-shadow:0 0 10px rgba(255,47,214,.65)}
+/* end app */
+/* app: looper.css */
+:root{
+  --lane1:#ff2fd6; --lane2:#d250ec; --lane3:#a563ee; --lane4:#7c6fe0;
+  --rec:#e63d40; --dub:var(--accent); --ok:#5fbf7a; /* lanes give up height first on a short screen, and the key strip second */
+  --lh:clamp(70px,calc((100vh - 520px) / 4),150px);
+  --kbh:clamp(64px,11vh,90px);
+  --headw:194px;                  /* lane header column */
+  --roll:#191d24; --rollEmpty:#171a20;
+}
+.lroll{position:relative;min-height:var(--lh);border-radius:6px;border:1px solid var(--line);
+       overflow:hidden;background-color:var(--roll);
+       background-image:
+         repeating-linear-gradient(to right,rgba(70,78,92,.55) 0 1px,transparent 1px calc(100%/var(--nbars,12))),
+         repeating-linear-gradient(to right,rgba(70,78,92,.18) 0 1px,transparent 1px calc(100%/var(--nbeats,48)))}
+.lane.empty .lroll{background-color:var(--rollEmpty)}
+.lnotes,.lspanbox,.lphead2{position:absolute;pointer-events:none}
+.lnotes{left:0;right:0;top:7px;bottom:7px}
+.lnotes i{position:absolute;border-radius:2px;display:block;height:5px;margin-top:-2.5px}
+.lphead2{top:0;bottom:0;width:1px;background:#aab2bf;opacity:.75}
+.lane.rec .lphead2{background:var(--rec);box-shadow:0 0 6px rgba(230,61,64,.9)}
+#bufwrap{position:relative;flex:0 0 34px;width:100%;min-width:140px;max-width:340px;height:34px;
+         border:1px solid var(--line);border-radius:5px;background:#171a20;overflow:hidden}
+#bufnotes{position:absolute;inset:0}
+#bufnotes i{position:absolute;height:3px;border-radius:1px;background:var(--you);opacity:.55}
+.w.lit,.b.lit{box-shadow:0 0 10px rgba(255,47,214,.4)}
+/* end app */
+/* app: learn.css */
+:root{
+  --rh:#e8b44a; --lh:#2f7fd0; --hit:#5fbf7a; --miss:#e63d40;
+}
+svg.roll{display:block}
+.rblack{fill:rgba(255,255,255,.035)}
+.rc{stroke:rgba(255,255,255,.14);stroke-width:.6}
+.rbeat{stroke:rgba(120,130,150,.18);stroke-width:.6;transition:stroke .25s,stroke-width .25s}
+.rbar{stroke:rgba(150,160,180,.5);stroke-width:1;transition:stroke .25s,stroke-width .25s}
+.rn{fill:var(--rh);stroke:#0d0f13;stroke-width:.6;opacity:.95}
+.rn.lh{fill:var(--lh)}
+/* a hand the app plays stays quieter than yours, but not so quiet you cannot read it */
+.rn.dim{opacity:.45}
+.rn.hit{fill:var(--hit)!important;opacity:1}
+.rn.miss{fill:#3a2126!important;stroke:var(--miss);stroke-width:1;opacity:1}
+.rx{fill:var(--miss);opacity:.9}
+.rhead{stroke:#fff;stroke-width:1.2;opacity:.9}
+.rcursor{fill:rgba(255,255,255,.10);stroke:rgba(255,255,255,.45);stroke-width:.8}
+.staff{background:#fff;border-radius:8px;color:#000}
+.staff .abcjs-notehead,.staff .abcjs-notehead *{fill:#000;stroke:none}
+/* a hand the app plays: still clearly quieter than yours, but readable at a glance --
+   the old #9aa0ad all but vanished against the white sheet */
+.staff .abcjs-notehead.dim,.staff .abcjs-notehead.dim *{fill:#6b7280!important}
+.staff [data-hand=lh],.staff [data-hand=lh] *{fill:var(--lh)}
+.staff [data-hand=rh],.staff [data-hand=rh] *{fill:#b07d1a}
+/* On the white sheet a note you got right has to read as green at a glance, from the
+   music stand. --hit is tuned for the dark chrome (progress bars, pass cards) and comes
+   out washed out here, so both sheet views take a stronger one; the miss red already
+   carried on white and is left alone. */
+.staff .abcjs-notehead.hit,.staff .abcjs-notehead.hit *{fill:#16a34a!important}
+.staff .abcjs-notehead.miss,.staff .abcjs-notehead.miss *{fill:var(--miss)!important}
+.staff .abcjs-notehead.wait,.staff .abcjs-notehead.wait *{fill:#7c6fe0!important;stroke:#7c6fe0!important;stroke-width:3px}
+.staff .sbar{position:absolute;visibility:hidden;pointer-events:none;border-radius:6px;
+             background:rgba(124,111,224,.14);border:1.5px solid rgba(124,111,224,.6)}
+.staff .shead{position:absolute;visibility:hidden;width:2px;margin-left:-1px;background:#7c6fe0;pointer-events:none;opacity:.9}
+.staff .shead.countin{background:var(--accent)}
+.staff .smarks i{position:absolute;width:6px;height:6px;border-radius:50%;background:var(--miss);margin:-3px 0 0 -1px;pointer-events:none}
+.scroll{background:#fff;border-radius:8px;overflow:hidden}
+/* the line's width is set in js, from how big the engraving came out: a 2px hair
+   over a staff drawn four times life size reads as an accident, not as "now" */
+.scroll .sline{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;
+               background:var(--accent);pointer-events:none;opacity:.85}
+.scroll .splayed{position:absolute;top:0;bottom:0;pointer-events:none;
+                 background:linear-gradient(90deg,rgba(124,111,224,0),rgba(124,111,224,.13))}
+/* end app */
+/* preview only: the overlays are placed and revealed from JS, so a static card has to
+   unhide them and give them a box; and the lane roll takes its height from --lh, which
+   learn.css redeclares as a colour on the pages that load it, so it is set here. */
+.is-shown{visibility:visible!important}
+#barhl.is-shown{display:block;position:static;height:24px;width:100%}
+.staff.spec,.scroll.spec{position:relative;height:54px;padding:4px 6px}
+.staff .sbar.is-shown{left:6px;right:6px;top:6px;bottom:6px}
+.staff .shead.is-shown{left:50%;top:4px;bottom:4px}
+.staff .smarks{position:relative;height:100%}
+.staff .smarks i{left:50%;top:50%}
+.scroll .sline.is-shown{left:50%}
+.scroll .splayed.is-shown{left:0;width:50%}
+.lroll{height:64px}
+#bufwrap{max-width:200px}
+/* preview only: page furniture */
+body{margin:0;padding:24px;background:var(--bg);color:var(--fg);font:14px/1.45 ui-sans-serif,system-ui,sans-serif}
+h1{font-size:15px;font-weight:700;margin:0 0 4px}
+.sub{font-size:12px;color:var(--dim);margin:0 0 18px;max-width:660px}
+.lbl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--dim);margin:18px 0 6px}
+.stage{background:var(--pane);border-radius:8px;padding:14px}
+.row{display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start}
+.st{width:126px}
+.st.wide{width:200px}
+.st .slot{height:52px;display:flex;align-items:center}
+.plate{background:#fff;border-radius:6px;padding:6px 8px;color:#000}
+.cap{font-size:11px;color:var(--dim);margin-top:10px}
+.cap b{display:block;color:var(--fg);font-weight:600;margin-bottom:2px}
+.cap2{font-size:11px;color:var(--dim);margin-top:12px;max-width:640px;line-height:1.5}
+.cap2 b{color:var(--fg);font-weight:600}
+.rules{font-size:12px;color:var(--dim);margin:20px 0 0;max-width:660px}
+</style></head><body>
+<h1>Noteheads and playheads</h1>
+<p class="sub">Five views draw the same music: two engraved on white (practice sheet, staff and
+scroll) and three on the dark ground (roll, falling, lane rolls). One set of meanings runs through
+all of them — what the app plays, what you play, which hand, hit, missed — and two of the colours
+change value when the ground turns white.</p>
+
+<div class="lbl">Practice sheet &mdash; abcjs on white, <code>#notation</code></div>
+<div class="stage"><div class="row">
+  <div class="st"><div class="slot"><div id="notewrap"><div id="notation"><svg width="40" height="34" viewBox="0 0 40 34"><rect x="24.6" y="6" width="1.4" height="16" fill="#000"/><g class="abcjs-notehead"><ellipse cx="20" cy="22" rx="5.6" ry="4.1" transform="rotate(-22 20 22)"/></g></svg></div></div></div>
+    <div class="cap"><b>engraved</b><code>#000</code>, no stroke — the whole sheet, everything not being played</div></div>
+  <div class="st"><div class="slot"><div id="notewrap"><div id="notation"><svg width="40" height="34" viewBox="0 0 40 34"><rect x="24.6" y="6" width="1.4" height="16" fill="#000"/><g class="abcjs-notehead cur-note"><ellipse cx="20" cy="22" rx="5.6" ry="4.1" transform="rotate(-22 20 22)"/></g></svg></div></div></div>
+    <div class="cap"><b>.cur-note</b><code>--play</code> #2f7fd0 — the note the app is on right now</div></div>
+  <div class="st"><div class="slot"><div id="notewrap"><div id="notation"><svg width="40" height="34" viewBox="0 0 40 34"><rect x="24.6" y="6" width="1.4" height="16" fill="#000"/><g class="abcjs-notehead you-note"><ellipse cx="20" cy="22" rx="5.6" ry="4.1" transform="rotate(-22 20 22)"/></g></svg></div></div></div>
+    <div class="cap"><b>.you-note</b><code>--you</code> #ff2fd6 — a note you are holding</div></div>
+  <div class="st"><div class="slot"><div id="notewrap"><div id="notation"><svg width="40" height="34" viewBox="0 0 40 34"><rect x="24.6" y="6" width="1.4" height="16" fill="#000"/><g class="abcjs-notehead cur-note you-note"><ellipse cx="20" cy="22" rx="5.6" ry="4.1" transform="rotate(-22 20 22)"/></g></svg></div></div></div>
+    <div class="cap"><b>both</b>magenta wins: you playing the right note reads as yours, not as the app's</div></div>
+  <div class="st"><div class="slot"><div id="barhl" class="is-shown"></div></div>
+    <div class="cap"><b>#barhl</b>the current bar: #7c6fe0 at 30%, 1.5px #7c6fe0 border, 6px radius</div></div>
+</div></div>
+
+<div class="lbl">Staff view &mdash; the second engraving, <code>.staff</code></div>
+<div class="stage"><div class="row">
+  <div class="st"><div class="slot"><div class="plate"><svg width="34" height="30" viewBox="0 0 34 30" class="staff"><rect x="21.6" y="5" width="1.4" height="15" fill="#000"/><g class="abcjs-notehead" data-hand="lh"><ellipse cx="17" cy="20" rx="5.6" ry="4.1" transform="rotate(-22 17 20)"/></g></svg></div></div>
+    <div class="cap"><b>[data-hand=lh]</b><code>--lh</code> #2f7fd0 — the same blue as <code>--play</code></div></div>
+  <div class="st"><div class="slot"><div class="plate"><svg width="34" height="30" viewBox="0 0 34 30" class="staff"><rect x="21.6" y="5" width="1.4" height="15" fill="#000"/><g class="abcjs-notehead" data-hand="rh"><ellipse cx="17" cy="20" rx="5.6" ry="4.1" transform="rotate(-22 17 20)"/></g></svg></div></div>
+    <div class="cap"><b>[data-hand=rh]</b>#b07d1a — <b>not</b> <code>--rh</code> #e8b44a; the amber is unreadable on white</div></div>
+  <div class="st"><div class="slot"><div class="plate"><svg width="34" height="30" viewBox="0 0 34 30" class="staff"><rect x="21.6" y="5" width="1.4" height="15" fill="#000"/><g class="abcjs-notehead dim"><ellipse cx="17" cy="20" rx="5.6" ry="4.1" transform="rotate(-22 17 20)"/></g></svg></div></div>
+    <div class="cap"><b>.dim</b>#6b7280 — a hand the app is playing for you</div></div>
+  <div class="st"><div class="slot"><div class="plate"><svg width="34" height="30" viewBox="0 0 34 30" class="staff"><rect x="21.6" y="5" width="1.4" height="15" fill="#000"/><g class="abcjs-notehead hit"><ellipse cx="17" cy="20" rx="5.6" ry="4.1" transform="rotate(-22 17 20)"/></g></svg></div></div>
+    <div class="cap"><b>.hit</b>#16a34a — the darker twin of <code>--hit</code> #5fbf7a</div></div>
+  <div class="st"><div class="slot"><div class="plate"><svg width="34" height="30" viewBox="0 0 34 30" class="staff"><rect x="21.6" y="5" width="1.4" height="15" fill="#000"/><g class="abcjs-notehead miss"><ellipse cx="17" cy="20" rx="5.6" ry="4.1" transform="rotate(-22 17 20)"/></g></svg></div></div>
+    <div class="cap"><b>.miss</b><code>--miss</code> #e63d40 unchanged — the red already carried on white</div></div>
+  <div class="st"><div class="slot"><div class="plate"><svg width="34" height="30" viewBox="0 0 34 30" class="staff"><rect x="21.6" y="5" width="1.4" height="15" fill="#000"/><g class="abcjs-notehead wait"><ellipse cx="17" cy="20" rx="5.6" ry="4.1" transform="rotate(-22 17 20)"/></g></svg></div></div>
+    <div class="cap"><b>.wait</b>#7c6fe0 fill <i>and</i> a 3px stroke: the note the song is waiting on</div></div>
+</div>
+<div class="row" style="margin-top:18px">
+  <div class="st wide"><div class="staff spec"><div class="sbar is-shown"></div></div>
+    <div class="cap"><b>.sbar</b>the bar being played: #7c6fe0 at 14%, 1.5px border at 60%, 6px radius</div></div>
+  <div class="st wide"><div class="staff spec"><div class="shead is-shown"></div></div>
+    <div class="cap"><b>.shead</b>the playhead: a 2px #7c6fe0 line at 90%</div></div>
+  <div class="st wide"><div class="staff spec"><div class="shead countin is-shown"></div></div>
+    <div class="cap"><b>.shead.countin</b>the same line in <code>--accent</code> while the bar of click runs</div></div>
+  <div class="st wide"><div class="staff spec"><div class="smarks"><i></i></div></div>
+    <div class="cap"><b>.smarks i</b>a wrong note you played: a 6px <code>--miss</code> dot on the sheet</div></div>
+</div></div>
+
+<div class="lbl">Roll view &mdash; <code>svg.roll</code> on the dark ground</div>
+<div class="stage"><div class="row">
+  <div class="st"><div class="slot"><svg class="roll" width="110" height="44" viewBox="0 0 110 44"><rect class="rblack" x="0" y="12" width="110" height="10"/><line class="rbeat" x1="36" y1="0" x2="36" y2="44"/><line class="rbar" x1="72" y1="0" x2="72" y2="44"/><rect class="rn" x="6" y="4" width="44" height="7" rx="1.5"/><rect class="rn" x="14" y="26" width="60" height="7" rx="1.5"/></svg></div>
+    <div class="cap"><b>.rn</b>right hand, <code>--rh</code> #e8b44a on a #0d0f13 hairline, 95% opaque</div></div>
+  <div class="st"><div class="slot"><svg class="roll" width="110" height="44" viewBox="0 0 110 44"><rect class="rblack" x="0" y="12" width="110" height="10"/><rect class="rn lh" x="6" y="4" width="44" height="7" rx="1.5"/><rect class="rn lh" x="14" y="26" width="60" height="7" rx="1.5"/></svg></div>
+    <div class="cap"><b>.rn.lh</b>left hand, <code>--lh</code> #2f7fd0</div></div>
+  <div class="st"><div class="slot"><svg class="roll" width="110" height="44" viewBox="0 0 110 44"><rect class="rn dim" x="6" y="4" width="44" height="7" rx="1.5"/><rect class="rn lh dim" x="14" y="26" width="60" height="7" rx="1.5"/></svg></div>
+    <div class="cap"><b>.rn.dim</b>a hand the app plays: the same colour at 45%</div></div>
+  <div class="st"><div class="slot"><svg class="roll" width="110" height="44" viewBox="0 0 110 44"><rect class="rn hit" x="6" y="4" width="44" height="7" rx="1.5"/><rect class="rn hit" x="14" y="26" width="60" height="7" rx="1.5"/></svg></div>
+    <div class="cap"><b>.rn.hit</b><code>--hit</code> #5fbf7a, forced opaque — hand no longer matters</div></div>
+  <div class="st"><div class="slot"><svg class="roll" width="110" height="44" viewBox="0 0 110 44"><rect class="rn miss" x="6" y="4" width="44" height="7" rx="1.5"/><rect class="rn miss" x="14" y="26" width="60" height="7" rx="1.5"/></svg></div>
+    <div class="cap"><b>.rn.miss</b>hollowed out: #3a2126 fill inside a 1px <code>--miss</code> stroke</div></div>
+  <div class="st"><div class="slot"><svg class="roll" width="110" height="44" viewBox="0 0 110 44"><rect class="rcursor" x="2" y="4" width="40" height="36"/><line class="rhead" x1="56" y1="0" x2="56" y2="44"/><path class="rx" d="M78 14l5 5 5-5 3 3-5 5 5 5-3 3-5-5-5 5-3-3 5-5-5-5z"/></svg></div>
+    <div class="cap"><b>.rx / .rhead / .rcursor</b>an extra note is a <code>--miss</code> cross; the playhead is white at 90%; the loop cursor is white at 10% inside a 45% edge</div></div>
+</div></div>
+
+<div class="lbl">Scroll view &mdash; the strip under a fixed line</div>
+<div class="stage"><div class="row">
+  <div class="st wide"><div class="scroll spec"><div class="splayed is-shown"></div><div class="sline is-shown"></div></div>
+    <div class="cap"><b>.sline / .splayed</b>the line is 2px <code>--accent</code> at 85%; behind it the played side takes a #7c6fe0 wash fading from 0 to 13%</div></div>
+</div>
+  <div class="cap2">The scroll view is the only place the playhead is amber rather than #7c6fe0 —
+  it is read from across the room, and on a strip that never stops moving the accent is the one
+  colour that is unambiguously "now". The noteheads keep the staff view's colours.</div>
+</div>
+
+<div class="lbl">Lane rolls &mdash; the looper's four lanes</div>
+<div class="stage"><div class="row">
+  <div class="st wide"><div class="lroll"><div class="lnotes"><i style="left:6%;width:22%;top:30%;background:#ff2fd6"></i><i style="left:34%;width:14%;top:56%;background:#ff2fd6"></i><i style="left:54%;width:30%;top:42%;background:#ff2fd6"></i></div><div class="lphead2" style="left:62%"></div></div>
+    <div class="cap"><b>.lroll</b>#191d24 ground ruled by two gradients — bars at 55%, beats at 18% of rgb(70,78,92); notes are 5px 2px-radius bars in the lane's own colour</div></div>
+  <div class="st wide"><div class="lane empty"><div class="lroll"></div></div>
+    <div class="cap"><b>.lane.empty .lroll</b>#171a20, a shade darker, so an empty lane reads as empty before you read the label</div></div>
+  <div class="st wide"><div class="lane rec"><div class="lroll"><div class="lnotes"><i style="left:6%;width:22%;top:40%;background:#ff2fd6"></i></div><div class="lphead2" style="left:44%"></div></div></div>
+    <div class="cap"><b>.lphead2</b>#aab2bf at 75%; under <code>.lane.rec</code> it becomes <code>--rec</code> #e63d40 with a 6px glow</div></div>
+  <div class="st wide"><div id="bufwrap"><div id="bufnotes"><i style="left:8%;width:16%;top:30%"></i><i style="left:30%;width:10%;top:52%"></i><i style="left:46%;width:24%;top:40%"></i></div></div>
+    <div class="cap"><b>#bufnotes i</b>the rolling buffer of what you just played: 3px <code>--you</code> bars at 55%</div></div>
+</div></div>
+
+<div class="lbl">Key strip &mdash; <code>.w</code> / <code>.b</code></div>
+<div class="stage"><div class="row">
+  <div class="st wide"><div id="kb" style="width:182px">
+    <div class="w" style="left:0;width:26px"></div><div class="w scale" style="left:26px;width:26px"></div>
+    <div class="w" style="left:52px;width:26px"></div><div class="w play" style="left:78px;width:26px"></div>
+    <div class="w" style="left:104px;width:26px"></div><div class="w you" style="left:130px;width:26px"></div>
+    <div class="w" style="left:156px;width:26px"></div>
+    <div class="b scale" style="left:18px;width:16px"></div><div class="b" style="left:44px;width:16px"></div>
+    <div class="b play" style="left:96px;width:16px"></div><div class="b you" style="left:122px;width:16px"></div>
+    <div class="b" style="left:148px;width:16px"></div>
+  </div>
+    <div class="cap"><b>the strip</b>white #f2f2f2 on a #333 hairline, black #22252b on #000, 62% of the white height</div></div>
+  <div class="st"><div class="slot"><div id="kb" style="width:52px;height:54px"><div class="w scale" style="left:0;width:26px;height:54px"></div><div class="w" style="left:26px;width:26px;height:54px"></div><div class="b scale" style="left:18px;width:16px;height:34px"></div></div></div>
+    <div class="cap"><b>.scale</b>in the key: #ffeec2 white, #6b5520 black — a tint, not a colour</div></div>
+  <div class="st"><div class="slot"><div id="kb" style="width:52px;height:54px"><div class="w play" style="left:0;width:26px;height:54px"></div><div class="w" style="left:26px;width:26px;height:54px"></div><div class="b play" style="left:18px;width:16px;height:34px"></div></div></div>
+    <div class="cap"><b>.play</b><code>--play</code> #2f7fd0, both key shapes, no glow — the app is playing it</div></div>
+  <div class="st"><div class="slot"><div id="kb" style="width:52px;height:54px"><div class="w you" style="left:0;width:26px;height:54px"></div><div class="w" style="left:26px;width:26px;height:54px"></div><div class="b you" style="left:18px;width:16px;height:34px"></div></div></div>
+    <div class="cap"><b>.you</b><code>--you</code> #ff2fd6 on a #c2149f edge, with a 10px glow at 65% — you are holding it</div></div>
+</div></div>
+
+<p class="rules"><b>Rules.</b> Two colours carry the whole app: <code>--play</code> blue is what the
+app is playing and <code>--you</code> magenta is what you are playing, and where both are true at once
+magenta wins — you would rather see yourself than the machine. Under those, the hands take a colour
+each: right hand amber, left hand blue, the same two hexes as <code>--accent</code> and
+<code>--play</code>. A hand the app is covering for you is the same colour, quieter — 45% on the dark
+ground, #6b7280 on the sheet — never a different colour. Scoring overrides hand: hit is green, missed
+is red, and a missed note is hollowed rather than filled so it still reads as a note. On a white sheet
+two of those take their darker twins — amber becomes #b07d1a and green becomes #16a34a — because the
+dark-chrome values wash out on paper; blue, magenta and red carry on both grounds and are never
+changed. Playheads are #7c6fe0 everywhere except the scroll strip, which uses <code>--accent</code>,
+and the lane rolls, which use plain #aab2bf until a lane is recording and it turns
+<code>--rec</code>.</p>
+</body></html>

@@ -1,0 +1,132 @@
+<!-- @dsCard group="Split toggles" -->
+<!doctype html><html><head><meta charset="utf-8"><style>
+/* app: style.css */
+:root{--bg:#14161a;--pane:#1c1f26;--line:#2c313b;--fg:#e6e8ec;--dim:#8b93a3;
+      --accent:#e8b44a;--play:#2f7fd0;--you:#ff2fd6;
+      --mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+button{background:#2a2f3a;color:var(--fg);border:1px solid var(--line);border-radius:6px;
+       padding:6px 12px;cursor:pointer;font:13px/16px ui-sans-serif,system-ui,sans-serif}
+button:hover{background:#333947}
+.seg{display:inline-flex;align-items:stretch;border:1px solid var(--line);border-radius:6px;
+     overflow:hidden;flex:0 0 auto}
+/* 16px line + 6+6 padding + the strip's own 2px border = the 30px every button is */
+.seg>button{border:0;border-radius:0;padding:6px 9px;font-size:12px;line-height:16px;white-space:nowrap}
+.seg>button+button{border-left:1px solid var(--line)}
+.seg>button.on{background:var(--accent);color:#14161a;font-weight:600}
+/* the same control, but made of links: the page nav is three hrefs, not three handlers, so it works before a single module has loaded */
+.seg>a{border:0;border-radius:0;padding:6px 9px;font-size:12px;line-height:16px;white-space:nowrap;
+       background:#2a2f3a;color:var(--fg);text-decoration:none;
+       display:flex;align-items:center;justify-content:center}
+.seg>a+a{border-left:1px solid var(--line)}
+.seg>a.on{background:var(--accent);color:#14161a;font-weight:600}
+.seg>a:hover{background:#333947}
+.seg>a.on:hover{background:var(--accent)}
+/* one row, full width, first thing in the sidebar of all three laptop pages */
+.nav{display:flex;width:100%}
+.nav>a{flex:1 1 0}
+/* end app */
+/* app: learn.css */
+.modes2{display:flex;gap:5px}
+.modes2 button{flex:1;font-size:12px;padding:6px 8px}
+.modes2 button.on{background:var(--accent);border-color:var(--accent);color:#14161a;font-weight:600}
+/* scoped to this strip: unscoped, these rules also restyled the shared Out toggle, which is a .seg too. The .seg on the selector keeps the phone's #viewSeg (.mseg) out. */
+#viewSeg.seg{display:flex;gap:0;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+#viewSeg.seg button{border:0;border-radius:0;padding:3px 10px;font-size:11px;background:#22262f}
+#viewSeg.seg button+button{border-left:1px solid var(--line)}
+#viewSeg.seg button.on{background:var(--accent);color:#14161a;font-weight:600}
+/* end app */
+/* preview only: hover is a state a screenshot cannot hold, so it is pinned here at
+   exactly the values .seg>a:hover and button:hover use. */
+.seg>a.is-hover{background:#333947}
+.modes2 button.is-hover{background:#333947}
+/* preview only: PROPOSAL -- .modes2 redrawn as one .seg strip instead of two separate
+   buttons. Not in the app; these two rules only give the strip the nav's full width. */
+.seg.prop{display:flex;width:100%}
+.seg.prop>button{flex:1 1 0}
+/* preview only: the card's own page furniture. .side is the 180px of content the 200px
+   sidebar has after its 10px padding, so the full-width strips are shown at real size. */
+body{margin:0;padding:24px;background:var(--bg);color:var(--fg);font:14px/1.45 ui-sans-serif,system-ui,sans-serif}
+h1{font-size:15px;font-weight:700;margin:0 0 4px}
+.sub{font-size:12px;color:var(--dim);margin:0 0 18px;max-width:660px}
+.lbl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--dim);margin:18px 0 6px}
+.stage{background:var(--pane);border-radius:8px;padding:14px}
+.row{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start}
+.st{width:206px}
+.st.v{width:290px}
+.st .slot{height:34px;display:flex;align-items:center}
+.st.m .slot{height:50px}
+.side{width:180px}
+.cap{font-size:11px;color:var(--dim);margin-top:10px}
+.cap b{display:block;color:var(--fg);font-weight:600;margin-bottom:2px}
+.cap2{font-size:11px;color:var(--dim);margin-top:12px;max-width:640px;line-height:1.5}
+.cap2 b{color:var(--fg);font-weight:600}
+.rules{font-size:12px;color:var(--dim);margin:20px 0 0;max-width:660px}
+</style></head><body>
+<h1>Multi-way toggle</h1>
+<p class="sub">The same strip as the two-way Out control, with more than two halves and exactly one
+of them lit: the page nav, and the learn page's view picker. A third pair &mdash; Tutor and Free
+practice &mdash; reads like one of these and is not.</p>
+
+<div class="lbl">Nav &mdash; three links, full width, first thing in every sidebar</div>
+<div class="stage"><div class="row">
+  <div class="st"><div class="slot"><div class="side"><nav class="seg nav"><a href="#" class="on">Practice</a><a href="#">Looper</a><a href="#">Learn</a></nav></div></div>
+    <div class="cap"><b>Practice on</b>amber on #14161a at 600; the other two on the base face #2a2f3a. The three halves split the width evenly, from <code>.nav&gt;a{flex:1 1 0}</code></div></div>
+  <div class="st"><div class="slot"><div class="side"><nav class="seg nav"><a href="#" class="on">Practice</a><a href="#" class="is-hover">Looper</a><a href="#">Learn</a></nav></div></div>
+    <div class="cap"><b>hover</b>#333947 on the half under the pointer. The lit half is pinned by <code>.seg&gt;a.on:hover</code>, so it never flickers</div></div>
+</div>
+  <div class="cap2"><b>Anchors, not buttons, and it shows nowhere.</b> The nav is three
+  <code>&lt;a href&gt;</code>s, so it navigates before a single module has loaded &mdash; which
+  costs <code>.seg&gt;a</code> a duplicate of the whole <code>.seg&gt;button</code> rule plus
+  <code>background</code>, <code>color</code>, <code>text-decoration:none</code> and a flex box to
+  centre the text an anchor would otherwise leave at the baseline. With those, a link strip and a
+  button strip measure the same 30px and look identical, which is the point.</div>
+</div>
+
+<div class="lbl">#viewSeg &mdash; four views of the stage, at the smaller size</div>
+<div class="stage"><div class="row">
+  <div class="st v"><div class="slot"><div id="viewSeg" class="seg"><button class="on">Staff</button><button>Roll</button><button>Falling</button><button>Scroll</button></div></div>
+    <div class="cap"><b>Staff on</b>the same amber on #14161a at 600, on a darker ground: <code>#22262f</code>, 3px&nbsp;10px padding, 11px &mdash; a 24px strip, not a 30px one</div></div>
+  <div class="st v"><div class="slot"><div id="viewSeg" class="seg"><button>Staff</button><button>Roll</button><button class="on">Falling</button><button>Scroll</button></div></div>
+    <div class="cap"><b>Falling on</b>one lit at a time, always. There is no off state for the strip as a whole</div></div>
+</div>
+  <div class="cap2"><b>Scoped, and with no hover.</b> These rules used to be plain
+  <code>.seg button</code> and silently restyled the shared Out toggle on the learn page &mdash; the
+  same control, two appearances, on three pages. They are now written as
+  <code>#viewSeg.seg …</code>, which fixes that but makes them id rules: <code>button:hover</code>
+  cannot reach them, so the view strip gives no pointer feedback at all. It is the smaller of the
+  two strip sizes, and the size is what says this picks a way of looking rather than a way of
+  playing.</div>
+</div>
+
+<div class="lbl">.modes2 &mdash; the pair that looks like a strip and is not</div>
+<div class="stage"><div class="row">
+  <div class="st m"><div class="slot"><div class="side"><div class="modes2"><button class="on">Tutor</button><button>Free practice</button></div></div></div>
+    <div class="cap"><b>as built</b>two whole buttons, each with its own 1px border and 6px radius, 5px apart. 12px type, 6px&nbsp;8px padding, <code>flex:1</code> each</div></div>
+  <div class="st m"><div class="slot"><div class="side"><div class="modes2"><button class="on">Tutor</button><button class="is-hover">Free practice</button></div></div></div>
+    <div class="cap"><b>hover</b>#333947 &mdash; which it does have, unlike the view strip, because these are ordinary buttons</div></div>
+  <div class="st m"><div class="slot"><div class="side"><div class="seg prop"><button class="on">Tutor</button><button>Free practice</button></div></div></div>
+    <div class="cap"><b>Proposal</b>the same pair as one <code>.seg</code>: one border, one 6px radius, a 1px --line seam, no gap, and back to 30px. Preview-only &mdash; not in the app</div></div>
+</div>
+  <div class="cap2"><b>It is a two-way toggle wearing the wrong clothes.</b> Tutor and Free practice
+  are mutually exclusive, exactly one is lit, and the pair sits full width at the top of the
+  sidebar &mdash; every property of the strip. What it is made of is two separate buttons with a
+  5px gap, so at a glance it reads as a strip with a seam that is five times too wide, and its
+  on-state has to be written a fourth time (<code>.modes2 button.on</code>) because
+  <code>.tgl.on</code> and <code>.seg&gt;button.on</code> do not reach it. Both specimens are shown at
+  the sidebar's real 180px, which is where the cost lands: &ldquo;Free practice&rdquo; does not fit
+  on one line in half of it, so the pair stands 44px tall while every other control in the app is
+  30px. The
+  <b>Proposal</b> drops the gap and the duplicate rule and reuses <code>.seg</code>: same markup
+  count, one fewer idea.</div>
+</div>
+
+<p class="rules"><b>Rules.</b> A multi-way toggle is one strip with one border, one 6px radius on
+the outside and 1px <code>--line</code> seams between the halves &mdash; the two-way Out control
+with more halves, and it takes the same lit state: amber ground, <code>#14161a</code> ink, weight
+600. Exactly one half is lit, always; there is no empty strip and no strip with two. It comes in
+two sizes and only two: 30px for a choice you act on (the nav), 24px for a choice about how to
+look (the view picker), with the smaller one on the darker <code>#22262f</code> ground. Halves may
+be links or buttons, and the two are required to be indistinguishable. Anything that behaves like
+this &mdash; exclusive, full width, one lit &mdash; should be built as a strip and not as buttons
+placed next to each other.</p>
+</body></html>

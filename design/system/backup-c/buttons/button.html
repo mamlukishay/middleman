@@ -1,0 +1,115 @@
+<!-- @dsCard group="Backup C · Buttons" -->
+<!doctype html><html><head><meta charset="utf-8"><style>
+/* app: style.css */
+:root{--bg:#14161a;--pane:#1c1f26;--line:#2c313b;--fg:#e6e8ec;--dim:#8b93a3; --accent:#e8b44a;--play:#2f7fd0;--you:#ff2fd6; /* ---- the block --------------------------------------------------- A control in the bars is a machined block standing on the panel, not a painted rectangle. --h is how tall it stands; --side is the extruded body under the face and --base the 1px of shadow it puts on the panel. Every shadow here has 0 blur: the edges are cut, not lit. Pressed, the block travels the whole --h and is flush with the panel: no side under it, nothing painted where it used to be, and one faint line inside the top edge as the only thing left saying it went down. */ --h:5px; /* THE face height. Every control in a transport bar is exactly this tall and the round theme takes its diameter from it, so the bar has one line of faces and one line of base lines rather than a height per label. It has to be declared rather than left to `line-height:normal`, which measures the glyphs: a bold label, a musical sign or a pause bar each grew their own button by a pixel or five. */ --btn-h:29px; /* the transport is the one control that is not a face height: a square block two faces tall and just as wide. It is what the bar is now measured by -- everything else bottom-aligns on the base line it stands on. */ --xport-h:calc(var(--btn-h) * 2); --cap:10px; --capgap:3px; /* the strip's caption, and its gap under the base line */ --side:#232935; --base:#04060a; --face:#2c313b; --seam:#101319; /* the four edges are not one outline: the top catches the light, the bottom is where the face turns into the side, and both are exactly one pixel */ --edgeT:#5b6479; --edgeX:#3f4757; --edgeB:#191d25; --hi:.09; /* the 1px machined edge along the top; hover files it brighter */ --up:inset 0 1px 0 rgba(255,255,255,var(--hi)), 0 var(--h) 0 var(--side),0 calc(var(--h) + 1px) 0 var(--base); --down:inset 0 1px 0 rgba(0,0,0,.26); /* a dead control is pushed in, not standing out: the same flush geometry as a lit one, with a face a shade off the panel instead of the amber */ --face-off:#1a1e25; --down-off:inset 0 1px 0 rgba(0,0,0,.34); /* the opposite of --up: a hole in the panel, with a hard dark lip along the top where the panel was cut and one faint line at the bottom where light gets in. Readings live in it; nothing you can press does. */ --pkt:inset 0 2px 0 #05070b,inset 0 1px 0 #000,inset 0 -1px 0 rgba(255,255,255,.045); /* on amber the line has to be warm: pure black reads as dirt on a light face */ --down-lit:inset 0 1px 0 rgba(84,55,8,.30); /* a machined face is not polished. A 64px tile of grey noise, laid over whatever colour the button already had at 13% overlay, so the amber goes matte on the same terms as the grey. */ --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='64' height='64' filter='url(%23g)'/%3E%3C/svg%3E")}
+#bar{display:flex;flex-wrap:nowrap;gap:20px;align-items:center;padding:8px 14px; border-bottom:1px solid var(--line);flex:0 0 auto}
+.grp{display:flex;align-items:flex-end;gap:6px;position:relative;flex:0 0 auto}
+#bar .grp>button{white-space:nowrap;flex:0 0 auto}
+button{background:#2a2f3a;color:var(--fg);border:1px solid var(--line);border-radius:6px; padding:6px 12px;cursor:pointer;font-size:13px}
+button:hover{background:#333947}
+.tgl.on{background:var(--accent);border-color:var(--accent);color:#14161a;font-weight:600}
+:where(body:not(.mob)) button,:where(body:not(.mob)) .seg>a{ position:relative;box-shadow:var(--up); /* the drop is instant -- a block does not ease into a hole. Only the colour gets a beat, and 60ms of it is under the threshold where you read it as movement rather than as the button having simply changed. */ transition:background-color .06s linear}
+:where(body:not(.mob)) button::before,:where(body:not(.mob)) .seg>a::before{ content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none; background:var(--grain);opacity:.13;mix-blend-mode:overlay}
+:where(body:not(.mob)) button{background-color:var(--face)}
+:where(body:not(.mob)) button,:where(body:not(.mob)) button.mini{ border-color:var(--edgeT) var(--edgeX) var(--edgeB)}
+:where(body:not(.mob)) button:hover{background-color:#363d4a;--hi:.17}
+body:not(.mob) button,body:not(.mob) button.mini,body:not(.mob) .seg, body:not(.mob) .seg>button,body:not(.mob) .seg>a{border-radius:2px}
+body:not(.mob) button:active{transform:translateY(var(--h));box-shadow:var(--down); border-color:var(--edgeX)}
+body:not(.mob) .tgl.on{transform:translateY(var(--h));box-shadow:var(--down-lit)}
+body:not(.mob) button.round{ border-radius:2px;padding:0;width:var(--btn-h);height:var(--btn-h);flex:0 0 auto; display:flex;align-items:center;justify-content:center;font-size:15px;line-height:1}
+body:not(.mob) #bar button.tgl{ width:var(--xport-h);height:var(--xport-h);min-width:var(--xport-h);padding:0 6px; font-size:12px;font-weight:600;white-space:normal;text-align:center;line-height:1.15; display:inline-flex;align-items:center;justify-content:center}
+body:not(.mob) #bar button.tgl.round{ width:var(--xport-h);height:var(--xport-h);border-radius:2px;padding:0; font-size:17px;line-height:1}
+body:not(.mob) button:disabled,body:not(.mob) .seg>button:disabled{ transform:translateY(var(--h));box-shadow:var(--down-off);opacity:1; background-color:var(--face-off);border-color:var(--face-off);color:var(--dim)}
+body:not(.mob) #bar .grp>button:not(.tgl),body:not(.mob) #bar .grp>#outsel, body:not(.mob) #bar .grp>#statusEl{height:var(--btn-h)}
+body:not(.mob) #bar button,body:not(.mob) #bar .seg>button,body:not(.mob) #bar .seg>a{ height:var(--btn-h);padding-top:0;padding-bottom:0;line-height:1; display:inline-flex;align-items:center;justify-content:center}
+body:not(.mob) #bar{align-items:flex-end; padding-top:calc(8px + var(--cap) + var(--capgap) + var(--h)); padding-bottom:calc(8px + var(--h) + 1px)}
+/* end app */
+/* app: looper.css */
+button:disabled{opacity:.45;cursor:default}
+button.mini{background:#22262f;border:1px solid var(--line);border-radius:5px; padding:3px 8px;font-size:11px;font-variant-numeric:tabular-nums}
+button.mini.on{background:var(--accent);border-color:var(--accent);color:#14161a;font-weight:600}
+body:not(.mob) button.mini.on{transform:translateY(var(--h));box-shadow:var(--down-lit)}
+/* end app */
+/* preview only: the two states a screenshot cannot hold, at the values :hover and
+   :active use. mini is excluded from the face change because its own background,
+   written later in looper.css, is what the app actually leaves on screen. */
+button.is-hover{--hi:.17}
+button.is-hover:not(.mini){background-color:#363d4a}
+button.is-active{transform:translateY(var(--h));box-shadow:var(--down);border-color:var(--edgeX)}
+body{margin:0;padding:24px;background:var(--bg);color:var(--fg);font:14px/1.45 ui-sans-serif,system-ui,sans-serif}
+h1{font-size:15px;font-weight:700;margin:0 0 4px}
+.sub{font-size:12px;color:var(--dim);margin:0 0 18px;max-width:660px}
+.lbl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--dim);margin:18px 0 6px}
+.stage{background:var(--pane);border-radius:8px;padding:14px}
+.row{display:flex;gap:24px;flex-wrap:wrap}
+.st{width:126px}
+/* the slot holds the 29px face plus the 5px it can travel, so the captions stay in line */
+.st .slot{height:35px}
+.st.m .slot{height:26px}
+.cap{font-size:11px;color:var(--dim);margin-top:10px}
+.cap b{display:block;color:var(--fg);font-weight:600;margin-bottom:2px}
+.cap2{font-size:11px;color:var(--dim);margin-top:12px;max-width:640px;line-height:1.5}
+.cap2 b{color:var(--fg);font-weight:600}
+.rules{font-size:12px;color:var(--dim);margin:20px 0 0;max-width:660px}
+</style></head><body>
+<h1>Block button</h1>
+<p class="sub">The regular control on a laptop page. Off it is a block standing 5px proud of the panel;
+on it has travelled the whole 5px and is flush. Only <code>box-shadow</code> and a <code>transform</code>
+move, so a toggle can never shift the row it is in.</p>
+
+<div class="lbl">Regular &mdash; 29px face</div>
+<div class="stage"><div class="row">
+  <div class="st"><div class="slot"><button>Play</button></div>
+    <div class="cap"><b>raised</b>face #2c313b, 5px side, 1px base, top edge at 9%</div></div>
+  <div class="st"><div class="slot"><button class="is-hover">Play</button></div>
+    <div class="cap"><b>hover</b>face #363d4a, the top edge filed to 17%; it does not move</div></div>
+  <div class="st"><div class="slot"><button class="is-active">Play</button></div>
+    <div class="cap"><b>pressing</b>drops 5px, side gone, one dark 26% line inside the top</div></div>
+  <div class="st"><div class="slot"><button class="tgl on">Click</button></div>
+    <div class="cap"><b>pressed on</b>amber face, dark ink, the top line warm (84,55,8 at 30%)</div></div>
+  <div class="st"><div class="slot"><button disabled>Melody</button></div>
+    <div class="cap"><b>disabled</b>pushed all the way in: face #1a1e25, dim text, no side left</div></div>
+</div></div>
+
+<div class="lbl">Mini &mdash; 20px face, the looper's small size</div>
+<div class="stage"><div class="row">
+  <div class="st m"><div class="slot"><button class="mini">1/16</button></div>
+    <div class="cap"><b>raised</b>11px tabular, face #22262f, the same 5px side</div></div>
+  <div class="st m"><div class="slot"><button class="mini is-hover">1/16</button></div>
+    <div class="cap"><b>hover</b>only the top edge brightens &mdash; mini keeps its own face</div></div>
+  <div class="st m"><div class="slot"><button class="mini is-active">1/16</button></div>
+    <div class="cap"><b>pressing</b>the same 5px drop</div></div>
+  <div class="st m"><div class="slot"><button class="mini on">1/16</button></div>
+    <div class="cap"><b>pressed on</b>amber, down, warm line</div></div>
+  <div class="st m"><div class="slot"><button class="mini" disabled>1/16</button></div>
+    <div class="cap"><b>disabled</b>the same: in, dark, dim</div></div>
+</div></div>
+
+<div class="lbl">In a transport bar &mdash; the bar takes over the sizing</div>
+<div class="stage">
+  <div id="bar">
+    <div class="grp">
+      <button class="tgl">Wait for me</button>
+      <button class="tgl on">Loop</button>
+      <button class="tgl round">&#9834;</button>
+    </div>
+  </div>
+  <div class="cap2">Inside <code>#bar</code> the same <code>.tgl</code> is the transport's square,
+  58&nbsp;&times;&nbsp;58: <b>Wait for me</b> wraps onto two lines <em>inside</em> the block instead of
+  stretching it, and the &#9834; is the same square rather than the 29&nbsp;px one it is everywhere
+  else. Nothing else changes &mdash; same face, same 5&nbsp;px of side, same amber when it is down.</div>
+</div>
+
+<p class="rules"><b>Rules.</b> Every shadow has 0 blur: the edges are cut, not lit. The four borders are not
+one outline &mdash; the top catches the light (#5b6479), the sides are #3f4757, the bottom is where the face
+turns into the side (#191d25). Corners are 2px. Hover files the top edge brighter and changes the face by
+one stop; it never lifts the block, because the block is already up. A block has only two heights, so a
+control you cannot press is not flattened onto the panel &mdash; that read as neither in nor out &mdash;
+it is pushed all the way in like a lit toggle and then painted a shade off the panel with dim text: the
+geometry says "already down", the colour says "and not coming back". Colour eases 60ms, position never
+eases, and under <code>prefers-reduced-motion</code> nothing eases. Size is the only difference between
+regular and mini: same depth, same corners, same grain. And size is the one thing the bar decides:
+inside <code>#bar</code> every block is sized to the transport's square, 58&nbsp;&times;&nbsp;58, with
+its label wrapping inside it; everywhere else a block is one face, <code>--btn-h</code> 29&nbsp;px, and
+as wide as its word.</p>
+</body></html>

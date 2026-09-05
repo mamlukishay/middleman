@@ -1,0 +1,123 @@
+<!-- @dsCard group="Buttons" -->
+<!doctype html><html><head><meta charset="utf-8"><style>
+/* app: style.css */
+:root{--bg:#14161a;--pane:#1c1f26;--line:#2c313b;--fg:#e6e8ec;--dim:#8b93a3;
+      --accent:#e8b44a;--play:#2f7fd0;--you:#ff2fd6;
+      --mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+/* the page font with a fixed line box, so every button is 30px tall: buttons used to
+   be in the UA font at line-height:normal, which measured the glyph (▶ Play 30, ● Click 29) */
+button{background:#2a2f3a;color:var(--fg);border:1px solid var(--line);border-radius:6px;
+       padding:6px 12px;cursor:pointer;font:13px/16px ui-sans-serif,system-ui,sans-serif}
+button:hover{background:#333947}
+button:disabled{opacity:.45;cursor:default}
+.tgl.on{background:var(--accent);border-color:var(--accent);color:#14161a;font-weight:600}
+/* end app */
+/* app: looper.css */
+button.mini{background:#22262f;border:1px solid var(--line);border-radius:5px;
+            padding:3px 8px;font-size:11px;font-variant-numeric:tabular-nums}
+button.mini.on{background:var(--accent);border-color:var(--accent);color:#14161a;font-weight:600}
+button.cap{color:var(--accent);border-color:var(--accent);padding:9px 14px;font-weight:600;
+           display:flex;align-items:center;gap:8px}
+button.cap:hover{background:#333947}
+/* end app */
+/* app: learn.css */
+button.start{font-size:15px;font-weight:700;padding:11px 14px;background:var(--accent);border-color:var(--accent);color:#14161a}
+button.start:hover{background:#f0c25e}
+button.start.on{background:#2a2f3a;border-color:var(--line);color:var(--fg)}
+#nextBtn{border-color:var(--accent);color:var(--accent);font-weight:600}
+#nextBtn.go{background:var(--accent);color:#14161a}
+.mini.on{background:var(--accent);border-color:var(--accent);color:#14161a;font-weight:600}
+/* end app */
+/* preview only: hover is a state a screenshot cannot hold, so it is pinned here at
+   exactly the value each :hover rule uses. */
+button.is-hover{background:#333947}
+button.start.is-hover{background:#f0c25e}
+/* preview only: and this puts the app's cascade back. In the app button.mini is written
+   after button:hover with the same specificity, so a .mini never lights on hover; the
+   stand-in above would otherwise light it and contradict the caption. */
+button.mini.is-hover{background:#22262f}
+/* preview only: the card's own page furniture. div.cap so it never touches button.cap. */
+body{margin:0;padding:24px;background:var(--bg);color:var(--fg);font:14px/1.45 ui-sans-serif,system-ui,sans-serif}
+h1{font-size:15px;font-weight:700;margin:0 0 4px}
+.sub{font-size:12px;color:var(--dim);margin:0 0 18px;max-width:660px}
+.lbl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--dim);margin:18px 0 6px}
+.stage{background:var(--pane);border-radius:8px;padding:14px}
+.row{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start}
+.st{width:132px}
+.st .slot{height:34px;display:flex;align-items:flex-start}
+.st.s .slot{height:26px}
+.st.b .slot{height:44px}
+.st.c .slot{height:40px}
+div.cap{font-size:11px;color:var(--dim);margin-top:10px}
+div.cap b{display:block;color:var(--fg);font-weight:600;margin-bottom:2px}
+.cap2{font-size:11px;color:var(--dim);margin-top:12px;max-width:640px;line-height:1.5}
+.cap2 b{color:var(--fg);font-weight:600}
+.rules{font-size:12px;color:var(--dim);margin:20px 0 0;max-width:660px}
+</style></head><body>
+<h1>Button</h1>
+<p class="sub">The flat control every bar, deck and sidebar is built from: a #2a2f3a face on a
+1px <code>--line</code> border, 6px radius, the page font in a fixed 13/16 line box. The variants
+change the size, the padding and the ink &mdash; never the shape and never the height rule.</p>
+
+<div class="lbl">Base &mdash; 30px, the size everything else is measured against</div>
+<div class="stage"><div class="row">
+  <div class="st"><div class="slot"><button>▶ Play</button></div>
+    <div class="cap"><b>rest</b>face #2a2f3a, border --line, 6px radius, 13/16 + 6px&nbsp;12px padding = 30px</div></div>
+  <div class="st"><div class="slot"><button class="is-hover">▶ Play</button></div>
+    <div class="cap"><b>hover</b>face #333947. Nothing else moves &mdash; no border, no ink, no size</div></div>
+  <div class="st"><div class="slot"><button class="tgl on">● Click</button></div>
+    <div class="cap"><b>.tgl.on</b>ground and border --accent #e8b44a, ink #14161a, weight 600</div></div>
+  <div class="st"><div class="slot"><button disabled>■ Stop</button></div>
+    <div class="cap"><b>disabled</b>the same face at opacity .45, cursor default. No colour changes</div></div>
+</div></div>
+
+<div class="lbl">Mini &mdash; the looper and lesson small size</div>
+<div class="stage"><div class="row">
+  <div class="st s"><div class="slot"><button class="mini">1/16</button></div>
+    <div class="cap"><b>rest</b>face #22262f, 5px radius, 3px&nbsp;8px padding, 11px, tabular figures = 24px</div></div>
+  <div class="st s"><div class="slot"><button class="mini on">1/16</button></div>
+    <div class="cap"><b>.mini.on</b>amber ground and border, ink #14161a, 600 &mdash; the base on-state at the small size</div></div>
+  <div class="st s"><div class="slot"><button class="mini is-hover">1/16</button></div>
+    <div class="cap"><b>hover</b>nothing happens: <code>button.mini</code>'s own face is written after <code>button:hover</code></div></div>
+</div></div>
+
+<div class="lbl">Start &mdash; the learn page's one big commitment</div>
+<div class="stage"><div class="row">
+  <div class="st b"><div class="slot"><button class="start">Start</button></div>
+    <div class="cap"><b>rest</b>15px/700 on amber, ink #14161a, 11px&nbsp;14px padding = 40px</div></div>
+  <div class="st b"><div class="slot"><button class="start is-hover">Start</button></div>
+    <div class="cap"><b>hover</b>amber lifts to #f0c25e</div></div>
+  <div class="st b"><div class="slot"><button class="start on">Stop</button></div>
+    <div class="cap"><b>.start.on</b>inverted: running, it goes back to the grey face #2a2f3a on --line, ink --fg</div></div>
+</div>
+  <div class="cap2"><b>The one inversion in the language.</b> Everywhere else <code>.on</code> means amber;
+  here the idle button is the amber one, because when it is the only thing to do it should look like it,
+  and once it is running it should stop asking to be pressed. Note that <code>.start.on</code> is written
+  after <code>.start:hover</code>, so the running button has no hover state at all.</div>
+</div>
+
+<div class="lbl">Next &mdash; amber outline, filled when it is the next thing to do</div>
+<div class="stage"><div class="row">
+  <div class="st"><div class="slot"><button id="nextBtn">Next ▶</button></div>
+    <div class="cap"><b>rest</b>base face, border and ink --accent, weight 600 &mdash; an outline, not a fill</div></div>
+  <div class="st"><div class="slot"><button id="nextBtn" class="go">Next ▶</button></div>
+    <div class="cap"><b>.go</b>fills: amber ground, ink #14161a. The border was already amber</div></div>
+</div></div>
+
+<div class="lbl">Capture &mdash; an outline button carrying a glyph</div>
+<div class="stage"><div class="row">
+  <div class="st c"><div class="slot"><button class="cap"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v5h5"></path></svg>Capture</button></div>
+    <div class="cap"><b>rest</b>amber border and ink, 600, 9px&nbsp;14px padding = 36px; flex row, 8px between glyph and word</div></div>
+  <div class="st c"><div class="slot"><button class="cap is-hover"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v5h5"></path></svg>Capture</button></div>
+    <div class="cap"><b>hover</b>face #333947, the amber outline and ink unchanged</div></div>
+</div></div>
+
+<p class="rules"><b>Rules.</b> A button is one height: 30px, from <code>font:13px/16px</code> plus 6px of
+padding top and bottom plus the 1px border &mdash; the line box is fixed so the glyph in the label can
+never set the height. The radius is 6px, and only <code>.mini</code> departs from it, at 5px with its own
+smaller padding. Hover is a face change to #333947 and nothing else. The on-state is always
+<code>--accent</code> ground with <code>#14161a</code> ink at weight 600, on the base size and on
+<code>.mini</code> alike; the only exception is <code>button.start</code>, which runs the other way and
+turns grey when it is active. Disabled is opacity .45 &mdash; the colours stay exactly where they were, so a
+dead control reads as the same control faded, never as a different one.</p>
+</body></html>

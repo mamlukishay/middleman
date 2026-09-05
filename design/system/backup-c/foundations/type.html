@@ -1,0 +1,118 @@
+<!-- @dsCard group="Backup C · Foundations" -->
+<!doctype html><html><head><meta charset="utf-8"><style>
+/* app: style.css */
+:root{--bg:#14161a;--pane:#1c1f26;--line:#2c313b;--fg:#e6e8ec;--dim:#8b93a3; --accent:#e8b44a;--play:#2f7fd0;--you:#ff2fd6; /* ---- the block --------------------------------------------------- A control in the bars is a machined block standing on the panel, not a painted rectangle. --h is how tall it stands; --side is the extruded body under the face and --base the 1px of shadow it puts on the panel. Every shadow here has 0 blur: the edges are cut, not lit. Pressed, the block travels the whole --h and is flush with the panel: no side under it, nothing painted where it used to be, and one faint line inside the top edge as the only thing left saying it went down. */ --h:5px; /* THE face height. Every control in a transport bar is exactly this tall and the round theme takes its diameter from it, so the bar has one line of faces and one line of base lines rather than a height per label. It has to be declared rather than left to `line-height:normal`, which measures the glyphs: a bold label, a musical sign or a pause bar each grew their own button by a pixel or five. */ --btn-h:29px; /* the transport is the one control that is not a face height: a square block two faces tall and just as wide. It is what the bar is now measured by -- everything else bottom-aligns on the base line it stands on. */ --xport-h:calc(var(--btn-h) * 2); --cap:10px; --capgap:3px; /* the strip's caption, and its gap under the base line */ --side:#232935; --base:#04060a; --face:#2c313b; --seam:#101319; /* the four edges are not one outline: the top catches the light, the bottom is where the face turns into the side, and both are exactly one pixel */ --edgeT:#5b6479; --edgeX:#3f4757; --edgeB:#191d25; --hi:.09; /* the 1px machined edge along the top; hover files it brighter */ --up:inset 0 1px 0 rgba(255,255,255,var(--hi)), 0 var(--h) 0 var(--side),0 calc(var(--h) + 1px) 0 var(--base); --down:inset 0 1px 0 rgba(0,0,0,.26); /* a dead control is pushed in, not standing out: the same flush geometry as a lit one, with a face a shade off the panel instead of the amber */ --face-off:#1a1e25; --down-off:inset 0 1px 0 rgba(0,0,0,.34); /* the opposite of --up: a hole in the panel, with a hard dark lip along the top where the panel was cut and one faint line at the bottom where light gets in. Readings live in it; nothing you can press does. */ --pkt:inset 0 2px 0 #05070b,inset 0 1px 0 #000,inset 0 -1px 0 rgba(255,255,255,.045); /* on amber the line has to be warm: pure black reads as dirt on a light face */ --down-lit:inset 0 1px 0 rgba(84,55,8,.30); /* a machined face is not polished. A 64px tile of grey noise, laid over whatever colour the button already had at 13% overlay, so the amber goes matte on the same terms as the grey. */ --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='64' height='64' filter='url(%23g)'/%3E%3C/svg%3E")}
+button{background:#2a2f3a;color:var(--fg);border:1px solid var(--line);border-radius:6px; padding:6px 12px;cursor:pointer;font-size:13px}
+#side h2{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin:0 0 8px}
+#bar{display:flex;flex-wrap:nowrap;gap:20px;align-items:center;padding:8px 14px; border-bottom:1px solid var(--line);flex:0 0 auto}
+.grp{display:flex;align-items:flex-end;gap:6px;position:relative;flex:0 0 auto}
+#bar #pos,#bar #speed,#bar #vol,#bar .grp.pkt{ height:var(--btn-h);border-radius:2px;background:#0b0e13;box-shadow:var(--pkt); display:inline-flex;align-items:center;gap:8px;padding:0 10px;line-height:1; font-variant-numeric:tabular-nums;font-size:13px}
+#bar #pos b,#bar #speed b,#bar #vol b{ color:var(--accent);font-weight:700;letter-spacing:.02em;min-width:0;padding:0;border:0; text-align:left;text-shadow:0 0 9px rgba(232,180,74,.5)}
+#bar #pos>span{display:inline-flex;align-items:center;gap:5px}
+#bar .k,#bar .u{color:#5d6473;font-size:10px;font-style:normal;font-weight:700; letter-spacing:.08em;text-transform:uppercase}
+#bar .grp.pkt>#played{min-width:0;font-size:13px}
+#played{color:var(--you);font-weight:700;text-shadow:0 0 10px rgba(255,47,214,.5)}
+#statusEl{color:var(--dim);font-size:11px;flex:1 1 0;min-width:0;text-align:right; overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* end app */
+/* app: looper.css */
+:root{ --lane1:#ff2fd6; --lane2:#d250ec; --lane3:#a563ee; --lane4:#7c6fe0; --rec:#e63d40; --dub:var(--accent); --ok:#5fbf7a; /* lanes give up height first on a short screen, and the key strip second */ --lh:clamp(70px,calc((100vh - 520px) / 4),150px); --kbh:clamp(64px,11vh,90px); --headw:194px; /* lane header column */ --roll:#191d24; --rollEmpty:#171a20; --mono:ui-monospace,SFMono-Regular,Menlo,monospace; }
+.rlabel{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim); font-weight:700;text-align:right;padding-right:4px}
+.lname{font-size:13px;font-weight:600;min-width:0; overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* end app */
+/* app: learn.css */
+.ltitle{font-size:15px;font-weight:700}
+.ltext{font-size:12px;line-height:1.5;color:var(--dim)}
+.slabel{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim)}
+.sval{font:700 14px var(--mono);color:var(--dim);font-variant-numeric:tabular-nums}
+.pass{font:600 11px var(--mono);height:20px;min-width:34px;padding:0 7px;border-radius:4px; border:1px solid var(--line);background:#22262f;color:var(--dim); display:inline-flex;align-items:center;justify-content:center;line-height:1}
+#overlay .otitle{font-size:26px;font-weight:700}
+#overlay .osub{font-size:14px;color:var(--fg)}
+/* end app */
+body{margin:0;padding:24px;background:var(--bg);color:var(--fg);font:14px/1.45 ui-sans-serif,system-ui,sans-serif}
+h1{font-size:15px;font-weight:700;margin:0 0 4px}
+.sub{font-size:12px;color:var(--dim);margin:0 0 18px;max-width:660px}
+.lbl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--dim);margin:16px 0 6px}
+.stage{background:var(--pane);border-radius:8px;padding:14px}
+.row{display:grid;grid-template-columns:44px minmax(0,1fr) 210px;gap:16px;align-items:baseline;
+     padding:9px 0;border-top:1px solid var(--line)}
+.row:first-child{border-top:0}
+/* the samples are real elements, so a grid cell would stretch them: the button
+   would run the width of the row and #statusEl's margin-left:auto would push it */
+.row>*{justify-self:start}
+.px{font:11px var(--mono);color:var(--dim)}
+.use{font-size:11px;color:var(--dim)}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,300px));gap:20px;align-items:start}
+.cap{font-size:11px;color:var(--dim);margin-top:6px}
+.figs{display:flex;gap:22px;align-items:flex-start;flex-wrap:wrap}
+.stack{font-variant-numeric:tabular-nums;font-size:14px;line-height:1.35}
+.stack.prop{font-variant-numeric:normal}
+.rules{font-size:12px;color:var(--dim);margin:20px 0 0;max-width:660px}
+</style></head><body>
+<!-- one #side wrapper so the app's own `#side h2` label rule can be shown where it is used -->
+<div id="side">
+<h1>Type</h1>
+<p class="sub">One family, <code>ui-sans-serif, system-ui</code>, at seven sizes. Numbers that change are
+mono; every other number is tabular, so a readout never jitters as it counts.</p>
+
+<div class="lbl">Scale</div>
+<div class="stage" id="overlay">
+  <div class="row"><span class="px">10</span><h2>Lanes</h2>
+    <span class="use">label &mdash; uppercase, .08em, 700</span></div>
+  <div class="row"><span class="px">11</span><span><span id="statusEl">out: computer audio &middot; MIDI blocked</span></span>
+    <span class="use">fine &mdash; status, hints, legends</span></div>
+  <div class="row"><span class="px">12</span><span class="ltext">Play the phrase twice in a row, hands together.</span>
+    <span class="use">body dim &mdash; explanatory text</span></div>
+  <div class="row"><span class="px">13</span><button>Play</button>
+    <span class="use">control &mdash; every button face</span></div>
+  <div class="row"><span class="px">14</span><span class="osub">Blues in G &middot; step 4 of 12</span>
+    <span class="use">body &mdash; the page default</span></div>
+  <div class="row"><span class="px">15</span><span class="ltitle">Shuffle the right hand</span>
+    <span class="use">title &mdash; lesson and section heads</span></div>
+  <div class="row"><span class="px">26</span><span class="otitle">Step done</span>
+    <span class="use">overlay &mdash; the one big word</span></div>
+</div>
+
+<div class="lbl">The small-caps label</div>
+<div class="stage"><div class="grid3">
+  <div><h2>Loops</h2><div class="cap">#side h2 &middot; 10px .08em 700</div></div>
+  <div><div class="slabel">Steady</div><div class="cap">.slabel &middot; 10px .06em, meter slots</div></div>
+  <div><div class="rlabel">Bars</div><div class="cap">.rlabel &middot; 10px .08em 700, right-aligned ruler</div></div>
+</div></div>
+
+<div class="lbl">Numerals</div>
+<div class="stage"><div class="figs">
+  <div><span class="sval">128</span><div class="cap">.sval &middot; 700 14px --mono</div></div>
+  <div><span class="pass">Pass 2</span><div class="cap">.pass &middot; 600 11px --mono</div></div>
+  <div>
+    <div class="stack">1111<br>8888</div>
+    <div class="stack prop">1111<br>8888</div>
+    <div class="cap">tabular (top) holds the column;<br>proportional (bottom) does not</div>
+  </div>
+</div></div>
+
+<div class="lbl">Inside a pocket &mdash; the engraved key and the lit value</div>
+<div class="stage">
+  <div id="bar">
+    <div class="grp"><span id="pos"><span><i class="k">bar</i><b>3/12</b></span><span><b>C7</b></span></span></div>
+    <div class="grp"><span id="speed"><i class="k">speed</i><b>100</b><i class="u">bpm</i></span></div>
+    <div class="grp pkt"><span id="played">C4 E4 G4</span></div>
+  </div>
+  <div class="grid3" style="margin-top:14px">
+    <div><div class="cap"><b style="color:#5d6473">10 engraved</b> &mdash; <code>.k</code> and <code>.u</code>:
+      uppercase, .08em, 700, in #5d6473, the colour of a word cut into the panel rather than lit on it.</div></div>
+    <div><div class="cap"><b style="color:var(--accent)">13 lit glass</b> &mdash; the value: 700, .02em,
+      the accent, with a 9&nbsp;px amber glow behind it. Only numbers carry light.</div></div>
+    <div><div class="cap">The pocket itself sets 13&nbsp;px and tabular figures for everything in it, so
+      a reading never jitters as it counts.</div></div>
+  </div>
+</div>
+
+<p class="rules"><b>Rules.</b> 10 is always a label: uppercase, letter-spaced, 700, dim, and it sits above
+its control rather than beside it &mdash; inside a pocket the same 10&nbsp;px is the engraved key, one
+step darker again at #5d6473. 13 is the control size and never changes with the button's size &mdash;
+only <code>.mini</code> drops to 11 &mdash; and it is also the pocket's size, so a value reads at the same
+weight as a button's word. Mono (<code>--mono</code>) is for a number the app is rewriting many
+times a second; everything else uses tabular figures in the sans face, which keeps the column without
+changing the voice.</p>
+</div>
+</body></html>

@@ -1,0 +1,101 @@
+<!-- @dsCard group="Backup C · Foundations" -->
+<!doctype html><html><head><meta charset="utf-8"><style>
+/* app: style.css */
+:root{--bg:#14161a;--pane:#1c1f26;--line:#2c313b;--fg:#e6e8ec;--dim:#8b93a3; --accent:#e8b44a;--play:#2f7fd0;--you:#ff2fd6; /* ---- the block --------------------------------------------------- A control in the bars is a machined block standing on the panel, not a painted rectangle. --h is how tall it stands; --side is the extruded body under the face and --base the 1px of shadow it puts on the panel. Every shadow here has 0 blur: the edges are cut, not lit. Pressed, the block travels the whole --h and is flush with the panel: no side under it, nothing painted where it used to be, and one faint line inside the top edge as the only thing left saying it went down. */ --h:5px; /* THE face height. Every control in a transport bar is exactly this tall and the round theme takes its diameter from it, so the bar has one line of faces and one line of base lines rather than a height per label. It has to be declared rather than left to `line-height:normal`, which measures the glyphs: a bold label, a musical sign or a pause bar each grew their own button by a pixel or five. */ --btn-h:29px; /* the transport is the one control that is not a face height: a square block two faces tall and just as wide. It is what the bar is now measured by -- everything else bottom-aligns on the base line it stands on. */ --xport-h:calc(var(--btn-h) * 2); --cap:10px; --capgap:3px; /* the strip's caption, and its gap under the base line */ --side:#232935; --base:#04060a; --face:#2c313b; --seam:#101319; /* the four edges are not one outline: the top catches the light, the bottom is where the face turns into the side, and both are exactly one pixel */ --edgeT:#5b6479; --edgeX:#3f4757; --edgeB:#191d25; --hi:.09; /* the 1px machined edge along the top; hover files it brighter */ --up:inset 0 1px 0 rgba(255,255,255,var(--hi)), 0 var(--h) 0 var(--side),0 calc(var(--h) + 1px) 0 var(--base); --down:inset 0 1px 0 rgba(0,0,0,.26); /* a dead control is pushed in, not standing out: the same flush geometry as a lit one, with a face a shade off the panel instead of the amber */ --face-off:#1a1e25; --down-off:inset 0 1px 0 rgba(0,0,0,.34); /* the opposite of --up: a hole in the panel, with a hard dark lip along the top where the panel was cut and one faint line at the bottom where light gets in. Readings live in it; nothing you can press does. */ --pkt:inset 0 2px 0 #05070b,inset 0 1px 0 #000,inset 0 -1px 0 rgba(255,255,255,.045); /* on amber the line has to be warm: pure black reads as dirt on a light face */ --down-lit:inset 0 1px 0 rgba(84,55,8,.30); /* a machined face is not polished. A 64px tile of grey noise, laid over whatever colour the button already had at 13% overlay, so the amber goes matte on the same terms as the grey. */ --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='64' height='64' filter='url(%23g)'/%3E%3C/svg%3E")}
+/* end app */
+/* app: looper.css */
+:root{ --lane1:#ff2fd6; --lane2:#d250ec; --lane3:#a563ee; --lane4:#7c6fe0; --rec:#e63d40; --dub:var(--accent); --ok:#5fbf7a; /* lanes give up height first on a short screen, and the key strip second */ --lh:clamp(70px,calc((100vh - 520px) / 4),150px); --kbh:clamp(64px,11vh,90px); --headw:194px; /* lane header column */ --roll:#191d24; --rollEmpty:#171a20; --mono:ui-monospace,SFMono-Regular,Menlo,monospace; }
+/* end app */
+/* app: learn.css */
+:root{ --rh:#e8b44a; --lh:#2f7fd0; --hit:#5fbf7a; --miss:#e63d40; }
+/* end app */
+body{margin:0;padding:24px;background:var(--bg);color:var(--fg);font:14px/1.45 ui-sans-serif,system-ui,sans-serif}
+h1{font-size:15px;font-weight:700;margin:0 0 4px}
+.sub{font-size:12px;color:var(--dim);margin:0 0 18px;max-width:640px}
+.lbl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--dim);margin:16px 0 6px}
+.stage{background:var(--pane);border-radius:8px;padding:14px}
+.sw{display:grid;grid-template-columns:repeat(auto-fill,minmax(152px,1fr));gap:12px}
+.c{display:flex;align-items:center;gap:10px;min-width:0}
+/* every chip carries the hairline so #14161a and #04060a still read as squares */
+.c i{flex:0 0 auto;width:34px;height:34px;border-radius:4px;border:1px solid var(--line);
+     display:flex;align-items:center;justify-content:center;font:700 13px ui-sans-serif,system-ui,sans-serif}
+.c b{display:block;font-size:12px;font-weight:600}
+.c small{display:block;font:11px/1.35 var(--mono);color:var(--dim)}
+.rules{font-size:12px;color:var(--dim);margin:20px 0 0;max-width:640px}
+</style></head><body>
+<h1>Colour</h1>
+<p class="sub">Every colour in the app is a token on <code>:root</code>. Three files own them:
+style.css the ground, the ink and the block; looper.css the lanes and the record red;
+learn.css the two hands and the hit/miss pair.</p>
+
+<div class="lbl">Ground</div>
+<div class="stage"><div class="sw">
+  <div class="c"><i style="background:var(--bg)"></i><span><b>bg</b><small>--bg<br>#14161a</small></span></div>
+  <div class="c"><i style="background:var(--pane)"></i><span><b>pane</b><small>--pane<br>#1c1f26</small></span></div>
+  <div class="c"><i style="background:var(--line)"></i><span><b>line</b><small>--line<br>#2c313b</small></span></div>
+</div></div>
+
+<div class="lbl">Ink</div>
+<div class="stage"><div class="sw">
+  <div class="c"><i style="background:var(--fg)"></i><span><b>fg</b><small>--fg<br>#e6e8ec</small></span></div>
+  <div class="c"><i style="background:var(--dim)"></i><span><b>dim</b><small>--dim<br>#8b93a3</small></span></div>
+  <div class="c"><i style="background:var(--accent);color:#14161a">Aa</i><span><b>ink on amber</b><small>#14161a<br>text on lit faces</small></span></div>
+</div></div>
+
+<div class="lbl">Accent &amp; signals</div>
+<div class="stage"><div class="sw">
+  <div class="c"><i style="background:var(--accent)"></i><span><b>accent</b><small>--accent<br>#e8b44a</small></span></div>
+  <div class="c"><i style="background:var(--play)"></i><span><b>play</b><small>--play<br>#2f7fd0</small></span></div>
+  <div class="c"><i style="background:var(--you)"></i><span><b>you</b><small>--you<br>#ff2fd6</small></span></div>
+  <div class="c"><i style="background:var(--hit)"></i><span><b>hit</b><small>--hit<br>#5fbf7a</small></span></div>
+  <div class="c"><i style="background:var(--miss)"></i><span><b>miss</b><small>--miss<br>#e63d40</small></span></div>
+  <div class="c"><i style="background:var(--rec)"></i><span><b>rec</b><small>--rec<br>#e63d40</small></span></div>
+  <div class="c"><i style="background:var(--ok)"></i><span><b>ok</b><small>--ok<br>#5fbf7a</small></span></div>
+</div></div>
+
+<div class="lbl">Hands &amp; lanes</div>
+<div class="stage"><div class="sw">
+  <div class="c"><i style="background:var(--rh)"></i><span><b>right hand</b><small>--rh<br>#e8b44a</small></span></div>
+  <div class="c"><i style="background:var(--lh)"></i><span><b>left hand</b><small>--lh<br>#2f7fd0</small></span></div>
+  <div class="c"><i style="background:var(--lane1)"></i><span><b>lane 1</b><small>--lane1<br>#ff2fd6</small></span></div>
+  <div class="c"><i style="background:var(--lane2)"></i><span><b>lane 2</b><small>--lane2<br>#d250ec</small></span></div>
+  <div class="c"><i style="background:var(--lane3)"></i><span><b>lane 3</b><small>--lane3<br>#a563ee</small></span></div>
+  <div class="c"><i style="background:var(--lane4)"></i><span><b>lane 4</b><small>--lane4<br>#7c6fe0</small></span></div>
+</div></div>
+
+<div class="lbl">Block</div>
+<div class="stage"><div class="sw">
+  <div class="c"><i style="background:var(--face)"></i><span><b>face</b><small>--face<br>#2c313b</small></span></div>
+  <div class="c"><i style="background:var(--side)"></i><span><b>side</b><small>--side<br>#232935</small></span></div>
+  <div class="c"><i style="background:var(--base)"></i><span><b>base</b><small>--base<br>#04060a</small></span></div>
+  <div class="c"><i style="background:var(--seam)"></i><span><b>seam</b><small>--seam<br>#101319</small></span></div>
+  <div class="c"><i style="background:var(--edgeT)"></i><span><b>edge top</b><small>--edgeT<br>#5b6479</small></span></div>
+  <div class="c"><i style="background:var(--edgeX)"></i><span><b>edge sides</b><small>--edgeX<br>#3f4757</small></span></div>
+  <div class="c"><i style="background:var(--edgeB)"></i><span><b>edge bottom</b><small>--edgeB<br>#191d25</small></span></div>
+</div></div>
+
+<div class="lbl">Pocket</div>
+<div class="stage"><div class="sw">
+  <div class="c"><i style="background:#0b0e13"></i><span><b>pocket</b><small>#0b0e13<br>the hole in the panel</small></span></div>
+  <div class="c"><i style="background:#5d6473"></i><span><b>engraved key</b><small>#5d6473<br>bar, speed, vol, bpm</small></span></div>
+  <div class="c"><i style="background:#1b2027"></i><span><b>unlit notch</b><small>#1b2027<br>the scale, below the value</small></span></div>
+  <div class="c"><i style="background:var(--accent)"></i><span><b>lit value</b><small>--accent<br>and the notches above it</small></span></div>
+</div></div>
+
+<div class="lbl">Sheet</div>
+<div class="stage"><div class="sw">
+  <div class="c"><i style="background:#fff"></i><span><b>sheet</b><small>#fff<br>engraving ground</small></span></div>
+  <div class="c"><i style="background:#6b7280"></i><span><b>sheet dim</b><small>#6b7280<br>hand the app plays</small></span></div>
+  <div class="c"><i style="background:#16a34a"></i><span><b>sheet hit</b><small>#16a34a<br>stronger than --hit</small></span></div>
+  <div class="c"><i style="background:#7c6fe0"></i><span><b>sheet wait</b><small>#7c6fe0<br>waiting for you</small></span></div>
+  <div class="c"><i style="background:#b07d1a"></i><span><b>sheet right hand</b><small>#b07d1a<br>--rh, darkened for white</small></span></div>
+</div></div>
+
+<p class="rules"><b>Rules.</b> Stark, in three steps: face #2c313b on panel #1c1f26 on ground #14161a.
+Amber is the only "on" colour; red is only recording and only misses. The seven block colours are
+geometry, not palette &mdash; never paint anything else with them, and the same goes for the four pocket
+colours: #0b0e13 is a hole, #5d6473 is a word cut into the panel, #1b2027 is a notch with no light in
+it, and only a value gets the accent. The sheet is white, so the dark-chrome
+signals are re-tuned there: --hit washes out on white and becomes #16a34a, --rh becomes #b07d1a; --miss
+carries on both grounds and is left alone.</p>
+</body></html>

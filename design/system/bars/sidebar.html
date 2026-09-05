@@ -1,0 +1,220 @@
+<!-- @dsCard group="Bars &amp; panels" -->
+<!doctype html><html><head><meta charset="utf-8"><style>
+/* app: style.css */
+:root{--bg:#14161a;--pane:#1c1f26;--line:#2c313b;--fg:#e6e8ec;--dim:#8b93a3;
+      --accent:#e8b44a;--play:#2f7fd0;--you:#ff2fd6;
+      --mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+#side{background:var(--pane);border-right:1px solid var(--line);padding:10px;overflow:auto;
+      display:flex;flex-direction:column;gap:16px}
+#side h2{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin:0 0 8px}
+.trk{padding:7px 9px;border-radius:6px;cursor:pointer;margin-bottom:3px}
+.trk:hover{background:#242832}
+.trk.on{background:var(--accent);color:#14161a;font-weight:600}
+.trk small{display:block;color:var(--dim);font-size:11px}
+.trk.on small{color:#5c4a1c}
+.trk-err{padding:8px 9px;border-radius:6px;background:#3a2126;color:#ff9d9d;font-size:12px}
+.trk-err small{color:#c98080}
+button{background:#2a2f3a;color:var(--fg);border:1px solid var(--line);border-radius:6px;
+       padding:6px 12px;cursor:pointer;font:13px/16px ui-sans-serif,system-ui,sans-serif}
+button:hover{background:#333947}
+.seg{display:inline-flex;align-items:stretch;border:1px solid var(--line);border-radius:6px;
+     overflow:hidden;flex:0 0 auto}
+/* the same control, but made of links: the page nav is three hrefs, not three
+   handlers, so it works before a single module has loaded */
+.seg>a{border:0;border-radius:0;padding:6px 9px;font-size:12px;line-height:16px;white-space:nowrap;
+       background:#2a2f3a;color:var(--fg);text-decoration:none;
+       display:flex;align-items:center;justify-content:center}
+.seg>a+a{border-left:1px solid var(--line)}
+.seg>a.on{background:var(--accent);color:#14161a;font-weight:600}
+.seg>a:hover{background:#333947}
+.seg>a.on:hover{background:var(--accent)}
+/* one row, full width, first thing in the sidebar of all three laptop pages */
+.nav{display:flex;width:100%}
+.nav>a{flex:1 1 0}
+/* end app */
+/* app: looper.css */
+#setbox{margin-top:auto;border-top:1px solid var(--line);padding-top:12px;
+        display:flex;flex-direction:column;gap:7px}
+#setline{font-size:12px;color:var(--dim)}
+.setbtns{display:flex;flex-direction:column;gap:5px}
+.setbtns button{text-align:left;font-size:12px;padding:5px 9px}
+.chip{border-radius:4px;padding:1px 6px;font-size:10px;font-weight:600;
+      background:#22262f;color:#6c7382;border:1px solid var(--line);cursor:pointer}
+.chip.on{background:var(--accent);color:#14161a;border-color:var(--accent)}
+/* end app */
+/* app: learn.css */
+:root{
+  --rh:#e8b44a; --lh:#2f7fd0; --hit:#5fbf7a; --miss:#e63d40;
+}
+#lesson{background:var(--pane);border:1px solid var(--line);border-radius:8px;padding:12px;
+        overflow:hidden;display:flex;flex-direction:column;gap:12px}
+#lesson h2{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin:0 0 4px}
+.lsec{display:flex;flex-direction:column;gap:4px}
+.ltitle{font-size:15px;font-weight:700}
+.ltext{font-size:12px;line-height:1.5;color:var(--dim)}
+.ltext b{color:var(--fg)}
+.lstate{font-size:12px;min-height:18px}
+.lstate.ok{color:var(--hit);font-weight:600}
+.lstate.no{color:#ffb0b0}
+.lrow{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.lrow button{flex:1 1 auto}
+#lesson [hidden]{display:none}
+.chips{display:flex;gap:4px;flex-wrap:wrap}
+.chips .chip{padding:3px 8px;font-size:11px}
+.chips .chip.on{background:var(--accent);color:#14161a;border-color:var(--accent)}
+.handrow{display:flex;align-items:center;gap:8px}
+.hlabel{font-size:11px;font-weight:700;width:38px;flex:0 0 auto}
+.hlabel.lh{color:var(--lh)} .hlabel.rh{color:var(--rh)}
+#steplist{display:flex;flex-direction:column;gap:2px;margin-top:4px;border-top:1px solid var(--line);padding-top:8px;
+          overflow:auto;flex:1 1 auto;min-height:100px}
+.st{display:flex;gap:7px;align-items:center;font-size:11px;padding:3px 6px;border-radius:4px;flex:0 0 auto;
+    color:var(--dim);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.st:hover{background:#242832}
+.st.cur{background:#242832;color:var(--fg)}
+.st.done i{background:var(--hit)}
+.st i{width:7px;height:7px;border-radius:50%;background:#3a3f4a;flex:0 0 auto}
+.st.sec{margin-top:5px;color:var(--fg);font-weight:600;cursor:default;font-size:10px;
+        letter-spacing:.06em;text-transform:uppercase}
+.st.sec:hover{background:none}
+/* end app */
+/* preview only: :hover stands in for the real thing, which a screenshot cannot hold,
+   at the values the app's :hover rules use. */
+.trk.is-hover{background:#242832}
+.st.is-hover{background:#242832}
+.seg>a.is-hover{background:#333947}
+/* preview only: page furniture. The specimen column is .stx, not the documented .st —
+   .st is the step-list row this card documents. */
+body{margin:0;padding:24px;background:var(--bg);color:var(--fg);font:14px/1.45 ui-sans-serif,system-ui,sans-serif}
+h1{font-size:15px;font-weight:700;margin:0 0 4px}
+.sub{font-size:12px;color:var(--dim);margin:0 0 18px;max-width:660px}
+.lbl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--dim);margin:18px 0 6px}
+.stage{background:var(--pane);border-radius:8px;padding:14px}
+.stage.ground{background:var(--bg);border:1px solid var(--line)}
+.row{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start}
+.stx{width:150px}
+.stx.wide{width:210px}
+.stx .slot{min-height:44px}
+.cap{font-size:11px;color:var(--dim);margin-top:10px}
+.cap b{display:block;color:var(--fg);font-weight:600;margin-bottom:2px}
+.cap2{font-size:11px;color:var(--dim);margin-top:12px;max-width:640px;line-height:1.5}
+.cap2 b{color:var(--fg);font-weight:600}
+.rules{font-size:12px;color:var(--dim);margin:20px 0 0;max-width:660px}
+#side{width:200px;height:400px}
+#lesson{width:300px}
+#steplist{max-height:176px}
+</style></head><body>
+<h1>Sidebar and lesson panel</h1>
+<p class="sub">The 200px column on the left of all three laptop pages: the nav strip, the list of songs,
+and whatever the page keeps at the bottom. On the learn page a second panel of the same material —
+<code>#lesson</code> — sits beside the stage and carries the step you are on.</p>
+
+<div class="lbl">The column &mdash; <code>#side</code></div>
+<div class="stage ground"><div class="row">
+  <div id="side">
+    <nav id="nav" class="seg nav">
+      <a href="index.html">Practice</a>
+      <a href="looper.html">Looper</a>
+      <a href="learn.html" class="on" aria-current="page">Learn</a>
+    </nav>
+    <div>
+      <h2>Songs</h2>
+      <div class="trk on"><div>Autumn Leaves</div><small>swing · 120</small></div>
+      <div class="trk"><div>Bb Blues</div><small>shuffle · 96</small></div>
+      <div class="trk"><div>Blue Bossa</div><small>bossa · 140</small></div>
+    </div>
+    <div id="setbox">
+      <h2>Loop set</h2>
+      <div id="setline">4 loops · saved 2 min ago</div>
+      <div class="setbtns">
+        <button>Restore last set</button>
+        <button>Copy lane as melody</button>
+      </div>
+    </div>
+  </div>
+  <div class="cap2" style="max-width:330px;margin-top:0"><b>A pane, not a card.</b>
+  <code>--pane</code> #1c1f26 with a single <code>--line</code> hairline down its right edge, 10px of
+  padding and 16px between blocks. Each block opens with an <code>h2</code>: 10px uppercase, .08em,
+  <code>--dim</code>, 8px clear underneath. <code>#setbox</code> takes <code>margin-top:auto</code>,
+  so it sits on the floor of the column whatever is above it, with a hairline and 12px over it.</div>
+</div></div>
+
+<div class="lbl">Nav strip &mdash; the same <code>.seg</code>, made of links</div>
+<div class="stage"><div class="row">
+  <div class="stx wide"><div class="slot"><nav class="seg nav"><a href="#">Practice</a><a href="#">Looper</a><a href="#" class="on">Learn</a></nav></div>
+    <div class="cap"><b>on = the page you are on</b>amber ground, #14161a ink, 600; the other two are #2a2f3a</div></div>
+  <div class="stx wide"><div class="slot"><nav class="seg nav"><a href="#">Practice</a><a href="#" class="is-hover">Looper</a><a href="#" class="on">Learn</a></nav></div>
+    <div class="cap"><b>hover</b>#333947 on an off half; the lit half does not respond (<code>.on:hover</code> keeps amber)</div></div>
+</div>
+  <div class="cap2">Three <code>&lt;a href&gt;</code>, not three handlers, so the nav works before a
+  single module has loaded. <code>.nav&gt;a{flex:1 1 0}</code> makes the three halves equal and the
+  strip fill the column; the seam is one <code>--line</code> border on <code>a+a</code>.</div>
+</div>
+
+<div class="lbl">Track rows &mdash; <code>.trk</code></div>
+<div class="stage"><div class="row">
+  <div class="stx"><div class="slot"><div class="trk"><div>Bb Blues</div><small>shuffle · 96</small></div></div>
+    <div class="cap"><b>rest</b>no ground at all; 7px 9px, 6px radius, name at 14px, <code>small</code> at 11px dim</div></div>
+  <div class="stx"><div class="slot"><div class="trk is-hover"><div>Bb Blues</div><small>shuffle · 96</small></div></div>
+    <div class="cap"><b>hover</b>#242832 appears behind it — the only change</div></div>
+  <div class="stx"><div class="slot"><div class="trk on"><div>Bb Blues</div><small>shuffle · 96</small></div></div>
+    <div class="cap"><b>.on</b>amber ground, #14161a ink, 600; <code>small</code> goes to #5c4a1c so it stays quiet on amber</div></div>
+  <div class="stx"><div class="slot"><div class="trk-err">tracks.json failed<br><small>unexpected token &lt;</small></div></div>
+    <div class="cap"><b>.trk-err</b>the one red row: #3a2126 ground, #ff9d9d ink, 12px, <code>small</code> #c98080</div></div>
+</div></div>
+
+<div class="lbl">Lesson panel &mdash; <code>#lesson</code></div>
+<div class="stage ground"><div class="row">
+  <aside id="lesson">
+    <div class="lsec">
+      <h2>Head</h2>
+      <div class="ltitle">Right hand, bars 1–4</div>
+      <div class="ltext">Play the melody alone. The app holds the <b>left hand</b> until you have it.</div>
+    </div>
+    <div class="lsec">
+      <h2>This step</h2>
+      <div class="ltext">Two clean passes at 90% or better.</div>
+      <div class="lstate ok">✓ pass 2 of 2 — step done</div>
+    </div>
+    <div class="lrow"><button>◀ Back</button><button>Next ▶</button></div>
+    <div class="handrow"><span class="hlabel lh">Left</span><span class="chips"><button class="chip on">App</button><button class="chip">You</button><button class="chip">Off</button></span></div>
+    <div class="handrow"><span class="hlabel rh">Right</span><span class="chips"><button class="chip">App</button><button class="chip on">You</button><button class="chip">Off</button></span></div>
+    <div id="steplist">
+      <div class="st sec">Head</div>
+      <div class="st done"><i></i>Right hand, bars 1–4</div>
+      <div class="st cur done"><i></i>Left hand, bars 1–4</div>
+      <div class="st is-hover"><i></i>Both hands, bars 1–4</div>
+      <div class="st"><i></i>Both hands, bars 5–8</div>
+      <div class="st sec">Solo</div>
+      <div class="st"><i></i>Right hand, bars 9–12</div>
+    </div>
+  </aside>
+  <div class="cap2" style="max-width:290px;margin-top:0"><b>A card, not a pane.</b> The same
+  <code>--pane</code> ground, but bordered on all four sides with a <code>--line</code> hairline and
+  8px corners, 12px of padding, 12px between sections. Inside, a section is a 4px stack:
+  <code>h2</code> label, <code>.ltitle</code> 15/700, <code>.ltext</code> 12/1.5 dim with
+  <code>&lt;b&gt;</code> lifting to <code>--fg</code>, then <code>.lstate</code> — green
+  <code>--hit</code> and 600 when it went well, #ffb0b0 when it did not, and always 18px tall so the
+  panel does not jump when it is empty.</div>
+</div></div>
+
+<div class="lbl">Hand rows and step rows</div>
+<div class="stage"><div class="row">
+  <div class="stx wide"><div class="slot"><div class="handrow"><span class="hlabel lh">Left</span><span class="chips"><button class="chip on">App</button><button class="chip">You</button></span></div></div>
+    <div class="cap"><b>.hlabel.lh</b>11px/700 in a fixed 38px column, coloured <code>--lh</code> #2f7fd0</div></div>
+  <div class="stx wide"><div class="slot"><div class="handrow"><span class="hlabel rh">Right</span><span class="chips"><button class="chip">App</button><button class="chip on">You</button></span></div></div>
+    <div class="cap"><b>.hlabel.rh</b>the same box, <code>--rh</code> #e8b44a — the hand names carry the notation's colours</div></div>
+  <div class="stx"><div class="slot"><div class="st sec">Head</div><div class="st"><i></i>Right hand 1–4</div></div>
+    <div class="cap"><b>.st.sec / .st</b>a section header is 10px uppercase .06em <code>--fg</code> 600 with no hover; a row is 11px dim with a 7px #3a3f4a dot</div></div>
+  <div class="stx"><div class="slot"><div class="st cur"><i></i>Left hand 1–4</div><div class="st done"><i></i>Right hand 1–4</div></div>
+    <div class="cap"><b>.st.cur / .st.done</b>current takes #242832 and <code>--fg</code>; done turns its dot <code>--hit</code> green</div></div>
+</div></div>
+
+<p class="rules"><b>Rules.</b> A panel is <code>--pane</code> #1c1f26. If it is a column of the page it
+carries one hairline on the edge it meets the page at and no radius; if it is a card inside the page it
+carries a hairline all the way round and 8px corners. Rows inside a panel are 6px, chips and step rows
+4px. A row has no ground until you touch it: hover is #242832 and nothing else moves. The selected row
+is the same amber on #14161a as an on button, at 600 — one selection colour for the whole app, so
+"chosen" never has to be learned twice. Labels above a block are 10px uppercase at .08em in
+<code>--dim</code>; the hand labels are the one place a label is coloured, and it takes the colour the
+notation already uses for that hand.</p>
+</body></html>

@@ -1,0 +1,218 @@
+<!-- @dsCard group="Foundations" -->
+<!doctype html><html><head><meta charset="utf-8"><style>
+/* app: style.css */
+:root{--bg:#14161a;--pane:#1c1f26;--line:#2c313b;--fg:#e6e8ec;--dim:#8b93a3;
+      --accent:#e8b44a;--play:#2f7fd0;--you:#ff2fd6;
+      --mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+button{background:#2a2f3a;color:var(--fg);border:1px solid var(--line);border-radius:6px;
+       padding:6px 12px;cursor:pointer;font:13px/16px ui-sans-serif,system-ui,sans-serif}
+button:hover{background:#333947}
+.tgl.on{background:var(--accent);border-color:var(--accent);color:#14161a;font-weight:600}
+.seg{display:inline-flex;align-items:stretch;border:1px solid var(--line);border-radius:6px;
+     overflow:hidden;flex:0 0 auto}
+.seg>b{display:flex;align-items:center;padding:0 7px;background:#20242c;color:var(--dim);
+       font-size:11px;font-weight:500;white-space:nowrap}
+.seg>button{border:0;border-radius:0;padding:6px 9px;font-size:12px;line-height:16px;white-space:nowrap}
+.seg>button+button{border-left:1px solid var(--line)}
+.seg>button.on{background:var(--accent);color:#14161a;font-weight:600}
+.seg>button:disabled{color:var(--dim);background:#23272f;cursor:not-allowed}
+#inled{width:9px;height:9px;border-radius:50%;background:#3a3f4a;transition:background .1s}
+#inled.hit{background:var(--you);box-shadow:0 0 8px var(--you)}
+.bar{border:1px solid var(--line);border-radius:5px;padding:4px 2px;text-align:center;
+     background:var(--pane);font-weight:700;color:var(--accent);font-size:12px}
+.bar.cur{border-color:var(--play);background:#1e2a3a;color:#fff}
+/* end app */
+/* app: looper.css */
+:root{
+  --lane1:#ff2fd6; --lane2:#d250ec; --lane3:#a563ee; --lane4:#7c6fe0;
+  --rec:#e63d40; --dub:var(--accent); --ok:#5fbf7a; /* lanes give up height first on a short screen, and the key strip second */
+  --lh:clamp(70px,calc((100vh - 520px) / 4),150px);
+  --kbh:clamp(64px,11vh,90px);
+  --headw:194px;                  /* lane header column */
+  --roll:#191d24; --rollEmpty:#171a20;
+}
+button.mini{background:#22262f;border:1px solid var(--line);border-radius:5px;
+            padding:3px 8px;font-size:11px;font-variant-numeric:tabular-nums}
+button.mini.on{background:var(--accent);border-color:var(--accent);color:#14161a;font-weight:600}
+.ldot{width:8px;height:8px;border-radius:50%;background:#3a3f4a;flex:0 0 auto}
+#recBtn.armed,#recBtn.on{background:var(--rec);border-color:var(--rec);color:#fff;font-weight:600}
+/* end app */
+/* app: learn.css */
+:root{
+  --rh:#e8b44a; --lh:#2f7fd0; --hit:#5fbf7a; --miss:#e63d40;
+}
+.hlabel{font-size:11px;font-weight:700;width:38px;flex:0 0 auto}
+.hlabel.lh{color:var(--lh)} .hlabel.rh{color:var(--rh)}
+.staff{background:#fff;border-radius:8px;color:#000}
+.staff [data-hand=lh],.staff [data-hand=lh] *{fill:var(--lh)}
+.staff [data-hand=rh],.staff [data-hand=rh] *{fill:#b07d1a}
+.staff .abcjs-notehead.hit,.staff .abcjs-notehead.hit *{fill:#16a34a!important}
+.staff .abcjs-notehead.miss,.staff .abcjs-notehead.miss *{fill:var(--miss)!important}
+/* end app */
+/* preview only: hover is a state a screenshot cannot hold, pinned at the value :hover uses. */
+button.is-hover{background:#333947}
+/* preview only: the card's own page furniture and the swatch grid. */
+body{margin:0;padding:24px;background:var(--bg);color:var(--fg);font:14px/1.45 ui-sans-serif,system-ui,sans-serif}
+h1{font-size:15px;font-weight:700;margin:0 0 4px}
+.sub{font-size:12px;color:var(--dim);margin:0 0 18px;max-width:680px}
+.lbl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--dim);margin:20px 0 6px}
+.stage{background:var(--pane);border-radius:8px;padding:14px}
+.sws{display:flex;gap:14px;flex-wrap:wrap}
+.sw{width:120px}
+.sw u{display:block;height:48px;border-radius:6px;border:1px solid var(--line);text-decoration:none}
+.sw em{display:block;font:600 11px var(--mono);font-style:normal;color:var(--fg);margin-top:8px}
+.sw s{display:block;font-size:11px;color:var(--dim);margin-top:2px;line-height:1.45;text-decoration:none}
+.row{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start}
+.st{width:150px}
+.st .slot{height:34px;display:flex;align-items:center}
+div.cap{font-size:11px;color:var(--dim);margin-top:8px}
+div.cap b{display:block;color:var(--fg);font-weight:600;margin-bottom:2px}
+.cap2{font-size:11px;color:var(--dim);margin-top:12px;max-width:660px;line-height:1.5}
+.cap2 b{color:var(--fg);font-weight:600}
+.twin{display:flex;gap:24px;flex-wrap:wrap}
+.twin div{width:170px;font-size:11px;color:var(--dim);line-height:1.45}
+.twin em{font:600 11px var(--mono);font-style:normal;color:var(--fg)}
+.pair{display:flex;gap:10px;align-items:center;margin-bottom:9px}
+.pair u{width:34px;height:34px;border-radius:6px;border:1px solid var(--line);flex:0 0 auto;text-decoration:none}
+.pair p{margin:0;font-size:11px;color:var(--dim);line-height:1.45}
+.pair p b{color:var(--fg);font-weight:600;font-family:var(--mono)}
+.sheet{padding:10px 12px;display:inline-block}
+.cell{display:flex;gap:4px}
+.cell .bar{width:38px}
+.rules{font-size:12px;color:var(--dim);margin:22px 0 0;max-width:680px}
+</style></head><body>
+<h1>Colour</h1>
+<p class="sub">Eight tokens in <code>style.css</code> carry the whole app; <code>looper.css</code> and
+<code>learn.css</code> add names of their own, several of which are the same hex under a second name.
+Six greys are never tokens at all &mdash; they are written as literals wherever a surface steps up
+off the panel. The one ink is <code>#14161a</code>, and it is a literal too.</p>
+
+<div class="lbl">style.css <code>:root</code> &mdash; the only sheet the practice page loads</div>
+<div class="stage"><div class="sws">
+  <div class="sw"><u style="background:var(--bg)"></u><em>--bg</em><s>#14161a &middot; page ground, and the ink on every amber state</s></div>
+  <div class="sw"><u style="background:var(--pane)"></u><em>--pane</em><s>#1c1f26 &middot; sidebar, bottom bar, deck, lesson, strip cell</s></div>
+  <div class="sw"><u style="background:var(--line)"></u><em>--line</em><s>#2c313b &middot; every 1px border and divider &mdash; 54 uses</s></div>
+  <div class="sw"><u style="background:var(--fg)"></u><em>--fg</em><s>#e6e8ec &middot; body text</s></div>
+  <div class="sw"><u style="background:var(--dim)"></u><em>--dim</em><s>#8b93a3 &middot; labels, hints, anything secondary &mdash; 62 uses</s></div>
+  <div class="sw"><u style="background:var(--accent)"></u><em>--accent</em><s>#e8b44a &middot; the on colour, on all four sheets &mdash; 60 uses</s></div>
+  <div class="sw"><u style="background:var(--play)"></u><em>--play</em><s>#2f7fd0 &middot; what the app is playing: current note, current bar</s></div>
+  <div class="sw"><u style="background:var(--you)"></u><em>--you</em><s>#ff2fd6 &middot; what you are playing: held keys, MIDI LED, buffer</s></div>
+</div>
+<div class="cap2"><b>--mono</b> is the ninth entry and the only non-colour:
+<code>ui-monospace,SFMono-Regular,Menlo,monospace</code>. It sits here so the practice page has it too.</div>
+</div>
+
+<div class="lbl">The surfaces &mdash; literals, not tokens</div>
+<div class="stage"><div class="sws">
+  <div class="sw"><u style="background:#2a2f3a"></u><em>#2a2f3a</em><s>the control face: every <code>button</code>, <code>.seg&gt;a</code>, tooltip</s></div>
+  <div class="sw"><u style="background:#333947"></u><em>#333947</em><s>hover, and only hover &mdash; one step lighter than the face</s></div>
+  <div class="sw"><u style="background:#22262f"></u><em>#22262f</em><s>inset: <code>.mini</code>, <code>.chip</code>, <code>kbd</code>, <code>.slot</code>, <code>.layer</code>, a selected lane head</s></div>
+  <div class="sw"><u style="background:#20242c"></u><em>#20242c</em><s>the label plate inside a strip &mdash; <code>.seg&gt;b</code>, one use</s></div>
+  <div class="sw"><u style="background:#23272f"></u><em>#23272f</em><s>a disabled strip segment: a colour swap, not an opacity</s></div>
+  <div class="sw"><u style="background:#3a3f4a"></u><em>#3a3f4a</em><s>a dot that is off &mdash; <code>#inled</code>, <code>.ldot</code>, <code>.lev i</code></s></div>
+</div>
+<div class="row" style="margin-top:18px">
+  <div class="st"><div class="slot"><button>&#9654; Play</button></div>
+    <div class="cap"><b>face</b>#2a2f3a on a --line border</div></div>
+  <div class="st"><div class="slot"><button class="is-hover">&#9654; Play</button></div>
+    <div class="cap"><b>hover</b>#333947, nothing else changes</div></div>
+  <div class="st"><div class="slot"><button class="mini">1/16</button></div>
+    <div class="cap"><b>inset</b>#22262f &mdash; sunk relative to the face, not raised</div></div>
+  <div class="st"><div class="slot"><span class="seg"><b>Out:</b><button class="on">Piano</button><button disabled>Computer</button></span></div>
+    <div class="cap"><b>plate + dead</b>#20242c behind <code>Out:</code>, #23272f behind the segment that cannot be pressed</div></div>
+  <div class="st"><div class="slot"><span id="inled"></span></div>
+    <div class="cap"><b>dot off</b>#3a3f4a; lit it is --you with an 8px glow</div></div>
+</div></div>
+
+<div class="lbl">The ink</div>
+<div class="stage"><div class="row">
+  <div class="st"><div class="slot"><button class="tgl on">&#9679; Click</button></div>
+    <div class="cap"><b>#14161a on --accent</b>weight 600, border --accent too</div></div>
+  <div class="st"><div class="slot"><button class="mini on">bar</button></div>
+    <div class="cap"><b>same at the small size</b>the ink never lightens with the control</div></div>
+  <div class="st"><div class="slot"><button id="recBtn" class="on">&#9679; Rec</button></div>
+    <div class="cap"><b>the exception</b>--rec ground takes <code>#fff</code>, not the dark ink</div></div>
+  <div class="st"><div class="slot"><div class="cell"><div class="bar">6</div><div class="bar cur">7</div></div></div>
+    <div class="cap"><b>the other one</b>the current strip cell is <code>#fff</code> on #1e2a3a with a --play border; at rest it is --accent on --pane</div></div>
+</div>
+<div class="cap2"><b>#14161a is written out, not <code>var(--bg)</code></b> &mdash; twenty times, in every
+<code>.on</code> rule across the four sheets. The value is identical to the page ground; the rules do not say so.</div>
+</div>
+
+<div class="lbl">looper.css <code>:root</code> &mdash; lanes, record, roll</div>
+<div class="stage"><div class="sws">
+  <div class="sw"><u style="background:var(--lane1)"></u><em>--lane1</em><s>#ff2fd6 &middot; = --you. No CSS uses it; the four hexes live in <code>loops.js</code></s></div>
+  <div class="sw"><u style="background:var(--lane2)"></u><em>--lane2</em><s>#d250ec</s></div>
+  <div class="sw"><u style="background:var(--lane3)"></u><em>--lane3</em><s>#a563ee</s></div>
+  <div class="sw"><u style="background:var(--lane4)"></u><em>--lane4</em><s>#7c6fe0 &middot; also the bar highlight in the practice notation</s></div>
+  <div class="sw"><u style="background:var(--rec)"></u><em>--rec</em><s>#e63d40 &middot; recording: the Rec button, the lane playhead</s></div>
+  <div class="sw"><u style="background:var(--dub)"></u><em>--dub</em><s>= var(--accent) &middot; declared, never used in CSS</s></div>
+  <div class="sw"><u style="background:var(--ok)"></u><em>--ok</em><s>#5fbf7a &middot; declared, never used in CSS &mdash; learn.css names the same hex --hit</s></div>
+  <div class="sw"><u style="background:var(--roll)"></u><em>--roll</em><s>#191d24 &middot; the piano-roll ground, under the bar and beat grid</s></div>
+  <div class="sw"><u style="background:var(--rollEmpty)"></u><em>--rollEmpty</em><s>#171a20 &middot; a lane with nothing in it, one step darker</s></div>
+</div></div>
+
+<div class="lbl">learn.css <code>:root</code> &mdash; the hands and the verdict</div>
+<div class="stage"><div class="sws">
+  <div class="sw"><u style="background:var(--rh)"></u><em>--rh</em><s>#e8b44a &middot; right hand</s></div>
+  <div class="sw"><u style="background:var(--lh)"></u><em>--lh</em><s>#2f7fd0 &middot; left hand</s></div>
+  <div class="sw"><u style="background:var(--hit)"></u><em>--hit</em><s>#5fbf7a &middot; a note you got &mdash; 19 uses, the most-used of the four</s></div>
+  <div class="sw"><u style="background:var(--miss)"></u><em>--miss</em><s>#e63d40 &middot; a note you missed</s></div>
+</div>
+<div class="row" style="margin-top:18px">
+  <div class="st"><div class="slot"><span class="hlabel rh">RH</span><span class="hlabel lh">LH</span></div>
+    <div class="cap"><b>hand labels</b>11px/700, a 38px column, the only place the two hand tokens are text</div></div>
+</div></div>
+
+<div class="lbl">Same colour, several names</div>
+<div class="stage">
+  <div class="row">
+  <div class="st" style="width:300px">
+    <div class="pair"><u style="background:var(--accent)"></u><p><b>#e8b44a</b> &mdash; <code>--accent</code> on, <code>--rh</code> right hand, <code>--dub</code>, and <code>DUB</code> in <code>ui.js</code></p></div>
+    <div class="pair"><u style="background:var(--play)"></u><p><b>#2f7fd0</b> &mdash; <code>--play</code> what the app plays, <code>--lh</code> left hand</p></div>
+  </div>
+  <div class="st" style="width:300px">
+    <div class="pair"><u style="background:var(--hit)"></u><p><b>#5fbf7a</b> &mdash; <code>--hit</code> a note you got, <code>--ok</code>, and <code>OK</code> in <code>ui.js</code></p></div>
+    <div class="pair"><u style="background:var(--rec)"></u><p><b>#e63d40</b> &mdash; <code>--rec</code> recording, <code>--miss</code> a note you missed, <code>REC</code> in <code>ui.js</code></p></div>
+  </div>
+  </div>
+  <div class="cap2"><b>Nothing says which name to reach for.</b> Amber is <code>--accent</code> when a control
+  is on and <code>--rh</code> when a note belongs to the right hand &mdash; the same pigment doing two jobs.
+  <code>--lh</code> is worse than a synonym: <code>looper.css</code> declares it as a lane height
+  (<code>clamp(70px,&hellip;)</code>) and <code>learn.css</code> re-declares it as this blue, and learn loads last.</div>
+</div>
+
+<div class="lbl">The white-sheet twins</div>
+<div class="stage">
+  <div class="staff sheet">
+    <svg width="330" height="58" aria-hidden="true">
+      <g stroke="#000" stroke-width="1" opacity=".55">
+        <line x1="10" y1="14" x2="320" y2="14"/><line x1="10" y1="23" x2="320" y2="23"/>
+        <line x1="10" y1="32" x2="320" y2="32"/><line x1="10" y1="41" x2="320" y2="41"/>
+        <line x1="10" y1="50" x2="320" y2="50"/>
+      </g>
+      <ellipse data-hand="rh" cx="52" cy="23" rx="8" ry="6"/>
+      <ellipse data-hand="lh" cx="122" cy="41" rx="8" ry="6"/>
+      <ellipse class="abcjs-notehead hit" cx="196" cy="32" rx="8" ry="6"/>
+      <ellipse class="abcjs-notehead miss" cx="268" cy="23" rx="8" ry="6"/>
+    </svg>
+  </div>
+  <div class="twin" style="margin-top:12px">
+    <div><em>#b07d1a</em><br>right hand on white. <code>--rh</code>'s amber is unreadable on paper, so the sheet takes a darker gold of its own.</div>
+    <div><em>#16a34a</em><br>a hit on white. <code>--hit</code> is tuned for dark chrome and washes out here; the sheet takes a stronger green.</div>
+    <div><em>var(--lh)</em><br>left hand is unchanged &mdash; the blue already carried.</div>
+    <div><em>var(--miss)</em><br>miss is unchanged too &mdash; the red already carried.</div>
+  </div>
+</div>
+
+<p class="rules"><b>Rules.</b> Colour comes from <code>style.css</code>'s eight tokens; a page-specific sheet
+may add a name but must not add a hex that is not already one of them &mdash; <code>--rh</code>, <code>--lh</code>,
+<code>--hit</code>, <code>--miss</code>, <code>--rec</code>, <code>--ok</code> and <code>--dub</code> are all
+re-namings of <code>--accent</code>, <code>--play</code> and two reds and greens. The six surface greys
+(#2a2f3a face, #333947 hover, #22262f inset, #20242c plate, #23272f dead, #3a3f4a off) are literals and stay
+literals; a new surface picks one of the six rather than inventing a seventh step. An on-state is
+<code>--accent</code> ground with <code>#14161a</code> ink at weight 600, and the ink is written out
+&mdash; only a red or blue ground (<code>#recBtn.on</code>, <code>.bar.cur</code>) takes <code>#fff</code>
+instead. On the white sheet two colours change and only two: the right hand goes to #b07d1a and a hit goes
+to #16a34a, because those two are the ones the dark palette loses on paper.</p>
+</body></html>

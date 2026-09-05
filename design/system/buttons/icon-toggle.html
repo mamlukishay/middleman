@@ -1,0 +1,92 @@
+<!-- @dsCard group="Buttons" -->
+<!doctype html><html><head><meta charset="utf-8"><style>
+/* app: style.css */
+:root{--bg:#14161a;--pane:#1c1f26;--line:#2c313b;--fg:#e6e8ec;--dim:#8b93a3;
+      --accent:#e8b44a;--play:#2f7fd0;--you:#ff2fd6;
+      --mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+button{background:#2a2f3a;color:var(--fg);border:1px solid var(--line);border-radius:6px;
+       padding:6px 12px;cursor:pointer;font:13px/16px ui-sans-serif,system-ui,sans-serif}
+button:hover{background:#333947}
+button:disabled{opacity:.45;cursor:default}
+.tgl.on{background:var(--accent);border-color:var(--accent);color:#14161a;font-weight:600}
+/* a one-glyph toggle (the melody's speaker): a square, so it takes no more room than a note */
+.tgl.icon{padding:6px 9px;font-size:15px;line-height:16px}
+#inled{width:9px;height:9px;border-radius:50%;background:#3a3f4a;transition:background .1s}
+#inled.hit{background:var(--you);box-shadow:0 0 8px var(--you)}
+/* end app */
+/* preview only: hover is a state a screenshot cannot hold, so it is pinned here at
+   exactly the value button:hover uses. */
+button.is-hover{background:#333947}
+/* preview only: the card's own page furniture. */
+body{margin:0;padding:24px;background:var(--bg);color:var(--fg);font:14px/1.45 ui-sans-serif,system-ui,sans-serif}
+h1{font-size:15px;font-weight:700;margin:0 0 4px}
+.sub{font-size:12px;color:var(--dim);margin:0 0 18px;max-width:660px}
+.lbl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--dim);margin:18px 0 6px}
+.stage{background:var(--pane);border-radius:8px;padding:14px}
+.row{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start}
+.st{width:126px}
+.st .slot{height:34px;display:flex;align-items:center}
+.st.w{width:210px}
+.st.d .slot{height:20px}
+.cap{font-size:11px;color:var(--dim);margin-top:10px}
+.cap b{display:block;color:var(--fg);font-weight:600;margin-bottom:2px}
+.cap2{font-size:11px;color:var(--dim);margin-top:12px;max-width:640px;line-height:1.5}
+.cap2 b{color:var(--fg);font-weight:600}
+.pair{display:flex;align-items:center;gap:6px}
+.rules{font-size:12px;color:var(--dim);margin:20px 0 0;max-width:660px}
+</style></head><body>
+<h1>Icon toggle</h1>
+<p class="sub">The bar has exactly two one-glyph controls. <code>.tgl.icon</code> is the ordinary
+button squeezed to a single character &mdash; the melody-sound toggle on the practice page &mdash;
+and <code>#inled</code> is the MIDI-in lamp, which is not a button at all and never invites a click.</p>
+
+<div class="lbl">.tgl.icon &mdash; the base toggle at one glyph wide</div>
+<div class="stage"><div class="row">
+  <div class="st"><div class="slot"><button class="tgl icon">♪</button></div>
+    <div class="cap"><b>off</b>the base face #2a2f3a on --line; only the padding changes, to 6px&nbsp;9px, and the glyph goes up to 15px</div></div>
+  <div class="st"><div class="slot"><button class="tgl icon is-hover">♪</button></div>
+    <div class="cap"><b>hover</b>face #333947, the same change a word button makes</div></div>
+  <div class="st"><div class="slot"><button class="tgl icon on">♪</button></div>
+    <div class="cap"><b>.on</b>amber ground and border, ink #14161a, weight 600 &mdash; and no hover left, because <code>.tgl.on</code> outranks <code>button:hover</code></div></div>
+  <div class="st"><div class="slot"><button class="tgl icon" disabled>♪</button></div>
+    <div class="cap"><b>disabled</b>opacity .45, cursor default. The practice page keeps it <code>hidden</code> instead, until a melody is on screen</div></div>
+</div></div>
+
+<div class="lbl">The square, against the word button it sits next to</div>
+<div class="stage">
+  <div class="row">
+    <div class="st w"><div class="slot"><div class="pair"><button class="tgl icon">♪</button><button class="tgl">● Click</button></div></div>
+      <div class="cap"><b>one height</b>16px line box + 6px&nbsp;+&nbsp;6px padding + 2px border = 30px, for both</div></div>
+    <div class="st w"><div class="slot"><div class="pair"><button class="tgl icon on">♪</button><button class="tgl on">● Click</button></div></div>
+      <div class="cap"><b>one on-state</b>the same amber, the same 600, at both widths</div></div>
+  </div>
+  <div class="cap2"><b>Square by arithmetic, not by declaration.</b> Nothing sets a width or a
+  height: 9px of padding either side of a 15px glyph lands the box at roughly the 30px the line
+  box and vertical padding already give it. That is why the toggle reads as a square tile beside
+  the word buttons rather than as a cropped one &mdash; and why the glyph has to stay a single
+  narrow character.</div>
+</div>
+
+<div class="lbl">#inled &mdash; the other one-glyph thing in the bar, and not a control</div>
+<div class="stage">
+  <div class="row">
+    <div class="st d"><div class="slot"><span id="inled"></span></div>
+      <div class="cap"><b>idle</b>9&times;9, border-radius 50%, #3a3f4a &mdash; a dead grey dot on the bar ground</div></div>
+    <div class="st d"><div class="slot"><span id="inled" class="hit"></span></div>
+      <div class="cap"><b>.hit</b>--you #ff2fd6 with <code>box-shadow:0 0 8px</code> of the same colour; <code>transition:background .1s</code> fades it back</div></div>
+  </div>
+  <div class="cap2"><b>The one glow in the flat language, and it is earned.</b> The LED is the only
+  place a shadow means light rather than depth: it flashes on every note that arrives over MIDI, so
+  it has to be legible out of the corner of an eye at 9px. It carries no border, no radius token and
+  no hover &mdash; it is a readout that happens to be round, sitting inside the same
+  <code>.grp</code> as <code>#played</code>.</div>
+</div>
+
+<p class="rules"><b>Rules.</b> A one-glyph toggle is the base button with its padding narrowed to
+6px&nbsp;9px and its type raised to 15px on the same fixed 16px line box &mdash; so it stays 30px
+tall, ends up about as wide, and never needs a width of its own. It takes the base states unchanged:
+#333947 on hover, amber on <code>#14161a</code> at 600 when on, opacity .45 when disabled. It is for
+a control whose meaning is already in the glyph; anything that needs a word gets a word. The LED is
+not this component and must never be confused with it: no border, no radius, no cursor, no click
+&mdash; a 9px dot that lights magenta and fades, and the only glow the language allows.</p>
+</body></html>

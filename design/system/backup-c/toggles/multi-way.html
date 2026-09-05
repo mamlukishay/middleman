@@ -1,0 +1,120 @@
+<!-- @dsCard group="Backup C · Split toggles" -->
+<!doctype html><html><head><meta charset="utf-8"><style>
+:root{
+/* app: style.css */
+--bg:#14161a;--pane:#1c1f26;--line:#2c313b;--fg:#e6e8ec;--dim:#8b93a3;
+--accent:#e8b44a;--play:#2f7fd0;--you:#ff2fd6;
+--h:5px;
+--side:#232935; --base:#04060a; --face:#2c313b; --seam:#101319;
+--edgeT:#5b6479; --edgeX:#3f4757; --edgeB:#191d25;
+--hi:.09;
+--up:inset 0 1px 0 rgba(255,255,255,var(--hi)),
+0 var(--h) 0 var(--side),0 calc(var(--h) + 1px) 0 var(--base);
+--down:inset 0 1px 0 rgba(0,0,0,.26);
+--down-lit:inset 0 1px 0 rgba(84,55,8,.30);
+--grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='64' height='64' filter='url(%23g)'/%3E%3C/svg%3E")
+/* end app */
+}
+*{box-sizing:border-box}
+/* app: style.css */
+button{background:#2a2f3a;color:var(--fg);border:1px solid var(--line);border-radius:6px;
+       padding:6px 12px;cursor:pointer;font-size:13px}
+.seg{display:inline-flex;align-items:stretch;border:1px solid var(--line);border-radius:6px;
+     overflow:hidden;flex:0 0 auto}
+.seg>button{border:0;border-radius:0;padding:6px 9px;font-size:12px;white-space:nowrap}
+.seg>button+button{border-left:1px solid var(--line)}
+.seg>button.on{background:var(--accent);color:#14161a;font-weight:600}
+.seg>a{border:0;border-radius:0;padding:6px 9px;font-size:12px;white-space:nowrap;
+       background:#2a2f3a;color:var(--fg);text-decoration:none;
+       display:flex;align-items:center;justify-content:center}
+.seg>a+a{border-left:1px solid var(--line)}
+.seg>a.on{background:var(--accent);color:#14161a;font-weight:600}
+.seg>a:hover{background:#333947}
+.seg>a.on:hover{background:var(--accent)}
+:where(body:not(.mob)) button,:where(body:not(.mob)) .seg>a{
+  position:relative;box-shadow:var(--up); /* the drop is instant -- a block does not ease into a hole. Only the colour
+     gets a beat, and 60ms of it is under the threshold where you read it as
+     movement rather than as the button having simply changed. */
+  transition:background-color .06s linear}
+:where(body:not(.mob)) button::before,:where(body:not(.mob)) .seg>a::before{
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:var(--grain);opacity:.13;mix-blend-mode:overlay}
+:where(body:not(.mob)) button{background-color:var(--face)}
+:where(body:not(.mob)) button,:where(body:not(.mob)) button.mini{
+  border-color:var(--edgeT) var(--edgeX) var(--edgeB)}
+:where(body:not(.mob)) button:hover{background-color:#363d4a;--hi:.17}
+:where(body:not(.mob)) .seg>a:hover{--hi:.17}
+body:not(.mob) button,body:not(.mob) button.mini,body:not(.mob) .seg,
+body:not(.mob) .seg>button,body:not(.mob) .seg>a{border-radius:2px}
+body:not(.mob) .seg,body:not(.mob) .modes2{
+  gap:0;border-color:transparent;overflow:visible;border-radius:2px;position:relative;
+  box-shadow:0 var(--h) 0 var(--side),0 calc(var(--h) + 1px) 0 var(--base)}
+body:not(.mob) .seg>button,body:not(.mob) .seg>a,body:not(.mob) .modes2>button{
+  border-width:0;border-radius:0;box-shadow:inset 0 1px 0 rgba(255,255,255,var(--hi))}
+body:not(.mob) .seg>button:not(.on):not(:disabled),body:not(.mob) .seg>a:not(.on){
+  background-color:var(--face)}
+body:not(.mob) .seg>a:not(.on):hover{background-color:#363d4a}
+body:not(.mob) .seg>button+button,body:not(.mob) .seg>a+a,
+body:not(.mob) .modes2>button+button{border-left:1px solid var(--seam)}
+body:not(.mob) .seg>button:first-of-type,body:not(.mob) .seg>a:first-of-type,
+body:not(.mob) .modes2>button:first-of-type{border-radius:2px 0 0 2px}
+body:not(.mob) .seg>button:last-of-type,body:not(.mob) .seg>a:last-of-type,
+body:not(.mob) .modes2>button:last-of-type{border-radius:0 2px 2px 0}
+body:not(.mob) .seg>button.on,body:not(.mob) .seg>a.on,body:not(.mob) .modes2>button.on{
+  transform:translateY(var(--h));box-shadow:var(--down-lit)}
+.nav{display:flex;width:100%}
+.nav>a{flex:1 1 0}
+/* end app */
+/* app: learn.css */
+.seg{display:flex;gap:0;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg button{border:0;border-radius:0;padding:3px 10px;font-size:11px;background:#22262f}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button.on{background:var(--accent);color:#14161a;font-weight:600}
+/* end app */
+
+/* preview only below: layout and labels */
+body{margin:0;padding:24px;background:var(--bg);color:var(--fg);font:14px/1.45 ui-sans-serif,system-ui,sans-serif}
+.lbl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--dim);margin:0 0 8px}
+.stage{background:var(--pane);border-radius:8px;padding:14px;display:flex;align-items:flex-start;gap:34px;flex-wrap:wrap}
+.cell{display:flex;flex-direction:column;align-items:flex-start}
+.cap{font-size:11px;color:var(--dim);margin-top:12px;max-width:220px;line-height:1.5}   /* 6px of side, then 6px of air */
+.row+.row{margin-top:22px}
+.w180{width:180px}   /* the sidebar's inner width, where the nav lives */
+.rules{font-size:12px;color:var(--dim);max-width:68ch;margin:24px 0 0}
+</style></head><body>
+
+<div class="row">
+  <p class="lbl">Three ways &middot; the page nav, .seg.nav of links</p>
+  <div class="stage">
+    <div class="cell">
+      <nav class="seg nav w180"><a href="#">Practice</a><a href="#" class="on">Looper</a><a href="#">Learn</a></nav>
+      <div class="cap">Looper down &mdash; the page you are on. The three halves are <code>flex:1 1 0</code>, so they are equal columns: the lit link's extra weight cannot move the two beside it.</div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <p class="lbl">Four ways &middot; the learn page's views strip</p>
+  <div class="stage">
+    <div class="cell">
+      <div class="seg"><button class="on">Staff</button><button>Roll</button><button>Falling</button><button>Scroll</button></div>
+      <div class="cap">Staff down. This strip is the small size and lives in the ruler above the stage, not in the bar.</div>
+    </div>
+    <div class="cell">
+      <div class="seg"><button>Staff</button><button>Roll</button><button>Falling</button><button class="on">Scroll</button></div>
+      <div class="cap">Scroll down &mdash; the last half keeps the right corners. Only one half is ever down, wherever the cut falls.</div>
+    </div>
+  </div>
+</div>
+
+<p class="rules">Three or four, the block does not change: one continuous 5px side under the
+whole strip, 2px on the outer corners only, a 1px seam at each cut, and exactly one half down.
+The nav is made of links rather than buttons so it works before a module has loaded, and it
+takes the full 180px of the sidebar; the views strip is the small size &mdash; 11px on 3px&thinsp;/&thinsp;10px of
+padding &mdash; because it sits in the ruler above the stage, not in the bar.
+A strip that <em>is</em> in the transport bar &mdash; the OUT block &mdash; is held to two more rules
+these two do not need: its name sits out of flow above the faces, and both halves are 600 in both
+states so the block cannot re-measure itself when you pick one. Here the weight is free to change,
+because the nav's halves are equal columns and the views strip has a row to itself.</p>
+
+</body></html>

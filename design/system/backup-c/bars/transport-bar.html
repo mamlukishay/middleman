@@ -1,0 +1,213 @@
+<!-- @dsCard group="Backup C · Bars & panels" -->
+<!doctype html><html><head><meta charset="utf-8"><style>
+  /* app: style.css */
+  :root{--bg:#14161a;--pane:#1c1f26;--line:#2c313b;--fg:#e6e8ec;--dim:#8b93a3; --accent:#e8b44a;--play:#2f7fd0;--you:#ff2fd6; /* ---- the block --------------------------------------------------- A control in the bars is a machined block standing on the panel, not a painted rectangle. --h is how tall it stands; --side is the extruded body under the face and --base the 1px of shadow it puts on the panel. Every shadow here has 0 blur: the edges are cut, not lit. Pressed, the block travels the whole --h and is flush with the panel: no side under it, nothing painted where it used to be, and one faint line inside the top edge as the only thing left saying it went down. */ --h:5px; /* THE face height. Every control in a transport bar is exactly this tall and the round theme takes its diameter from it, so the bar has one line of faces and one line of base lines rather than a height per label. It has to be declared rather than left to `line-height:normal`, which measures the glyphs: a bold label, a musical sign or a pause bar each grew their own button by a pixel or five. */ --btn-h:29px; /* the transport is the one control that is not a face height: a square block two faces tall and just as wide. It is what the bar is now measured by -- everything else bottom-aligns on the base line it stands on. */ --xport-h:calc(var(--btn-h) * 2); --cap:10px; --capgap:3px; /* the strip's caption, and its gap under the base line */ --side:#232935; --base:#04060a; --face:#2c313b; --seam:#101319; /* the four edges are not one outline: the top catches the light, the bottom is where the face turns into the side, and both are exactly one pixel */ --edgeT:#5b6479; --edgeX:#3f4757; --edgeB:#191d25; --hi:.09; /* the 1px machined edge along the top; hover files it brighter */ --up:inset 0 1px 0 rgba(255,255,255,var(--hi)), 0 var(--h) 0 var(--side),0 calc(var(--h) + 1px) 0 var(--base); --down:inset 0 1px 0 rgba(0,0,0,.26); /* a dead control is pushed in, not standing out: the same flush geometry as a lit one, with a face a shade off the panel instead of the amber */ --face-off:#1a1e25; --down-off:inset 0 1px 0 rgba(0,0,0,.34); /* the opposite of --up: a hole in the panel, with a hard dark lip along the top where the panel was cut and one faint line at the bottom where light gets in. Readings live in it; nothing you can press does. */ --pkt:inset 0 2px 0 #05070b,inset 0 1px 0 #000,inset 0 -1px 0 rgba(255,255,255,.045); /* on amber the line has to be warm: pure black reads as dirt on a light face */ --down-lit:inset 0 1px 0 rgba(84,55,8,.30); /* a machined face is not polished. A 64px tile of grey noise, laid over whatever colour the button already had at 13% overlay, so the amber goes matte on the same terms as the grey. */ --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='64' height='64' filter='url(%23g)'/%3E%3C/svg%3E")}
+  *{box-sizing:border-box}
+  #bar{display:flex;flex-wrap:nowrap;gap:20px;align-items:center;padding:8px 14px; border-bottom:1px solid var(--line);flex:0 0 auto}
+  .grp{display:flex;align-items:flex-end;gap:6px;position:relative;flex:0 0 auto}
+  .grp.status{flex:1 1 0;min-width:0}
+  #bar .sep{flex:0 0 1px;width:1px;height:20px;background:var(--line)}
+  #bar .grp>button{white-space:nowrap;flex:0 0 auto}
+  button{background:#2a2f3a;color:var(--fg);border:1px solid var(--line);border-radius:6px; padding:6px 12px;cursor:pointer;font-size:13px}
+  button:hover{background:#333947}
+  .tgl.on{background:var(--accent);border-color:var(--accent);color:#14161a;font-weight:600}
+  .seg{display:inline-flex;align-items:stretch;border:1px solid var(--line);border-radius:6px; overflow:hidden;flex:0 0 auto}
+  .seg>b{display:flex;align-items:center;padding:0 7px;background:#20242c;color:var(--dim); font-size:11px;font-weight:500;white-space:nowrap}
+  .seg>button{border:0;border-radius:0;padding:6px 9px;font-size:12px;white-space:nowrap}
+  .seg>button+button{border-left:1px solid var(--line)}
+  .seg>button.on{background:var(--accent);color:#14161a;font-weight:600}
+  .seg>button:disabled{color:var(--dim);background:#23272f;cursor:not-allowed}
+  :where(body:not(.mob)) button,:where(body:not(.mob)) .seg>a{ position:relative;box-shadow:var(--up); /* the drop is instant -- a block does not ease into a hole. Only the colour gets a beat, and 60ms of it is under the threshold where you read it as movement rather than as the button having simply changed. */ transition:background-color .06s linear}
+  :where(body:not(.mob)) button::before,:where(body:not(.mob)) .seg>a::before{ content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none; background:var(--grain);opacity:.13;mix-blend-mode:overlay}
+  :where(body:not(.mob)) button{background-color:var(--face)}
+  :where(body:not(.mob)) button,:where(body:not(.mob)) button.mini{ border-color:var(--edgeT) var(--edgeX) var(--edgeB)}
+  :where(body:not(.mob)) button:hover{background-color:#363d4a;--hi:.17}
+  body:not(.mob) button,body:not(.mob) button.mini,body:not(.mob) .seg, body:not(.mob) .seg>button,body:not(.mob) .seg>a{border-radius:2px}
+  body:not(.mob) button:active{transform:translateY(var(--h));box-shadow:var(--down); border-color:var(--edgeX)}
+  body:not(.mob) .tgl.on{transform:translateY(var(--h));box-shadow:var(--down-lit)}
+  body:not(.mob) button.round{ border-radius:2px;padding:0;width:var(--btn-h);height:var(--btn-h);flex:0 0 auto; display:flex;align-items:center;justify-content:center;font-size:15px;line-height:1}
+  body:not(.mob) .seg,body:not(.mob) .modes2{ gap:0;border-color:transparent;overflow:visible;border-radius:2px;position:relative; box-shadow:0 var(--h) 0 var(--side),0 calc(var(--h) + 1px) 0 var(--base)}
+  body:not(.mob) .seg>button,body:not(.mob) .seg>a,body:not(.mob) .modes2>button{ border-width:0;border-radius:0;box-shadow:inset 0 1px 0 rgba(255,255,255,var(--hi))}
+  body:not(.mob) .seg>button:not(.on):not(:disabled),body:not(.mob) .seg>a:not(.on){ background-color:var(--face)}
+  body:not(.mob) .seg>button+button,body:not(.mob) .seg>a+a, body:not(.mob) .modes2>button+button{border-left:1px solid var(--seam)}
+  body:not(.mob) .seg>button:first-of-type,body:not(.mob) .seg>a:first-of-type, body:not(.mob) .modes2>button:first-of-type{border-radius:2px 0 0 2px}
+  body:not(.mob) .seg>button:last-of-type,body:not(.mob) .seg>a:last-of-type, body:not(.mob) .modes2>button:last-of-type{border-radius:0 2px 2px 0}
+  body:not(.mob) .seg>button:active,body:not(.mob) .modes2>button:active{ transform:translateY(var(--h));box-shadow:var(--down)}
+  body:not(.mob) .seg>button.on,body:not(.mob) .seg>a.on,body:not(.mob) .modes2>button.on{ transform:translateY(var(--h));box-shadow:var(--down-lit)}
+  body:not(.mob) .seg>b{position:absolute;left:0;right:0;display:block;text-align:center; bottom:calc(100% + var(--h) + 1px + var(--capgap)); padding:0;background:none;box-shadow:none; font-size:var(--cap);font-weight:700;line-height:1;letter-spacing:.08em; text-transform:uppercase;color:var(--dim)}
+  body:not(.mob) #bar button.tgl{ width:var(--xport-h);height:var(--xport-h);min-width:var(--xport-h);padding:0 6px; font-size:12px;font-weight:600;white-space:normal;text-align:center;line-height:1.15; display:inline-flex;align-items:center;justify-content:center}
+  body:not(.mob) #bar button.tgl.round{ width:var(--xport-h);height:var(--xport-h);border-radius:2px;padding:0; font-size:17px;line-height:1}
+  body:not(.mob) #bar button.xport{ width:calc(var(--xport-h) * 2);min-width:calc(var(--xport-h) * 2);height:var(--xport-h); font-size:14px;font-weight:600;padding:0}
+  body:not(.mob) button:disabled,body:not(.mob) .seg>button:disabled{ transform:translateY(var(--h));box-shadow:var(--down-off);opacity:1; background-color:var(--face-off);border-color:var(--face-off);color:var(--dim)}
+  body:not(.mob) #bar .grp>button:not(.tgl),body:not(.mob) #bar .grp>#outsel, body:not(.mob) #bar .grp>#statusEl{height:var(--btn-h)}
+  body:not(.mob) #bar button,body:not(.mob) #bar .seg>button,body:not(.mob) #bar .seg>a{ height:var(--btn-h);padding-top:0;padding-bottom:0;line-height:1; display:inline-flex;align-items:center;justify-content:center}
+  body:not(.mob) #bar button[hidden],body:not(.mob) #bar .grp>*[hidden], body:not(.mob) button.round[hidden]{display:none}
+  body:not(.mob) #bar .seg{border-width:0}
+  body:not(.mob) #bar .seg>button{padding-left:10px;padding-right:10px;font-size:12px}
+  body:not(.mob) #bar .seg>button,body:not(.mob) #bar .seg>button.on{font-weight:600}
+  body:not(.mob) #bar .grp>#statusEl{line-height:var(--btn-h)}
+  body:not(.mob) #bar{align-items:flex-end; padding-top:calc(8px + var(--cap) + var(--capgap) + var(--h)); padding-bottom:calc(8px + var(--h) + 1px)}
+  #bar #pos,#bar #speed,#bar #vol,#bar .grp.pkt{ height:var(--btn-h);border-radius:2px;background:#0b0e13;box-shadow:var(--pkt); display:inline-flex;align-items:center;gap:8px;padding:0 10px;line-height:1; font-variant-numeric:tabular-nums;font-size:13px}
+  #bar #pos b,#bar #speed b,#bar #vol b{ color:var(--accent);font-weight:700;letter-spacing:.02em;min-width:0;padding:0;border:0; text-align:left;text-shadow:0 0 9px rgba(232,180,74,.5)}
+  #bar #pos>span{display:inline-flex;align-items:center;gap:5px}
+  #bar .k,#bar .u{color:#5d6473;font-size:10px;font-style:normal;font-weight:700; letter-spacing:.08em;text-transform:uppercase}
+  #bpmv{cursor:text;border-radius:2px;outline:1px solid transparent;outline-offset:1px}
+  #bpmv:hover{outline-color:#39414f}
+  #bpmv:focus{outline-color:var(--accent)}
+  #bar .grp.pkt>#played{min-width:0;font-size:13px}
+  #played{color:var(--you);font-weight:700;text-shadow:0 0 10px rgba(255,47,214,.5)}
+  #inled{width:7px;height:7px;border-radius:50%;background:#3a3f4a;flex:0 0 auto; transition:background .1s}
+  #inled.hit{background:var(--you);box-shadow:0 0 8px var(--you)}
+  #statusEl{color:var(--dim);font-size:11px;flex:1 1 0;min-width:0;text-align:right; overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #bar .scale{display:flex;align-items:flex-end;gap:3px;height:15px;cursor:ew-resize;touch-action:none}
+  #bar .scale i{width:3px;height:6px;background:#1b2027;border-radius:1px}
+  #bar .scale i.t{height:12px}
+  #bar .scale i.on{background:var(--accent);box-shadow:0 0 6px rgba(232,180,74,.55)}
+  input.scaled{display:none}
+  /* end app */
+  /* app: looper.css */
+  #bar{min-width:0}
+  #bar > *{min-width:0}
+  #bar button{flex:0 0 auto}
+  #bar #pos,#bar #played{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #bar #speed{flex:0 1 auto;min-width:0}
+  /* end app */
+
+/* ---- preview only --------------------------------------------------------
+   Everything above is the app's: the groups, the block sizes, the pockets and
+   the scale are all in style.css now. What is added here is the page around
+   the bars, the group names over the first one, and the widths that stand in
+   for a window. */
+body{margin:0;padding:24px;background:var(--bg);color:var(--fg);
+     font:14px/1.45 ui-sans-serif,system-ui,sans-serif}
+.lbl{font:700 10px/1 ui-sans-serif,system-ui,sans-serif;letter-spacing:.08em;
+     text-transform:uppercase;color:var(--dim);margin:0 0 12px}
+.row{margin-bottom:30px}
+.cap{font-size:11px;color:var(--dim);margin-top:8px}
+.rules{font-size:12px;color:var(--dim);max-width:820px;margin:34px 0 0;line-height:1.6}
+.w1360{width:1360px}
+.narrow{width:1260px}
+/* the group names, in the air above the first bar only. Every group stands on the
+   bar's base line, so one distance off the bottom puts every tag on one line. */
+.tagged{padding-top:14px}
+.tag{position:absolute;left:0;bottom:calc(var(--xport-h) + 9px);white-space:nowrap;
+     font:700 9px/1 ui-sans-serif,system-ui,sans-serif;letter-spacing:.08em;
+     text-transform:uppercase;color:#606877}
+</style></head><body>
+
+<!-- Every bar carries id="bar" so the app's own #bar rules reach all four copies;
+     an id selector matches every element with that id. The only script is the one
+     that lights the notches, because in the app that is src/scale.js's job. -->
+
+<div class="row">
+  <div class="lbl">Practice · 1360</div>
+  <div class="w1360 tagged"><div id="bar">
+      <div class="grp"><span class="tag">transport</span>
+        <button class="xport tgl">▶ Play</button>
+        <button class="tgl">● Click</button></div>
+      <div class="grp"><span class="tag">output</span><span id="outsel" class="seg"><b>Out</b><button disabled>Piano</button><button class="on">Computer</button></span></div>
+      <div class="grp"><span class="tag">page</span>
+        <button class="tgl">Melody</button>
+        <button class="tgl round">♪</button></div>
+      <span class="sep"></span>
+      <div class="grp"><span class="tag">readout</span><span id="pos"><span><i class="k">bar</i><b>3/12</b></span><span><b>C7</b></span></span></div>
+      <div class="grp"><span class="tag">levels</span><span id="speed"><i class="k">speed</i><input type="range" class="scaled" min="50" max="200" step="1" value="150"><span class="scale"><i class="t"></i><i class=""></i><i class=""></i><i class="t"></i><i class=""></i><i class=""></i><i class="t"></i><i class=""></i><i class=""></i><i class="t"></i><i class=""></i><i class=""></i></span><b id="bpmv" contenteditable="plaintext-only" inputmode="numeric">150</b><i class="u">bpm</i></span><span id="vol"><i class="k">vol</i><input type="range" class="scaled" min="0" max="100" step="1" value="25"><span class="scale"><i class="t"></i><i class=""></i><i class=""></i><i class="t"></i><i class=""></i><i class=""></i><i class="t"></i><i class=""></i><i class=""></i><i class="t"></i><i class=""></i><i class=""></i></span><b id="volumev">25%</b></span></div>
+      <div class="grp pkt"><span class="tag">input</span><span id="played">C4 E4 G4</span><span id="inled" class="hit"></span></div>
+      <div class="grp status"><span class="tag">status</span><span id="statusEl">out: computer audio · MIDI blocked: Permission to use Web MIDI API was not granted.</span></div>
+    </div></div>
+  <div class="cap">Seven groups. The blocks stand on the left, the pockets are sunk on the right,
+  and the one hairline sits where the one turns into the other.</div>
+</div>
+
+<div class="row">
+  <div class="lbl">Looper · 1360</div>
+  <div class="w1360"><div id="bar">
+      <div class="grp">
+        <button class="xport tgl">▶ Play</button>
+        <button class="tgl">● Click</button></div>
+      <div class="grp"><span id="outsel" class="seg"><b>Out</b><button disabled>Piano</button><button class="on">Computer</button></span></div>
+      <div class="grp">
+        <button class="tgl on">♩ Backing</button></div>
+      <span class="sep"></span>
+      <div class="grp"><span id="pos"><span><i class="k">bar</i><b>5/12</b></span><span><b>Cm7</b></span></span></div>
+      <div class="grp"><span id="speed"><i class="k">speed</i><input type="range" class="scaled" min="50" max="200" step="1" value="100"><span class="scale"><i class="t"></i><i class=""></i><i class=""></i><i class="t"></i><i class=""></i><i class=""></i><i class="t"></i><i class=""></i><i class=""></i><i class="t"></i><i class=""></i><i class=""></i></span><b id="bpmv" contenteditable="plaintext-only" inputmode="numeric">100</b><i class="u">bpm</i></span><span id="vol"><i class="k">vol</i><input type="range" class="scaled" min="0" max="100" step="1" value="100"><span class="scale"><i class="t"></i><i class=""></i><i class=""></i><i class="t"></i><i class=""></i><i class=""></i><i class="t"></i><i class=""></i><i class=""></i><i class="t"></i><i class=""></i><i class=""></i></span><b id="volumev">100%</b></span></div>
+      <div class="grp pkt"><span id="played">C4 E4 G4</span><span id="inled" class="hit"></span></div>
+      <div class="grp status"><span id="statusEl">out: computer audio · MIDI blocked: Permission to use Web MIDI API was not granted.</span></div>
+    </div></div>
+  <div class="cap">The page group is one block here, so this is the same row with one square fewer.</div>
+</div>
+
+<div class="row">
+  <div class="lbl">Learn · 1360</div>
+  <div class="w1360"><div id="bar">
+      <div class="grp">
+        <button class="xport tgl">▶ Play</button>
+        <button class="tgl">● Click</button></div>
+      <div class="grp"><span id="outsel" class="seg"><b>Out</b><button disabled>Piano</button><button class="on">Computer</button></span></div>
+      <div class="grp">
+        <button class="tgl">⏸ Wait for me</button>
+        <button class="tgl on">↻ Loop</button></div>
+      <span class="sep"></span>
+      <div class="grp"><span id="pos"><span><i class="k">bar</i><b>1</b></span><span><i class="k">beat</i><b>3</b></span><span><i class="k">pass</i><b>2</b></span></span></div>
+      <div class="grp"><span id="speed"><i class="k">speed</i><input type="range" class="scaled" min="30" max="200" step="1" value="60"><span class="scale"><i class="t"></i><i class=""></i><i class=""></i><i class="t"></i><i class=""></i><i class=""></i><i class="t"></i><i class=""></i><i class=""></i><i class="t"></i><i class=""></i><i class=""></i></span><b id="bpmv" contenteditable="plaintext-only" inputmode="numeric">60</b><i class="u">bpm</i></span><span id="vol"><i class="k">vol</i><input type="range" class="scaled" min="0" max="100" step="1" value="100"><span class="scale"><i class="t"></i><i class=""></i><i class=""></i><i class="t"></i><i class=""></i><i class=""></i><i class="t"></i><i class=""></i><i class=""></i><i class="t"></i><i class=""></i><i class=""></i></span><b id="volumev">100%</b></span></div>
+      <div class="grp pkt"><span id="played">C4 E4 G4</span><span id="inled" class="hit"></span></div>
+      <div class="grp status"><span id="statusEl">out: computer audio · MIDI blocked: Permission to use Web MIDI API was not granted.</span></div>
+    </div></div>
+  <div class="cap">Two page controls, both wrapping inside the same square; the readout carries the
+  pass count as a third engraved key.</div>
+</div>
+
+<div class="row">
+  <div class="lbl">Practice · 1260 — what gives first</div>
+  <div class="narrow"><div id="bar">
+      <div class="grp">
+        <button class="xport tgl">▶ Play</button>
+        <button class="tgl">● Click</button></div>
+      <div class="grp"><span id="outsel" class="seg"><b>Out</b><button disabled>Piano</button><button class="on">Computer</button></span></div>
+      <div class="grp">
+        <button class="tgl">Melody</button>
+        <button class="tgl round">♪</button></div>
+      <span class="sep"></span>
+      <div class="grp"><span id="pos"><span><i class="k">bar</i><b>3/12</b></span><span><b>C7</b></span></span></div>
+      <div class="grp"><span id="speed"><i class="k">speed</i><input type="range" class="scaled" min="50" max="200" step="1" value="150"><span class="scale"><i class="t"></i><i class=""></i><i class=""></i><i class="t"></i><i class=""></i><i class=""></i><i class="t"></i><i class=""></i><i class=""></i><i class="t"></i><i class=""></i><i class=""></i></span><b id="bpmv" contenteditable="plaintext-only" inputmode="numeric">150</b><i class="u">bpm</i></span><span id="vol"><i class="k">vol</i><input type="range" class="scaled" min="0" max="100" step="1" value="25"><span class="scale"><i class="t"></i><i class=""></i><i class=""></i><i class="t"></i><i class=""></i><i class=""></i><i class="t"></i><i class=""></i><i class=""></i><i class="t"></i><i class=""></i><i class=""></i></span><b id="volumev">25%</b></span></div>
+      <div class="grp pkt"><span id="played">C4 E4 G4</span><span id="inled" class="hit"></span></div>
+      <div class="grp status"><span id="statusEl">out: computer audio · MIDI blocked: Permission to use Web MIDI API was not granted.</span></div>
+    </div></div>
+  <div class="cap">The status line truncates. Every block keeps its size, every pocket keeps its
+  contents, and the row stays one row.</div>
+</div>
+
+<p class="rules">Rules: <b>one block size</b> — every toggle in the bar is the transport's square,
+58&nbsp;×&nbsp;58, and the transport is two of them wide. <b>Information is sunk, controls are
+raised</b>: position, speed, volume and input are pockets milled into the panel, one face high, on
+the same base line as the blocks; the words in them are engraved keys and only the values are lit.
+<b>6&nbsp;px inside a group, 20&nbsp;px between groups</b>, and one hairline where the blocks end.
+<b>Nothing wraps</b> — the status line truncates first, and it is the only thing that gives.</p>
+
+<script>
+// src/scale.js in miniature: paint the notches from the input, and set the input from
+// a click or a drag along the scale. The card has no app, so this stands in for it.
+for (const scale of document.querySelectorAll('.scale')) {
+  const input = scale.previousElementSibling;
+  const b = scale.parentElement.querySelector('b');
+  const paint = () => {
+    const min = +input.min, max = +input.max;
+    const lit = Math.round(((+input.value - min) / (max - min)) * 12);
+    [...scale.children].forEach((n, i) => n.classList.toggle('on', i < lit));
+    b.textContent = input.id === 'volumev' || b.id === 'volumev' ? input.value + '%' : input.value;
+  };
+  const fromX = e => {
+    const r = scale.getBoundingClientRect();
+    const t = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
+    input.value = +input.min + Math.round(t * (+input.max - +input.min));
+    paint();
+  };
+  scale.addEventListener('pointerdown', e => {
+    try { scale.setPointerCapture(e.pointerId); } catch {}
+    fromX(e); e.preventDefault();
+  });
+  scale.addEventListener('pointermove', e => { if (scale.hasPointerCapture?.(e.pointerId)) fromX(e); });
+  paint();
+}
+</script>
+</body></html>
