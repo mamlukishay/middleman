@@ -9,7 +9,6 @@
   --kbh:clamp(64px,11vh,90px);
   --headw:194px;                  /* lane header column */
   --roll:#191d24; --rollEmpty:#171a20;
-  --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
 }
 
 /* the implicit row was auto-sized, so main's height:100% resolved against nothing and
@@ -34,20 +33,6 @@ body.looper main{grid-template-rows:auto minmax(0,1fr) auto auto;
 body.looper #kb{height:var(--kbh)}
 body.looper .w{height:var(--kbh)}
 body.looper .b{height:calc(var(--kbh) * .62)}
-/* a long MIDI error would otherwise wrap the whole bar onto two lines */
-#bar #statusEl{flex:1 1 0;min-width:0;text-align:right;
-               overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-/* every part of the transport has to be able to give way; the readouts truncate
-   rather than holding the bar open at their min-width */
-#bar{flex-wrap:wrap;min-width:0}
-#bar > *{min-width:0}
-#bar .sep{flex:0 0 1px;width:1px;height:20px;background:var(--line)}
-#bar button{flex:0 0 auto}
-#bar #pos,#bar #played{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#bar #played{margin-left:8px}
-#bar #speed{flex:0 1 auto;min-width:0}
-#bar #speed input{width:clamp(64px,9vw,110px);min-width:0}
-
 #work{padding:12px 14px 0;display:flex;flex-direction:column;gap:9px;min-height:0}
 #lanes{flex:1 1 auto;min-height:0}
 #lphead{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;min-width:0}
@@ -57,7 +42,6 @@ body.looper .b{height:calc(var(--kbh) * .62)}
 #lphead .opts{margin-left:auto;flex:0 0 auto;display:flex;align-items:center;gap:8px;font-size:11px;color:var(--dim)}
 #snapBtn{min-width:58px}   /* bar .. chorus */
 #gridBtn{min-width:40px}   /* off .. 1/16 */
-button:disabled{opacity:.45;cursor:default}
 button.mini{background:#22262f;border:1px solid var(--line);border-radius:5px;
             padding:3px 8px;font-size:11px;font-variant-numeric:tabular-nums}
 button.mini.on{background:var(--accent);border-color:var(--accent);color:#14161a;font-weight:600}
