@@ -1,6 +1,6 @@
 # MidiMan — product conventions
 
-Owner: **Mira** (PM). Update this file when Ishay locks a product rule.
+Owner: **Miriam** (PM). Update this file when Ishay locks a product rule.
 
 ## North star
 
