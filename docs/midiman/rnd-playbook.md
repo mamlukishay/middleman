@@ -11,22 +11,22 @@ Repo: [`peak-luli/midiman`](https://github.com/peak-luli/midiman) (Issues/PRs li
 | Right hand | Felix | Staffing, cadence, routing |
 | PM | Mira | Briefs, acceptance, roadmap |
 | Head of R&D | Nina | How we build, QA bar, tooling, shipping |
-| Human at the piano | Ishay | Real MIDI play, post-session notes, Claude Code on Mac |
+| Human at the piano | Ishay | Real MIDI play, post-session notes, kick Claude cloud when needed |
 
 ## Loop
 
-1. Mira brief with **testable acceptance** (GitHub Issue).
-2. Nina plan + slice → Issue updated; paste-ready **Claude Code handoff** to Ishay.
-3. Ishay runs **Claude Code on his Mac** (Nina does not drive the Mac).
-4. Push to GitHub — scoped, well-named commits OK; **PR only for playable feature bundles** (not every commit).
-5. Nina wakes from **GitHub watch** (PR/CI events) and **main push poll** (~every 30m, 08–23 local) → review-bot flags only what Ishay should skim (stack drift, missing tests, MIDI/relay risk, oversized diffs).
-6. Ishay plays once (real MIDI) → Nina sends **feedback packet** to Mira (notes / screenshots / test results / PR link if any).
+1. Mira brief with **testable acceptance** (GitHub Issue — ACs as checkboxes).
+2. Nina plan + slice → Issue updated; task brief for **Claude Code on the web** (or Cursor cloud later).
+3. Cloud agent builds on a branch and opens a **PR** (Ishay’s Mac only for verify / real MIDI / phone LAN).
+4. Scoped, well-named commits; **PR for playable feature bundles**.
+5. Nina wakes from **GitHub watch** (PR/CI) and **main push poll** → review-bot flags + **AC checkboxes** + **PR screenshots**.
+6. Ishay plays once (real MIDI) → Nina sends **feedback packet** to Mira.
 
-## Tools
+## Tools (current month)
 
-- **Claude Code on Ishay’s Mac** — primary coding path this month. Nina writes the handoff brief; Ishay pastes and runs.
-- **Cursor cloud agents** — for non-MIDI work **once** Cursor has access to `peak-luli/midiman` (currently blocked). Prefer **MockMidiBus** (same interface as Web MIDI + fixtures) so agents/CI can run without a piano.
-- **GitHub connector / Issues** — shared backlog (Nina + Ishay). Board conventions: Issue `#1`. Active P0 slice: `#2` `[E1][P0][I2] Intro-coach`.
+- **Claude Code on the web** (`claude.ai/code` / `claude --cloud`) — primary until Anthropic month ends. Needs Claude GitHub App on `peak-luli/midiman`. Nina cannot drive Anthropic login from her box; Ishay kicks or uses his signed-in browser.
+- **Cursor cloud agents** — next; needs Cursor↔GitHub App access to `peak-luli/midiman`. Prefer **MockMidiBus** for agent/CI without a piano.
+- **GitHub connector / Issues** — shared backlog. `#1` conventions, `#2` Intro-coach.
 
 ## Stack rules (don’t invent architecture)
 
@@ -36,22 +36,27 @@ Native ES modules, no build step, Web MIDI, `serve.py` relay. Change architectur
 
 - Unit where logic is pure (e.g. plan shape, streak / accuracy).
 - Smoke for Learn / relay when those paths are touched.
-- Mock MIDI for agent/CI path when MockMidiBus exists; **real MIDI play is human-only (Ishay)**.
-- **Acceptance criteria are the verify list.** Each AC on the Issue is a checkbox (`- [ ]`). Do **not** add a separate “Verify checklist” section (Ishay locked). Nina ticks ACs cold where possible; Ishay still does the feel playtest.
+- Mock MIDI for agent/CI when MockMidiBus exists; **real MIDI play is human-only (Ishay)**.
+- **Acceptance criteria are the verify list.** Each AC is a checkbox on the Issue — no separate Verify section.
+- **Screenshots required on cloud/UI PRs** (Ishay locked): attach happy-path shots in the PR body so Nina can catch layout/coach/meter issues before piano play. Code-only cloud PRs are incomplete. Typical set: landing, active scoring step with meter, step-done overlay, phone stand view if AC claims phone.
 
-## Claude Code handoff (minimum)
+## Review order
 
-Paste-ready brief must include: goal, repo/branch, Issue AC checkboxes (link to Issue), in/out of scope, stack rules, likely files, commit/PR style, “done = pushed so Nina’s watch picks it up.”
+1. **Nina** — eng review (AC checkboxes + screenshot skim + review-bot flags)
+2. **Ishay** — feel play (real MIDI / phone)
+3. **Mira** — product acceptance via feedback packet
 
-Reusable skill: [Claude Code handoff brief](sand-workflow:claude-code-handoff-brief) (Grok Bot skill library).
+## Cloud / Claude handoff (minimum)
+
+Brief must include: goal, repo/branch, Issue AC link, in/out of scope, stack rules, likely files, commit/PR style, **screenshot requirements**, “done = PR with shots so Nina’s watch picks it up.”
 
 ## Feedback packet (back to Mira)
 
 After play: what worked / what broke / how it felt (+ screenshot if something’s weird).  
-Plus PR/test notes and which Issue AC checkboxes passed/failed.
+Plus PR link, AC checkbox results, and any review flags.
 
 ## Related
 
-- `docs/` = shared process wiki (this file and siblings). See also `issue-format.md`.
-- Agent persona / desk memory = not the wiki; don’t duplicate org chart here beyond the table above.
+- `docs/` = shared process wiki. See also `issue-format.md`.
+- Agent persona / desk memory = not the wiki.
 - Issues: `#1` board conventions, `#2` Intro-coach (E1 / P0 / I2).
