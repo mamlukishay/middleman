@@ -1,6 +1,6 @@
 # MidiMan docs (wiki)
 
-Shared product + engineering knowledge for MidiMan, plus company chronicle under `docs/chronicle/`.
+Shared product + engineering knowledge for MidiMan, plus company chronicle under `docs/chronicle/`.  
 Company org pages can live under `docs/company/` in this same repo for now.
 
 ## Index
@@ -9,7 +9,8 @@ Company org pages can live under `docs/company/` in this same repo for now.
 |---|---|---|
 | [Product conventions](midiman/product-conventions.md) | Miriam | North star, epics/slices/priorities, what’s in/out |
 | [Issue format](midiman/issue-format.md) | Miriam | User story + how-to-get-there + acceptance on every issue |
-| [R&D playbook](midiman/rnd-playbook.md) | Noa | Build loop, Claude Code handoff, QA, feedback packets |
+| [R&D playbook](midiman/rnd-playbook.md) | Noa | Build loop, cloud handoff, QA, feedback packets |
+| [Architecture](midiman/architecture.md) | Noa | Simple diagrams: laptop/phone/relay, Learn tutor, feedback |
 | [Chronicle](chronicle/README.md) | Joseph | Agentic-company archive / lessons |
 
 ## Layers (company brain)
