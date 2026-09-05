@@ -21,8 +21,10 @@ Bad: `I13 I14 I15`
    - **One-liner** in plain language (what Ishay would notice in the app)  
    - **URL** if it has one (GitHub issue, PR, doc)  
    - Optional sequencing / dependency note  
-3. **Prep** — what to skim or think about beforehand.  
+3. **Prep** — what to skim or think about beforehand (PR links, play notes, docs).  
 4. **Links** — docs, PRs, related epics as needed.
+
+When Miriam or Noa request a meet, they supply background + agenda one-liners + URLs to Felix **before** the invite goes out — Felix does not invent eng/product content.
 
 ### Time
 Timezone explicit (default **Asia/Jerusalem**). Duration honest.
@@ -51,5 +53,6 @@ Agenda
 2. …
 
 Prep
+- Skim PR #11 / play notes if this is a Learn chrome meet
 …
 ```
