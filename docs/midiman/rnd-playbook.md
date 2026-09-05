@@ -37,21 +37,21 @@ Native ES modules, no build step, Web MIDI, `serve.py` relay. Change architectur
 - Unit where logic is pure (e.g. plan shape, streak / accuracy).
 - Smoke for Learn / relay when those paths are touched.
 - Mock MIDI for agent/CI path when MockMidiBus exists; **real MIDI play is human-only (Ishay)**.
-- Gate on the Issue’s cold pass/fail ACs — R&D should verify without Ishay at the piano where possible; he still does the feel playtest.
+- **Acceptance criteria are the verify list.** Each AC on the Issue is a checkbox (`- [ ]`). Do **not** add a separate “Verify checklist” section (Ishay locked). Nina ticks ACs cold where possible; Ishay still does the feel playtest.
 
 ## Claude Code handoff (minimum)
 
-Paste-ready brief must include: goal, repo/branch, acceptance, in/out of scope, stack rules, likely files, QA checklist, commit/PR style, “done = pushed so Nina’s watch picks it up.”
+Paste-ready brief must include: goal, repo/branch, Issue AC checkboxes (link to Issue), in/out of scope, stack rules, likely files, commit/PR style, “done = pushed so Nina’s watch picks it up.”
 
 Reusable skill: [Claude Code handoff brief](sand-workflow:claude-code-handoff-brief) (Grok Bot skill library).
 
 ## Feedback packet (back to Mira)
 
 After play: what worked / what broke / how it felt (+ screenshot if something’s weird).  
-Plus PR/test notes and AC checklist results from Nina.
+Plus PR/test notes and which Issue AC checkboxes passed/failed.
 
 ## Related
 
-- `docs/` = shared process wiki (this file and siblings).
+- `docs/` = shared process wiki (this file and siblings). See also `issue-format.md`.
 - Agent persona / desk memory = not the wiki; don’t duplicate org chart here beyond the table above.
 - Issues: `#1` board conventions, `#2` Intro-coach (E1 / P0 / I2).
