@@ -280,6 +280,14 @@ async function main() {
     `${f0.title}: loop=${f0.loop} · ${f1.title}: loop=${f1.loop} wait=${f1.wait} · ${f2.title}: loop=${f2.loop} wait=${f2.wait}`);
   ok('the meter asks for two passes, and says which one you are on',
     f2.slots.join(' ') === 'Pass 1/2 Pass 2/2', f2.slots.join(' ') || '(no slots)');
+  // the step chooses the loop, it does not own it: Loop is still a switch you can throw
+  await laptop.click('#loopBtn');
+  const loopOff = await laptop.ev('return { loop: __mm.engine.loop, on: document.getElementById(\'loopBtn\').classList.contains(\'on\') };');
+  await laptop.click('#loopBtn');
+  const loopBack = await laptop.ev('return { loop: __mm.engine.loop, on: document.getElementById(\'loopBtn\').classList.contains(\'on\') };');
+  ok('Loop is still yours to turn off and on again on a looping step',
+    loopOff.loop === false && !loopOff.on && loopBack.loop === true && loopBack.on,
+    `off -> ${loopOff.loop} · on again -> ${loopBack.loop}`);
 
   // the tempo slider is a control like any other, and 60 bpm is four minutes of check
   await laptop.ev(`__mm.applyStep(0);
