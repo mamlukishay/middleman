@@ -14,6 +14,7 @@ This folder lives in the **MidiMan** repo until a dedicated private `company-bra
 |---|---|---|
 | [0001](0001-2026-09-05-day-one-company.md) | 2026-09-05 | Day one: staffing the agentic company |
 | [0002](0002-2026-09-05-day-one-renames.md) | 2026-09-05 | Day-one renames: Mira → Miriam, Nina → Noa |
+| [0003](0003-2026-09-05-parallel-i2-i7.md) | 2026-09-05 | Parallel P0s: I2 Intro-coach + I7 learn-feedback |
 
 ## Rules
 
