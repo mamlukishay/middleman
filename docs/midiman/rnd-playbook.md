@@ -10,8 +10,8 @@ Repo: [`peak-luli/midiman`](https://github.com/peak-luli/midiman) (Issues/PRs li
 |---|---|---|
 | Right hand | Felix | Staffing, cadence, routing |
 | PM | Miriam | Briefs, acceptance, roadmap |
-| Head of R&D | Noa | How we build, QA bar, tooling, shipping |
-| Human at the piano | Ishay | Real MIDI play, post-session notes, kick Claude cloud when needed |
+| Head of R&D | Noa | How we build, QA bar, tooling, shipping, **architecture docs** |
+| Human at the piano | Ishay | Real MIDI play, post-session notes, kick Claude cloud when needed; consult on **major** architecture |
 
 ## Loop
 
@@ -22,15 +22,19 @@ Repo: [`peak-luli/midiman`](https://github.com/peak-luli/midiman) (Issues/PRs li
 5. Noa wakes from **GitHub watch** (PR/CI) and **main push poll** → review-bot flags + **AC checkboxes** + **PR screenshots**.
 6. Ishay plays once (real MIDI) → Noa sends **feedback packet** to Miriam.
 
+Parallel slices are OK when Noa says file overlap is safe (Miriam asks before assuming parallel vs serial).
+
 ## Tools (current month)
 
 - **Claude Code on the web** (`claude.ai/code` / `claude --cloud`) — primary until Anthropic month ends. Needs Claude GitHub App on `peak-luli/midiman`. Noa cannot drive Anthropic login from her box; Ishay kicks or uses his signed-in browser.
 - **Cursor cloud agents** — next; needs Cursor↔GitHub App access to `peak-luli/midiman`. Prefer **MockMidiBus** for agent/CI without a piano.
-- **GitHub connector / Issues** — shared backlog. `#1` conventions, `#2` Intro-coach.
+- **GitHub connector / Issues** — shared backlog. `#1` conventions, `#2` Intro-coach, `#7` learn-feedback.
 
-## Stack rules (don’t invent architecture)
+## Stack + architecture
 
-Native ES modules, no build step, Web MIDI, `serve.py` relay. Change architecture only with a clear reason and Miriam + Ishay alignment.
+Native ES modules, no build step, Web MIDI, `serve.py` relay.  
+Living diagrams: [`architecture.md`](architecture.md) — Noa updates these whenever connections change.  
+**Major** architecture uncertainty → ask Ishay. Otherwise decide, ship, document.
 
 ## QA bar (per slice)
 
@@ -48,7 +52,8 @@ Native ES modules, no build step, Web MIDI, `serve.py` relay. Change architectur
 
 ## Cloud / Claude handoff (minimum)
 
-Brief must include: goal, repo/branch, Issue AC link, in/out of scope, stack rules, likely files, commit/PR style, **screenshot requirements**, “done = PR with shots so Noa’s watch picks it up.”
+Brief must include: goal, repo/branch, Issue AC link, in/out of scope, stack rules, likely files, commit/PR style, **screenshot requirements**, “done = PR with shots so Noa’s watch picks it up.”  
+If the slice changes architecture, the PR must update `architecture.md`.
 
 ## Feedback packet (back to Miriam)
 
@@ -57,6 +62,6 @@ Plus PR link, AC checkbox results, and any review flags.
 
 ## Related
 
-- `docs/` = shared process wiki. See also `issue-format.md`.
-- Agent persona / desk memory = not the wiki.
-- Issues: `#1` board conventions, `#2` Intro-coach (E1 / P0 / I2).
+- [`architecture.md`](architecture.md) — system diagrams
+- `issue-format.md` — how Issues are written
+- Issues: `#2` Intro-coach, `#7` learn-feedback, `#8` Practice/Looper feedback (parked)
