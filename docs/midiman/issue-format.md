@@ -11,16 +11,17 @@ Owner: **Mira**. Every eng issue must be readable by Ishay as an app user (not a
 
 3. **How to get there (STR)** — step-by-step what you *see and tap* in the app. No unexplained code ids. Show labels the UI actually shows (e.g. the button **Put it on the phone**, the step title **Listen**).
 
-4. **Acceptance criteria** — pass/fail bullets R&D can verify without Ishay at the piano when possible. If an AC is fuzzy, Mira asks **Nina** before locking.
+4. **Acceptance criteria** — each AC is a **checkbox** (`- [ ]`). ACs *are* the verify list; do **not** add a separate “Verify checklist” section. Write pass/fail so R&D can tick without Ishay at the piano when possible. If an AC is fuzzy, Mira asks **Nina** before locking.
 
 5. **Out of scope** — hard boundaries.
 
-Reference example: GitHub issue **#2** (Intro-coach) after the user-story rewrite.
+Reference example: GitHub issue **#2** (Intro-coach).
 
 ## Don’t
 
 - Don’t put agent persona / working-style docs in Issues (those live on the agent’s desk).
 - Don’t use raw module/file names or `#elementId` as the only description of a feature — translate to what the user sees.
+- Don’t duplicate ACs with a second R&D verify checklist.
 
 ## When asking Ishay to decide
 
