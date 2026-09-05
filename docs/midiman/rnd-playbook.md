@@ -9,18 +9,18 @@ Repo: [`peak-luli/midiman`](https://github.com/peak-luli/midiman) (Issues/PRs li
 | Role | Who | Owns |
 |---|---|---|
 | Right hand | Felix | Staffing, cadence, routing |
-| PM | Mira | Briefs, acceptance, roadmap |
+| PM | Miriam | Briefs, acceptance, roadmap |
 | Head of R&D | Nina | How we build, QA bar, tooling, shipping |
 | Human at the piano | Ishay | Real MIDI play, post-session notes, kick Claude cloud when needed |
 
 ## Loop
 
-1. Mira brief with **testable acceptance** (GitHub Issue — ACs as checkboxes).
+1. Miriam brief with **testable acceptance** (GitHub Issue — ACs as checkboxes).
 2. Nina plan + slice → Issue updated; task brief for **Claude Code on the web** (or Cursor cloud later).
 3. Cloud agent builds on a branch and opens a **PR** (Ishay’s Mac only for verify / real MIDI / phone LAN).
 4. Scoped, well-named commits; **PR for playable feature bundles**.
 5. Nina wakes from **GitHub watch** (PR/CI) and **main push poll** → review-bot flags + **AC checkboxes** + **PR screenshots**.
-6. Ishay plays once (real MIDI) → Nina sends **feedback packet** to Mira.
+6. Ishay plays once (real MIDI) → Nina sends **feedback packet** to Miriam.
 
 ## Tools (current month)
 
@@ -30,7 +30,7 @@ Repo: [`peak-luli/midiman`](https://github.com/peak-luli/midiman) (Issues/PRs li
 
 ## Stack rules (don’t invent architecture)
 
-Native ES modules, no build step, Web MIDI, `serve.py` relay. Change architecture only with a clear reason and Mira + Ishay alignment.
+Native ES modules, no build step, Web MIDI, `serve.py` relay. Change architecture only with a clear reason and Miriam + Ishay alignment.
 
 ## QA bar (per slice)
 
@@ -44,13 +44,13 @@ Native ES modules, no build step, Web MIDI, `serve.py` relay. Change architectur
 
 1. **Nina** — eng review (AC checkboxes + screenshot skim + review-bot flags)
 2. **Ishay** — feel play (real MIDI / phone)
-3. **Mira** — product acceptance via feedback packet
+3. **Miriam** — product acceptance via feedback packet
 
 ## Cloud / Claude handoff (minimum)
 
 Brief must include: goal, repo/branch, Issue AC link, in/out of scope, stack rules, likely files, commit/PR style, **screenshot requirements**, “done = PR with shots so Nina’s watch picks it up.”
 
-## Feedback packet (back to Mira)
+## Feedback packet (back to Miriam)
 
 After play: what worked / what broke / how it felt (+ screenshot if something’s weird).  
 Plus PR link, AC checkbox results, and any review flags.
