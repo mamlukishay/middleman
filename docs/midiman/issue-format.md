@@ -1,6 +1,6 @@
 # MidiMan — GitHub issue format
 
-Owner: **Mira**. Every eng issue must be readable by Ishay as an app user (not a developer).
+Owner: **Miriam**. Every eng issue must be readable by Ishay as an app user (not a developer).
 
 ## Required sections
 
@@ -11,7 +11,7 @@ Owner: **Mira**. Every eng issue must be readable by Ishay as an app user (not a
 
 3. **How to get there (STR)** — step-by-step what you *see and tap* in the app. No unexplained code ids. Show labels the UI actually shows (e.g. the button **Put it on the phone**, the step title **Listen**).
 
-4. **Acceptance criteria** — each AC is a **checkbox** (`- [ ]`). ACs *are* the verify list; do **not** add a separate “Verify checklist” section. Write pass/fail so R&D can tick without Ishay at the piano when possible. If an AC is fuzzy, Mira asks **Nina** before locking.
+4. **Acceptance criteria** — each AC is a **checkbox** (`- [ ]`). ACs *are* the verify list; do **not** add a separate “Verify checklist” section. Write pass/fail so R&D can tick without Ishay at the piano when possible. If an AC is fuzzy, Miriam asks **Noa** before locking.
 
 5. **Out of scope** — hard boundaries.
 
