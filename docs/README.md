@@ -1,7 +1,7 @@
 # MidiMan docs (wiki)
 
-Shared product + engineering knowledge for MidiMan.  
-**Company HQ** (org chart, cross-product rhythm) will live in a separate `company-brain` repo once Ishay creates it — this folder is MidiMan-only.
+Shared product + engineering knowledge for MidiMan, plus company chronicle under `docs/chronicle/`.
+Company org pages can live under `docs/company/` in this same repo for now.
 
 ## Index
 
@@ -10,6 +10,7 @@ Shared product + engineering knowledge for MidiMan.
 | [Product conventions](midiman/product-conventions.md) | Miriam | North star, epics/slices/priorities, what’s in/out |
 | [Issue format](midiman/issue-format.md) | Miriam | User story + how-to-get-there + acceptance on every issue |
 | [R&D playbook](midiman/rnd-playbook.md) | Noa | Build loop, Claude Code handoff, QA, feedback packets |
+| [Chronicle](chronicle/README.md) | Joseph | Agentic-company archive / lessons |
 
 ## Layers (company brain)
 
@@ -21,3 +22,5 @@ Shared product + engineering knowledge for MidiMan.
 ## Repo note
 
 Canonical GitHub remote for Issues/PRs today: `peak-luli/midiman` (also reachable as `mamlukishay/midiman`).
+
+**Rename notes (2026-09-05):** PM is **Miriam** (ex-Mira); Head of R&D is **Noa** (ex-Nina / briefly Ari).
