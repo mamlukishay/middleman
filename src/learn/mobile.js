@@ -286,10 +286,11 @@ function applyStep(i, autoStart = false) {
 }
 
 // ---------------------------------------------------------------- the card
-function showCard(title, sub, next, hint) {
+function showCard(title, sub, next, hint, coach = '') {
   el.idle.hidden = true;
   el.cTitle.textContent = title;
   el.cSub.textContent = sub;
+  el.cCoach.textContent = coach;
   el.cNext.innerHTML = next;
   el.cHint.textContent = hint;
   el.card.querySelector('.cbar i').style.width = '0%';
@@ -297,10 +298,20 @@ function showCard(title, sub, next, hint) {
 }
 const hideCard = () => { el.card.hidden = true; el.idle.hidden = true; };
 
+/**
+ * What is loaded and waiting. From the music stand this is read at arm's length, so
+ * it is the step's name, where it is in the song, and the coach's one line -- not the
+ * panel's paragraph, which belongs on the laptop where there is a chair in front of it.
+ */
 function showIdle() {
   if (mode !== 'tutor' || engine.running || pending) return;
-  el.iTitle.textContent = plan[si].title;
-  el.iSub.textContent = goalText(plan[si].challenge);
+  const s = plan[si];
+  el.iTitle.textContent = `${song.sections[s.section]?.name ?? ''} · ${s.title}`;
+  // nothing of yours is scored while the app plays it to you, so a percentage there
+  // would be a goal you cannot miss and cannot aim at
+  el.iWhere.textContent = `bars ${s.from + 1}–${s.to + 1} · `
+    + (s.kind === 'listen' ? 'the app plays it, both hands' : goalText(s.challenge));
+  el.iSub.textContent = s.coach ?? '';
   el.card.hidden = true;
   el.idle.hidden = false;
 }
@@ -311,7 +322,7 @@ function stepDone(r) {
   const notes = r?.total ? `${r.hits} of ${r.total} notes` : 'heard it';
   if (!next) return showCard('✓ The whole song', notes, '', 'that was the last step');
   showCard(`✓ ${s.title}`, notes, `next up <b>${next.title}</b>`,
-    'starts by itself · tap anywhere to go now');
+    'starts by itself · tap anywhere to go now', next.coach);
   const t0 = performance.now();
   pending = setInterval(() => {
     const f = Math.min(1, (performance.now() - t0) / COUNTDOWN_MS);
@@ -674,7 +685,7 @@ function applyRemoteState(s) {
 
   remoteCard = s.card ?? null;
   if (remoteCard) {
-    showCard(remoteCard.title, remoteCard.sub, '', remoteCard.hint);
+    showCard(remoteCard.title, remoteCard.sub, '', remoteCard.hint, remoteCard.coach ?? '');
     el.card.querySelector('.cbar i').style.width = Math.round((remoteCard.progress ?? 0) * 100) + '%';
   } else {
     hideCard();
