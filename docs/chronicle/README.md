@@ -13,11 +13,11 @@ This folder lives in the **MidiMan** repo until a dedicated private `company-bra
 | Entry | Date | Title |
 |---|---|---|
 | [0001](0001-2026-09-05-day-one-company.md) | 2026-09-05 | Day one: staffing the agentic company |
-| [0002](0002-2026-09-05-mira-to-miriam.md) | 2026-09-05 | Mira → Miriam |
+| [0002](0002-2026-09-05-day-one-renames.md) | 2026-09-05 | Day-one renames: Mira → Miriam, Nina → Noa |
 
 ## Rules
 
 - Date everything; cite PRs/issues/docs when you can.
 - Sanitize — no raw private venting in publishable drafts.
 - Tag nuggets with `publishable:` when they could become a post (Ishay publishes, not Joseph).
-- Current PM name is **Miriam** (was briefly Mira).
+- Current names: PM **Miriam**, Head of R&D **Noa** (day-one renames — see Entry 0002).
