@@ -1,0 +1,88 @@
+# MidiMan — architecture (simple)
+
+Owner: **Noa** (Head of R&D). Keep this current when we change how pieces connect.  
+Major architecture questions → consult Ishay. Otherwise decide, ship, document here.
+
+Stack rules stay: **native ES modules, no build step, Web MIDI, `serve.py` relay.**
+
+---
+
+## Big picture
+
+```mermaid
+flowchart LR
+  piano[Piano MIDI]
+  laptop[Laptop browser\nlearn.html / practice / looper]
+  phone[Phone browser\nlearn-m.html]
+  serve["serve.py\nstatic files + relay"]
+  gh[GitHub\nIssues / PRs]
+
+  piano <-->|Web MIDI| laptop
+  laptop <-->|LAN HTTP + relay WS| serve
+  phone <-->|LAN HTTP + relay| serve
+  laptop -.->|mirrors lesson state| phone
+  serve -.->|feedback POST → issue| gh
+```
+
+- **Laptop** owns the piano (Web MIDI) and most of the lesson logic.
+- **Phone** is usually the music stand (mirror). iPhone has no Web MIDI.
+- **`serve.py`** serves the app and runs the Learn relay room so laptop ↔ phone stay in sync.
+
+---
+
+## Learn tutor loop (I2 spine)
+
+```mermaid
+flowchart TD
+  song[songs/*.json] --> plan[buildPlan → steps]
+  plan --> app[learn/app.js]
+  app --> engine[learn/engine.js\nloop / wait / passes]
+  engine --> scorer[scorer + pass streak]
+  scorer --> meter[meter UI]
+  app --> overlay[step-done overlay\ncoach + auto-advance]
+  app --> host[host.js snapshot]
+  host -->|relay| mobile[learn-m / mobile.js]
+```
+
+- Steps come from `plan.js` (listen → find notes → hand in time → …).
+- “Notch up” = next **plan step**, not a separate difficulty system.
+- Phone shows title / where / meter / done card from the laptop snapshot.
+
+---
+
+## Feedback path (I7 — target)
+
+Fire-and-forget. GitHub is the inbox. No local sync product.
+
+```mermaid
+flowchart LR
+  uiL[Feedback on learn.html]
+  uiP[Feedback on learn-m.html]
+  snap[Context snapshot\nsong / mode / step / bars / %]
+  api["POST /feedback\nserve.py"]
+  inbox[GitHub Issue\nlabel: feedback]
+
+  uiL --> snap
+  uiP --> snap
+  snap --> api
+  api -->|server token| inbox
+```
+
+- Chip: **went well** / **friction** + optional one line.
+- Token lives on the **server**, never in client JS.
+- If GitHub is down: quiet fail; play continues; lost submit OK.
+
+---
+
+## What we deliberately don’t do
+
+- No bundler / build step for the app pages.
+- No inventing a second “difficulty axis” beside the tutor plan.
+- No making local files the source of truth for feedback.
+- Cloud agents / Claude web build code; Ishay verifies with real MIDI.
+
+---
+
+## When this doc must update
+
+Any PR that adds a new surface (e.g. Practice feedback), a new network hop, or changes laptop↔phone ownership should edit this file in the same PR.
