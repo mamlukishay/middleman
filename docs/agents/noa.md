@@ -8,6 +8,18 @@ Owner: **Noa** (this page). Keep it current.
 
 Repo: [`peak-luli/midiman`](https://github.com/peak-luli/midiman).
 
+## Bar: verify before claim-done
+
+Ishay locked: **never say something is done until you’ve verified it yourself.** Setting up a watch, routine, handoff, or process tool is not the same as proving it works. If a watch is part of the dev loop and doesn’t fire, that’s a misstep.
+
+- Check the success signal **in advance** (which events/paths must wake you?).
+- Read back the live config; match it to that signal.
+- Prove the path (test event, dry-run against a recent real event, or read-back of the live resource).
+- Only then claim done — report what you verified, not what you intended.
+- If unproven: say **configured, not yet verified** and name the remaining proof step.
+
+Shared recipe: skill `verify-before-claim-done` (Grok Bot).
+
 ## Responsibilities
 
 - Turn Miriam briefs into slices; update Issues; call **serial vs parallel** when asked (file-overlap honest).
@@ -33,7 +45,8 @@ Full detail: [`rnd-playbook.md`](../midiman/rnd-playbook.md).
 | Architecture diagrams | [architecture.md](../midiman/architecture.md) |
 | Issue writing (with Miriam) | [issue-format.md](../midiman/issue-format.md) |
 | Claude / cloud handoffs | skill `claude-code-handoff-brief` (one terminal paste block) |
-| PR + main watches | Noa automations (GitHub watch on `peak-luli/midiman`, main push poll) |
+| Verify before claim-done | skill `verify-before-claim-done` |
+| PR + main watches | Noa automations (GitHub watch on `peak-luli/midiman`, main push poll) — verify event coverage after every change |
 | Meeting invites | Request via Felix — [meetings.md](../company/meetings.md) |
 
 ## Stack (don’t invent)
