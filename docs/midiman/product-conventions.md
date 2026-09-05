@@ -21,7 +21,7 @@ Full LLM / voice chat comes later. Practice stays. Looper / jam / Bluetooth late
 | Term | Meaning |
 |---|---|
 | **Epic** (E1, E2, …) | Outcome-sized bet (e.g. E1 = Learn City of Stars) |
-| **Slice** (named) | Shipable chunk under an epic (e.g. Intro-coach) |
+| **Slice** (named) | Shippable chunk under an epic (e.g. Intro-coach) |
 | **P0 / P1 / P2** | Priority only — not a name for the work |
 | **Issue** (I#) | GitHub tracking id |
 | **Milestone** | Date / release marker only |
