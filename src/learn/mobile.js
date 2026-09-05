@@ -424,9 +424,11 @@ function syncPlay() {
   if (!song) return;
   const s = mode === 'tutor' ? plan[si] : null;
   el.stepTitle.textContent = s ? s.title : 'Free practice';
-  const where = s ? `${song.sections[s.section]?.name ?? ''} · step ${si + 1} of ${plan.length}` : song.title;
+  // sideways this line has about a fifth of the bar, so it is where you are in the
+  // song first and the count through the plan last, in the shortest form that says it
+  const where = s ? song.sections[s.section]?.name ?? '' : song.title;
   el.stepWhere.textContent = `${where} · bars ${engine.from + 1}–${engine.to + 1}`
-    + (engine.wait ? ' · no clock' : '');
+    + (s ? ` · ${si + 1}/${plan.length}` : '') + (engine.wait ? ' · no clock' : '');
   el.startBtn.textContent = engine.running ? '■ Stop' : (hearing ? '■ Stop' : '▶ Start');
   el.startBtn.classList.toggle('on', engine.running);
   for (const [id, on] of [['metroBtn', engine.metroOn], ['waitBtn', engine.wait], ['loopBtn', engine.loop]]) {

@@ -342,6 +342,7 @@ async function main() {
     v => v && /live/.test(v.cls) && /^\d+%$/.test(v.val), 20000, 150);
   ok('the meter fills with the live hit rate while the pass runs',
     live.ok && live.v.label === 'Pass 1/2', `${live.v?.label}: ${live.v?.val}`);
+  if (SHOTS) { await laptop.shot(join(SHOTS, 'intro-in-time.png')); await phone.shot(join(SHOTS, 'intro-in-time-phone.png')); }
   const passed2 = await poll(() => laptop.ev('return { done: [...__mm.done], si: __mm.si };'),
     v => v && v.done.includes(2), 40000, 250);
   await laptop.ev(`clearInterval(window.__play?.id); window.__play?.stops.forEach(f => f());

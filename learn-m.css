@@ -124,7 +124,19 @@ button{font-family:inherit;touch-action:manipulation}
 /* ------------------------------------------------------------- the playing screen */
 #topbar{display:flex;align-items:center;gap:6px;height:48px;flex:0 0 auto;
   padding:0 6px 0 2px;border-bottom:1px solid var(--line);overflow:hidden}
-#topbar .ttl{flex:1 1 40px}
+/* Everything else in this bar is a control the pianist finds by shape and colour; the
+   title is the only thing that is *read*, and at `1 1 40px` in a row of things that
+   never give it was squeezed to two letters -- "L…" where "Left hand in time · Intro ·
+   bars 1–4" should be. So it takes a real share, and the two pieces that can afford to
+   be smaller give it back: a view button does not need 46px for "Roll", and the volume
+   slider is a handle, not a readout. */
+#topbar .ttl{flex:1 1 150px;min-width:96px}
+#topbar .mseg button{min-width:40px;padding:0 6px}
+#topbar .mchip{padding:0 7px;gap:4px}
+#topbar .stepper button{width:34px}
+#topbar .stepper .bpmv{min-width:46px}
+#topbar #mvol{padding:0 7px}
+#topbar #mvol input{width:56px}
 .mseg{display:flex;height:40px;border:1px solid var(--line);border-radius:8px;
   background:#171a20;overflow:hidden;flex:0 0 auto}
 .mseg button{height:40px;min-width:46px;padding:0 8px;border:0;border-radius:0;background:none;
