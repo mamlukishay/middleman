@@ -31,27 +31,34 @@
 
 <main>
   <div id="bar">
-    <button id="play" data-key="Space"
-            data-tip="Start everything — the backing track, the click and every loop">▶ Play</button>
-    <button id="stop"
-            data-tip="Stop, and close any take that is still running rather than losing it">■ Stop</button>
-    <button id="metroBtn" class="tgl"
-            data-tip="A click on every beat. It is browser audio, so it never reaches the piano.">● Click</button>
+    <span class="grp">
+      <button id="play" data-key="Space"
+              data-tip="Start everything — the backing track, the click and every loop">▶ Play</button>
+      <button id="stop"
+              data-tip="Stop, and close any take that is still running rather than losing it">■ Stop</button>
+      <button id="metroBtn" class="tgl"
+              data-tip="A click on every beat. It is browser audio, so it never reaches the piano.">● Click</button>
+    </span>
     <span id="outsel"></span>
-    <button id="backBtn" class="tgl on"
-            data-tip="Silence the backing track and loop against nothing">♩ Backing</button>
-    <span class="sep"></span>
+    <span class="grp">
+      <button id="backBtn" class="tgl on"
+              data-tip="Silence the backing track and loop against nothing">♩ Backing</button>
+    </span>
     <span id="pos" data-tip="Where the playhead is in the form">–</span>
-    <span id="speed">Speed
-      <input type="range" id="tempo" min="50" max="200" step="1" value="100"
-             data-tip="Tempo. The playhead stays where it is across the change.">
-      <b id="bpmv" contenteditable="plaintext-only" inputmode="numeric"
-         data-tip="Click to type a tempo">100</b> bpm</span>
-    <span id="vol">Volume
-      <input type="range" id="volume" min="0" max="100" step="1" value="100"
-             data-tip="How loud the app plays, against your own playing">
-      <b id="volumev">100%</b></span>
-    <span id="played" data-tip="What you are holding down right now">–</span><span id="inled" data-tip="Flashes when a note arrives from the piano"></span>
+    <span class="grp">
+      <span id="speed">Speed
+        <input type="range" id="tempo" min="50" max="200" step="1" value="100"
+               data-tip="Tempo. The playhead stays where it is across the change.">
+        <b id="bpmv" contenteditable="plaintext-only" inputmode="numeric"
+           data-tip="Click to type a tempo">100</b> bpm</span>
+      <span id="vol">Volume
+        <input type="range" id="volume" min="0" max="100" step="1" value="100"
+               data-tip="How loud the app plays, against your own playing">
+        <b id="volumev">100%</b></span>
+    </span>
+    <span class="grp">
+      <span id="played" data-tip="What you are holding down right now">–</span><span id="inled" data-tip="Flashes when a note arrives from the piano"></span>
+    </span>
     <span id="statusEl">connecting…</span>
   </div>
 
