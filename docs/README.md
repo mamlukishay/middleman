@@ -9,7 +9,7 @@ Shared product + engineering knowledge for MidiMan.
 |---|---|---|
 | [Product conventions](midiman/product-conventions.md) | Miriam | North star, epics/slices/priorities, what’s in/out |
 | [Issue format](midiman/issue-format.md) | Miriam | User story + how-to-get-there + acceptance on every issue |
-| [R&D playbook](midiman/rnd-playbook.md) | Nina | Build loop, Claude Code handoff, QA, feedback packets |
+| [R&D playbook](midiman/rnd-playbook.md) | Noa | Build loop, Claude Code handoff, QA, feedback packets |
 
 ## Layers (company brain)
 
